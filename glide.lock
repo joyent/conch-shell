@@ -1,0 +1,27 @@
+hash: 9d491abfcc39782cc7f1e28c07e44316db15cee30857d1faac197564c95182cd
+updated: 2017-11-28T11:33:42.346862-05:00
+imports:
+- name: github.com/Bowery/prompt
+  version: 753711fea478fa77bb2c83f6ec244b814d4a8bad
+- name: github.com/joyent/go-conch
+  version: 3ee45b1d06e3d1721fcf252ebe0deadb48e11e24
+- name: github.com/labstack/gommon
+  version: 57409ada9da0f2afad6664c49502f8c50fbd8476
+  subpackages:
+  - color
+- name: github.com/mattn/go-colorable
+  version: 6fcc0c1fd9b620311d821b106a400b35dc95c497
+- name: github.com/mattn/go-isatty
+  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
+- name: github.com/mkideal/cli
+  version: a9c1104566927924fdb041d198f05617492913f9
+- name: github.com/mkideal/pkg
+  version: 3e188c9e7ecc83d0fe7040a9161ce3c67885470d
+  subpackages:
+  - debug
+  - expr
+- name: golang.org/x/sys
+  version: 328643532ee3c60c099171d4ce2cad0ca0354ca9
+  subpackages:
+  - unix
+testImports: []

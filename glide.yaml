@@ -1,0 +1,5 @@
+package: github.com/sungo/j-conch-shell-poc
+import:
+- package: github.com/mkideal/cli
+- package: github.com/Bowery/prompt
+- package: github.com/joyent/go-conch
