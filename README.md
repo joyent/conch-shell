@@ -40,13 +40,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 * Install [Glide](https://glide.sh/)
 * `cd $GOPATH/src/github.com/joyent/conch-shell`
 * Run `make`
-* Run `./conch help`
-
-## Docs
-
-Run `make docs_server` to run the godoc server to see the local docs in html.
-Hit up `http://localhost:6060/pkg/github.com/sungo/j-conch-shell-poc` to see
-the results.
+* Run `./conch`
 
 # Notes
 
