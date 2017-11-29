@@ -10,6 +10,7 @@ package config
 
 import (
 	"encoding/json"
+	"io/ioutil"
 )
 
 type ConchConfig struct {
@@ -19,7 +20,45 @@ type ConchConfig struct {
 	KV      map[string]interface{}
 }
 
+// New() provides an initialized struct with default values geared towards a
+// dev environment. For instance, the default Api value is
+// "http://localhost:5001".
+func New() (c *ConchConfig) {
+	c = &ConchConfig{
+		Api: "http://localhost:5001",
+	}
+	c.KV = make(map[string]interface{})
+	return c
+}
 
+// NewFromJson() unmarshals a JSON blob into a ConchConfig struct. It does
+// *not* fill in any default values.
+func NewFromJson(j string) (c *ConchConfig, err error) {
+	c = &ConchConfig{}
+	err = json.Unmarshal([]byte(j), c)
+
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+// NewFromJsonFile reads a file off disk and unmarshals it into ConchConfig
+// struct. It does *not* fill in any default values
+func NewFromJsonFile(path string) (c *ConchConfig, err error) {
+	raw, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	c = &ConchConfig{}
+	err = json.Unmarshal(raw, c)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
 
 // Serialize() marshals a ConchConfig struct into a JSON string
 func (c *ConchConfig) Serialize() (s string, err error) {
