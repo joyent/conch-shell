@@ -26,7 +26,10 @@ var LoginCmd = &cli.Command{
 	Desc: "Get login credentials via the API. Best use is 'conch login 2> ~/.conch.json'",
 	Argv: func() interface{} { return new(loginArgs) },
 	Fn: func(ctx *cli.Context) error {
-		argv := ctx.Argv().(*loginArgs)
+		argv := &loginArgs{}
+		if err := ctx.GetArgvList(argv); err != nil {
+			return err
+		}
 
 		api := &conch.Conch{
 			BaseUrl: argv.ApiUrl,
