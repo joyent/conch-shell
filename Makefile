@@ -12,8 +12,8 @@ clean:
 	rm -f conch
 
 sane:
-	go tool vet -all -v cmd/*.go *.go
-	gofmt -w -s cmd/*.go *.go
+	go tool vet -all -v config/*.go cmd/*.go *.go
+	gofmt -w -s config/*.go cmd/*.go *.go
 
 deps:
 	glide install

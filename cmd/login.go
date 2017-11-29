@@ -7,8 +7,8 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
+	config "github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
 	"os"
@@ -43,23 +43,20 @@ var LoginCmd = &cli.Command{
 			os.Exit(1)
 		}
 
-		type ConfigExport struct {
-			Api     string `json:"api"`
-			User    string `json:"user"`
-			Session string `json:"session"`
-		}
-		j, err := json.Marshal(&ConfigExport{
+		cfg := &config.ConchConfig{
 			Api:     api.BaseUrl,
 			User:    api.User,
 			Session: api.Session,
-		})
+		}
+
+		j, err := cfg.Serialize()
 
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		fmt.Fprintln(os.Stderr, string(j))
+		fmt.Fprintln(os.Stderr, j)
 
 		return nil
 	},
