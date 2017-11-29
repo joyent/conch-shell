@@ -14,10 +14,11 @@ import (
 )
 
 type ConchConfig struct {
-	Api     string
-	User    string
-	Session string
-	KV      map[string]interface{}
+	Path    string                 `json:"path"`
+	Api     string                 `json:"api"`
+	User    string                 `json:"user"`
+	Session string                 `json:"session"`
+	KV      map[string]interface{} `json:"kv"`
 }
 
 // New() provides an initialized struct with default values geared towards a
@@ -25,7 +26,7 @@ type ConchConfig struct {
 // "http://localhost:5001".
 func New() (c *ConchConfig) {
 	c = &ConchConfig{
-		Api: "http://localhost:5001",
+		Api:  "http://localhost:5001",
 	}
 	c.KV = make(map[string]interface{})
 	return c
