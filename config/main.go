@@ -10,8 +10,11 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 )
+
+var ConchConfigNoPath = errors.New("No path found in config data")
 
 type ConchConfig struct {
 	Path    string                 `json:"path"`
@@ -26,7 +29,7 @@ type ConchConfig struct {
 // "http://localhost:5001".
 func New() (c *ConchConfig) {
 	c = &ConchConfig{
-		Api:  "http://localhost:5001",
+		Api: "http://localhost:5001",
 	}
 	c.KV = make(map[string]interface{})
 	return c
@@ -71,4 +74,25 @@ func (c *ConchConfig) Serialize() (s string, err error) {
 	}
 
 	return string(j), nil
+}
+
+// SerializeToFile() marshals a ConchConfig struct into a JSON string and
+// writes it out to the provided path
+func (c *ConchConfig) SerializeToFile(path string) (err error) {
+	if c.Path == "" {
+		return ConchConfigNoPath
+	}
+
+	j, err := json.MarshalIndent(c, "", "	")
+
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(path, j, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
