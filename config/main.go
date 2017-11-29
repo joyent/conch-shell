@@ -16,12 +16,15 @@ type ConchConfig struct {
 	Api     string
 	User    string
 	Session string
+	KV      map[string]interface{}
 }
+
+
 
 // Serialize() marshals a ConchConfig struct into a JSON string
 func (c *ConchConfig) Serialize() (s string, err error) {
 
-	j, err := json.MarshalIndent(c,"","	")
+	j, err := json.MarshalIndent(c, "", "	")
 
 	if err != nil {
 		return "", err
