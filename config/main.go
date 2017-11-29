@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// config wraps a conch shell config. Typically this is either coming from
+// and/or becoming JSON on disk.
 package config
 
 import (
@@ -16,6 +18,7 @@ type ConchConfig struct {
 	Session string
 }
 
+// Serialize() marshals a ConchConfig struct into a JSON string
 func (c *ConchConfig) Serialize() (s string, err error) {
 
 	j, err := json.MarshalIndent(c,"","	")
