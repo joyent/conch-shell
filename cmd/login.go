@@ -23,11 +23,13 @@ type loginArgs struct {
 
 var LoginCmd = &cli.Command{
 	Name: "login",
-	Desc: "Get login credentials via the API. Best use is 'conch login 2> ~/.conch.json'",
+	Desc: "Get login credentials via the API",
 	Argv: func() interface{} { return new(loginArgs) },
 	Fn: func(ctx *cli.Context) error {
+
 		argv := &loginArgs{}
-		if err := ctx.GetArgvList(argv); err != nil {
+		globals := &GlobalArgs{}
+		if err := ctx.GetArgvList(argv, globals); err != nil {
 			return err
 		}
 
@@ -47,19 +49,18 @@ var LoginCmd = &cli.Command{
 		}
 
 		cfg := &config.ConchConfig{
+			Path:    globals.ConfigPath,
 			Api:     api.BaseUrl,
 			User:    api.User,
 			Session: api.Session,
 		}
 
-		j, err := cfg.Serialize()
+		err := cfg.SerializeToFile(cfg.Path)
 
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-
-		fmt.Fprintln(os.Stderr, j)
 
 		return nil
 	},
