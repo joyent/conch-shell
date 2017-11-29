@@ -23,7 +23,7 @@ type loginArgs struct {
 
 var LoginCmd = &cli.Command{
 	Name: "login",
-	Desc: "Get login credentials via the API",
+	Desc: "Get login credentials via the API. Will generate new config file if none exists",
 	Argv: func() interface{} { return new(loginArgs) },
 	Fn: func(ctx *cli.Context) error {
 
@@ -48,14 +48,17 @@ var LoginCmd = &cli.Command{
 			os.Exit(1)
 		}
 
-		cfg := &config.ConchConfig{
-			Path:    globals.ConfigPath,
-			Api:     api.BaseUrl,
-			User:    api.User,
-			Session: api.Session,
+		cfg, err := config.NewFromJsonFile(globals.ConfigPath)
+		if err != nil {
+			cfg = &config.ConchConfig{}
 		}
 
-		err := cfg.SerializeToFile(cfg.Path)
+		cfg.Path = globals.ConfigPath
+		cfg.Api = api.BaseUrl
+		cfg.User = api.User
+		cfg.Session = api.Session
+
+		err = cfg.SerializeToFile(cfg.Path)
 
 		if err != nil {
 			fmt.Println(err)
