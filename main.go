@@ -19,15 +19,6 @@ var (
 	GitRev    string
 )
 
-var rootCmd = &cli.Command{
-	Name: "conch",
-	Desc: "Conch Shell - CLI for https://github.com/joyent/conch",
-	Fn: func(ctx *cli.Context) error {
-		ctx.WriteUsage()
-		return nil
-	},
-}
-
 var versionCmd = &cli.Command{
 	Name: "version",
 	Desc: "Display version information",
@@ -45,24 +36,25 @@ var versionCmd = &cli.Command{
 }
 
 func main() {
-/*
-	nesting commands looks like:
-	cli.Root(
-		rootCmd,
-		cli.Tree(
-			levelOneCmd,
+	/*
+		nesting commands looks like:
+		cli.Root(
+			rootCmd,
 			cli.Tree(
-				levelTwoCmd,
+				levelOneCmd,
 				cli.Tree(
-					levelThreeCmd,
+					levelTwoCmd,
+					cli.Tree(
+						levelThreeCmd,
+					),
 				),
 			),
-		),
-		cli.Tree(anotherLevelOneCmd),
-	).Run
-*/
+			cli.Tree(anotherLevelOneCmd),
+		).Run
+	*/
+
 	if err := cli.Root(
-		rootCmd,
+		cmd.RootCmd,
 		cli.Tree(versionCmd),
 		cli.Tree(cmd.LoginCmd),
 	).Run(os.Args[1:]); err != nil {
