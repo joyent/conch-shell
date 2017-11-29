@@ -45,6 +45,22 @@ var versionCmd = &cli.Command{
 }
 
 func main() {
+/*
+	nesting commands looks like:
+	cli.Root(
+		rootCmd,
+		cli.Tree(
+			levelOneCmd,
+			cli.Tree(
+				levelTwoCmd,
+				cli.Tree(
+					levelThreeCmd,
+				),
+			),
+		),
+		cli.Tree(anotherLevelOneCmd),
+	).Run
+*/
 	if err := cli.Root(
 		rootCmd,
 		cli.Tree(versionCmd),
