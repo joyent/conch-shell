@@ -18,7 +18,7 @@ type ConchConfig struct {
 
 func (c *ConchConfig) Serialize() (s string, err error) {
 
-	j, err := json.Marshal(c)
+	j, err := json.MarshalIndent(c,"","	")
 
 	if err != nil {
 		return "", err
