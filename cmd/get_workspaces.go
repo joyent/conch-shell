@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/mkideal/cli"
 	"github.com/olekukonko/tablewriter"
 	"os"
@@ -15,7 +17,7 @@ var GetWorkspacesCmd = &cli.Command{
 	Desc: "Get a list of workspaces and their IDs",
 	Argv: func() interface{} { return new(loginArgs) },
 	Fn: func(ctx *cli.Context) error {
-		_, _, api, err := GetStarted(&getWorkspacesArgs{}, ctx)
+		args, _, api, err := GetStarted(&getWorkspacesArgs{}, ctx)
 
 		if err != nil {
 			return err
@@ -28,18 +30,29 @@ var GetWorkspacesCmd = &cli.Command{
 			return err
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Role", "Id", "Name", "Description"})
+		if args.Global.JSON == true {
 
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetCenterSeparator("|")
+			j, err := json.Marshal(workspaces)
 
-		for _, w := range workspaces {
-			table.Append([]string{w.Role, w.Id, w.Name, w.Description})
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(string(j))
+
+		} else {
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"Role", "Id", "Name", "Description"})
+
+			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+			table.SetCenterSeparator("|")
+
+			for _, w := range workspaces {
+				table.Append([]string{w.Role, w.Id, w.Name, w.Description})
+			}
+
+			table.Render()
 		}
-
-		table.Render()
-
 		return nil
 	},
 }
