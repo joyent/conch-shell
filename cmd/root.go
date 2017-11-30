@@ -7,6 +7,7 @@ import (
 type GlobalArgs struct {
 	Verbose    cli.Counter `cli:"v,verbose" usage:"Verbose mode (Multiple -v options increase the verbosity.)"`
 	ConfigPath string      `cli:"c,config" usage:"Config file location" dft:"$HOME/.conch.json"`
+	JSON       bool        `cli:"json" usage:"Results of the request operation are output in JSON. Overrides 'verbose'" dft:"false"`
 }
 
 var RootCmd = &cli.Command{
