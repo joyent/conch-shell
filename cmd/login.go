@@ -7,11 +7,9 @@
 package cmd
 
 import (
-	"fmt"
 	config "github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
-	"os"
 )
 
 type loginArgs struct {
@@ -39,13 +37,11 @@ var LoginCmd = &cli.Command{
 		}
 
 		if err := api.Login(argv.Password); err != nil {
-			fmt.Printf("An error occurred during login: %s\n", err)
-			os.Exit(1)
+			return err
 		}
 
 		if api.Session == "" {
-			fmt.Println("API login did not result in session data. Not sure why.")
-			os.Exit(1)
+			return ConchNoApiSessionData
 		}
 
 		cfg, err := config.NewFromJsonFile(globals.ConfigPath)
@@ -59,12 +55,6 @@ var LoginCmd = &cli.Command{
 		cfg.Session = api.Session
 
 		err = cfg.SerializeToFile(cfg.Path)
-
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		return nil
+		return err
 	},
 }
