@@ -3,3 +3,6 @@ import:
 - package: github.com/mkideal/cli
 - package: github.com/Bowery/prompt
 - package: github.com/joyent/go-conch
+- package: github.com/olekukonko/tablewriter
+- package: github.com/mattn/go-runewidth
+  version: ^0.0.2
