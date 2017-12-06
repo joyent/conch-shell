@@ -15,7 +15,7 @@ type getWorkspacesArgs struct {
 var GetWorkspacesCmd = &cli.Command{
 	Name: "get_workspaces",
 	Desc: "Get a list of workspaces and their IDs",
-	Argv: func() interface{} { return new(loginArgs) },
+	Argv: func() interface{} { return new(getWorkspacesArgs) },
 	Fn: func(ctx *cli.Context) error {
 		args, _, api, err := GetStarted(&getWorkspacesArgs{}, ctx)
 
