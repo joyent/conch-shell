@@ -6,6 +6,8 @@
 
 package main
 
+// BUG(sungo): Errors do not understand the --json flag
+
 import (
 	"fmt"
 	"github.com/joyent/conch-shell/cmd"
