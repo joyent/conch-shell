@@ -58,6 +58,7 @@ func main() {
 		cli.Tree(versionCmd),
 		cli.Tree(cmd.LoginCmd),
 		cli.Tree(cmd.GetWorkspacesCmd),
+		cli.Tree(cmd.GetWorkspaceCmd),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
