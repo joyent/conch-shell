@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	"fmt"
 	config "github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
@@ -55,6 +56,9 @@ var LoginCmd = &cli.Command{
 		cfg.Session = api.Session
 
 		err = cfg.SerializeToFile(cfg.Path)
+		if err == nil {
+			fmt.Printf("Success. Config written to %s\n", cfg.Path)
+		}
 		return err
 	},
 }
