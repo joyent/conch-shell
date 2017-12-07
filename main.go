@@ -66,6 +66,7 @@ func main() {
 		cli.Tree(cmd.GetWorkspaceRoomsCmd),
 		cli.Tree(cmd.GetSettingsCmd),
 		cli.Tree(cmd.GetSettingCmd),
+		cli.Tree(cmd.GetWorkspaceDevicesCmd),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
