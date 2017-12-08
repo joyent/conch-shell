@@ -116,7 +116,7 @@ var GetWorkspaceDevicesCmd = &cli.Command{
 				})
 
 			}
-			j, err := json.MarshalIndent(out, "", "	")
+			j, err := json.Marshal(out)
 
 			if err != nil {
 				return err
