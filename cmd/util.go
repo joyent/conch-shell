@@ -8,6 +8,9 @@ import (
 	"github.com/mkideal/cli"
 	"github.com/olekukonko/tablewriter"
 	"time"
+	"fmt"
+	"encoding/json"
+	"os"
 )
 
 var (
@@ -112,4 +115,36 @@ func TableizeMinimalDevices(devices []MinimalDevice, table *tablewriter.Table) *
 	}
 
 	return table
+}
+
+func DisplayDevices(devices []conch.ConchDevice, json_output bool, full_output bool) (err error) {
+	minimals := make([]MinimalDevice, 0)
+	for _, d := range devices {
+		minimals = append(minimals, MinimalDevice{
+			d.Id,
+			d.AssetTag,
+			d.Created,
+			d.LastSeen,
+			d.Health,
+			GenerateDeviceFlags(d),
+		})
+	}
+
+	if json_output {
+		var j []byte
+		if full_output {
+			j, err = json.Marshal(devices)
+		} else {
+			j, err = json.Marshal(minimals)
+		}
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(j))
+		return nil
+	}
+
+	TableizeMinimalDevices(minimals, tablewriter.NewWriter(os.Stdout)).Render()
+
+	return nil
 }
