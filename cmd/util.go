@@ -71,6 +71,8 @@ func GetStarted(argv interface{}, ctx *cli.Context) (args *CliArgs, cfg *config.
 	return args, cfg, api, nil
 }
 
+// GenerateDeviceFlags() is an abstraction to make sure that the 'flags' field
+// for ConchDevices remains uniform
 func GenerateDeviceFlags(d conch.ConchDevice) (flags string) {
 	flags = ""
 
@@ -88,6 +90,8 @@ func GenerateDeviceFlags(d conch.ConchDevice) (flags string) {
 	return flags
 }
 
+// TableizeMinimalDevices() is an abstraction to make sure that tables of
+// ConchDevices-turned-MinimalDevices are uniform
 func TableizeMinimalDevices(devices []MinimalDevice, table *tablewriter.Table) *tablewriter.Table {
 	table.SetHeader([]string{
 		"ID",
@@ -117,6 +121,8 @@ func TableizeMinimalDevices(devices []MinimalDevice, table *tablewriter.Table) *
 	return table
 }
 
+// DisplayDevices() is an abstraction to make sure that the output of
+// ConchDevices is uniform, be it tables, json, or full json
 func DisplayDevices(devices []conch.ConchDevice, json_output bool, full_output bool) (err error) {
 	minimals := make([]MinimalDevice, 0)
 	for _, d := range devices {
