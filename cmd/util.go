@@ -4,7 +4,10 @@ import (
 	"errors"
 	config "github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
+	pgtime "github.com/joyent/go-conch/pg_time"
 	"github.com/mkideal/cli"
+	"github.com/olekukonko/tablewriter"
+	"time"
 )
 
 var (
@@ -15,6 +18,15 @@ var (
 type CliArgs struct {
 	Local  interface{}
 	Global *GlobalArgs
+}
+
+type MinimalDevice struct {
+	Id       string             `json:"id"`
+	AssetTag string             `json:"asset_tag"`
+	Created  pgtime.ConchPgTime `json:"created,int"`
+	LastSeen pgtime.ConchPgTime `json:"last_seen,int"`
+	Health   string             `json:"health"`
+	Flags    string             `json:"flags"`
 }
 
 // GetStarted handles the initial logic of parsing arguments, loading the JSON
@@ -54,4 +66,50 @@ func GetStarted(argv interface{}, ctx *cli.Context) (args *CliArgs, cfg *config.
 	}
 
 	return args, cfg, api, nil
+}
+
+func GenerateDeviceFlags(d conch.ConchDevice) (flags string) {
+	flags = ""
+
+	if !d.Deactivated.IsZero() {
+		flags += "X"
+	}
+
+	if !d.Validated.IsZero() {
+		flags += "v"
+	}
+
+	if !d.Graduated.IsZero() {
+		flags += "g"
+	}
+	return flags
+}
+
+func TableizeMinimalDevices(devices []MinimalDevice, table *tablewriter.Table) *tablewriter.Table {
+	table.SetHeader([]string{
+		"ID",
+		"Asset Tag",
+		"Created",
+		"Last Seen",
+		"Health",
+		"Flags",
+	})
+
+	for _, d := range devices {
+		last_seen := ""
+		if !d.LastSeen.IsZero() {
+			last_seen = d.LastSeen.Format(time.UnixDate)
+		}
+
+		table.Append([]string{
+			d.Id,
+			d.AssetTag,
+			d.Created.Format(time.UnixDate),
+			last_seen,
+			d.Health,
+			d.Flags,
+		})
+	}
+
+	return table
 }
