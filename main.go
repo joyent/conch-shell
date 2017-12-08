@@ -8,6 +8,10 @@ package main
 
 // BUG(sungo): Errors do not understand the --json flag
 
+// BUG(sungo): URL parsing and building is sketchy right now and assumes, for instance, that BaseUrl does not end with a /
+
+// BUG(sungo): Maybe switch the login default url to production
+
 import (
 	"fmt"
 	"github.com/joyent/conch-shell/cmd"
@@ -72,6 +76,7 @@ func main() {
 		cli.Tree(cmd.GetDeviceCmd),
 		cli.Tree(cmd.GetDeviceSettingsCmd),
 		cli.Tree(cmd.GetDeviceSettingCmd),
+		cli.Tree(cmd.GetDeviceLocationCmd),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
