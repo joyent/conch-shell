@@ -70,6 +70,7 @@ func main() {
 		cli.Tree(cmd.GetWorkspaceRelaysCmd),
 		cli.Tree(cmd.GetRelayDevicesCmd),
 		cli.Tree(cmd.GetDeviceCmd),
+		cli.Tree(cmd.GetDeviceSettingsCmd),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
