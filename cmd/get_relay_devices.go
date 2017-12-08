@@ -1,13 +1,9 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
 	//	pgtime "github.com/joyent/go-conch/pg_time"
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
-	"github.com/olekukonko/tablewriter"
-	"os"
 	//	"strconv"
 )
 
@@ -47,34 +43,7 @@ var GetRelayDevicesCmd = &cli.Command{
 		if found_relay == false {
 			return conch.ConchDataNotFound
 		}
-		minimals := make([]MinimalDevice, 0)
-		for _, d := range relay.Devices {
-			minimals = append(minimals, MinimalDevice{
-				d.Id,
-				d.AssetTag,
-				d.Created,
-				d.LastSeen,
-				d.Health,
-				GenerateDeviceFlags(d),
-			})
-		}
 
-		if args.Global.JSON {
-			var j []byte
-			if argv.FullOutput {
-				j, err = json.Marshal(relay.Devices)
-			} else {
-				j, err = json.Marshal(minimals)
-			}
-			if err != nil {
-				return err
-			}
-			fmt.Println(string(j))
-			return nil
-		}
-
-		TableizeMinimalDevices(minimals, tablewriter.NewWriter(os.Stdout)).Render()
-
-		return nil
+		return DisplayDevices(relay.Devices, args.Global.JSON, argv.FullOutput)
 	},
 }

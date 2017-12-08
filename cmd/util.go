@@ -1,16 +1,16 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	config "github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
 	pgtime "github.com/joyent/go-conch/pg_time"
 	"github.com/mkideal/cli"
 	"github.com/olekukonko/tablewriter"
-	"time"
-	"fmt"
-	"encoding/json"
 	"os"
+	"time"
 )
 
 var (
