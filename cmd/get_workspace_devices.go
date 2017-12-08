@@ -12,10 +12,11 @@ import (
 
 type getWorkspaceDevicesArgs struct {
 	cli.Helper
-	Id        string `cli:"*id,uuid" usage:"ID of the workspace (required)"`
-	IdsOnly   bool   `cli:"ids-only" usage:"Only retrieve device IDs"`
-	Graduated string `cli:"graduated" usage:"Filter by the 'graduated' field"`
-	Health    string `cli:"health" usage:"Filter by the 'health' field using the string provided"`
+	Id         string `cli:"*id,uuid" usage:"ID of the workspace (required)"`
+	IdsOnly    bool   `cli:"ids-only" usage:"Only retrieve device IDs"`
+	Graduated  string `cli:"graduated" usage:"Filter by the 'graduated' field"`
+	Health     string `cli:"health" usage:"Filter by the 'health' field using the string provided"`
+	FullOutput bool   `cli:"full" usage:"When --json is used and --ids-only is *not* used, provide full data about the devices rather than the normal truncated data"`
 }
 
 var GetWorkspaceDevicesCmd = &cli.Command{
@@ -34,6 +35,16 @@ var GetWorkspaceDevicesCmd = &cli.Command{
 		devices, err := api.GetWorkspaceDevices(argv.Id, argv.IdsOnly, argv.Graduated, argv.Health)
 		if err != nil {
 			return err
+		}
+
+		if args.Global.JSON && argv.FullOutput {
+			j, err := json.Marshal(devices)
+
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(j))
+			return nil
 		}
 
 		type resultRow struct {
