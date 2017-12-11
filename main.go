@@ -67,6 +67,7 @@ func main() {
 		cli.Tree(cmd.GetWorkspaceDevicesCmd),
 		cli.Tree(cmd.GetWorkspaceRelaysCmd),
 		cli.Tree(cmd.GetWorkspaceRacksCmd),
+		cli.Tree(cmd.GetWorkspaceRackCmd),
 		cli.Tree(cmd.GetRelayDevicesCmd),
 		cli.Tree(cmd.GetDeviceCmd),
 		cli.Tree(cmd.GetDeviceSettingsCmd),
