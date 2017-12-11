@@ -15,7 +15,7 @@ import (
 
 type loginArgs struct {
 	cli.Helper
-	ApiUrl   string `cli:"url,api,a" usage:"Conch API url" prompt:"Enter the Conch API URL" dft:"http://localhost:5001"`
+	ApiUrl   string `cli:"url,api,a" usage:"Conch API url" prompt:"Enter the Conch API URL" dft:"https://conch.joyent.us"`
 	User     string `cli:"u,user,username" usage:"Conch user name" prompt:"Enter Conch user name"`
 	Password string `pw:"p,password" usage:"Conch password" prompt:"Enter password"`
 }
