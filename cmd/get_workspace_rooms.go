@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
-	"github.com/olekukonko/tablewriter"
-	"os"
 )
 
 type getWorkspaceRoomsArgs struct {
@@ -48,11 +46,8 @@ var GetWorkspaceRoomsCmd = &cli.Command{
 			fmt.Println(string(j))
 
 		} else {
-			table := tablewriter.NewWriter(os.Stdout)
+			table := GetMarkdownTable()
 			table.SetHeader([]string{"ID", "AZ", "Alias", "Vendor Name"})
-
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-			table.SetCenterSeparator("|")
 
 			for _, r := range rooms {
 				table.Append([]string{r.Id, r.Az, r.Alias, r.VendorName})

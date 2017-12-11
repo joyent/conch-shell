@@ -11,8 +11,6 @@ import (
 	"fmt"
 	pgtime "github.com/joyent/go-conch/pg_time"
 	"github.com/mkideal/cli"
-	"github.com/olekukonko/tablewriter"
-	"os"
 	"strconv"
 	"time"
 )
@@ -88,7 +86,8 @@ var GetWorkspaceRelaysCmd = &cli.Command{
 			fmt.Println(string(j))
 			return nil
 		}
-		table := tablewriter.NewWriter(os.Stdout)
+
+		table := GetMarkdownTable()
 		table.SetHeader([]string{
 			"ID",
 			"Alias",
@@ -99,9 +98,6 @@ var GetWorkspaceRelaysCmd = &cli.Command{
 			"Version",
 			"Number of Devices",
 		})
-
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetCenterSeparator("|")
 
 		for _, r := range results {
 			updated := ""

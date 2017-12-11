@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
-	"github.com/olekukonko/tablewriter"
-	"os"
 	"strconv"
 )
 
@@ -48,7 +46,7 @@ var GetWorkspaceRacksCmd = &cli.Command{
 			return nil
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
+		table := GetMarkdownTable()
 		table.SetHeader([]string{
 			"ID",
 			"Name",
