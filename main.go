@@ -28,8 +28,8 @@ var versionCmd = &cli.Command{
 				"  Git Revision: %s\n"+
 				"  Build Time: %s\n",
 			Version,
-			BuildTime,
 			GitRev,
+			BuildTime,
 		)
 		return nil
 	},
