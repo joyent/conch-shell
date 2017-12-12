@@ -156,7 +156,7 @@ func DisplayDevices(devices []conch.ConchDevice, json_output bool, full_output b
 		return nil
 	}
 
-	TableizeMinimalDevices(minimals, tablewriter.NewWriter(os.Stdout)).Render()
+	TableizeMinimalDevices(minimals, GetMarkdownTable()).Render()
 
 	return nil
 }
