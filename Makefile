@@ -1,6 +1,6 @@
 .PHONY: sane clean deps update_deps docs_server
 
-CONCH_VERSION="0.0.1"
+CONCH_VERSION="0.0.0"
 CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty`
 
