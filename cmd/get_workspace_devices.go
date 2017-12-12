@@ -7,6 +7,7 @@
 package cmd
 
 import (
+	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
 )
 
@@ -37,6 +38,20 @@ var GetWorkspaceDevicesCmd = &cli.Command{
 			return err
 		}
 
-		return DisplayDevices(devices, args.Global.JSON, argv.FullOutput)
+		if argv.FullOutput {
+			filled_in := make([]conch.ConchDevice, 0)
+			for _, d := range devices {
+				full_d, err := api.FillInDevice(d)
+				if err != nil {
+					return err
+				}
+				filled_in = append(filled_in, full_d)
+			}
+
+			return DisplayDevices(filled_in, args.Global.JSON, argv.FullOutput)
+		} else {
+
+			return DisplayDevices(devices, args.Global.JSON, argv.FullOutput)
+		}
 	},
 }
