@@ -8,7 +8,6 @@ package cmd
 
 import (
 	"encoding/json"
-	//	"errors"
 	"fmt"
 	conch "github.com/joyent/go-conch"
 	"github.com/joyent/go-conch/pg_time"
@@ -23,8 +22,6 @@ type reportFailureArgs struct {
 	Breakout   bool   `cli:"breakout" usage:"Instead of just presenting a datacenter summary, breakout results by rack as well (Ignored in the presence of --json)"`
 	Uuids      bool   `cli:"uuids" usage:"Show UUIDs where appropriate"`
 	Datacenter string `cli:"datacenter" usage:"Limit the output to a particular datacenter UUID"`
-	//TimeStart  int    `cli:"start-time" usage:"Start time as an epoch int. Defaults to 'as early as we can'"`
-	//TimeEnd    int    `cli:"end-time" usage:"End time as an epoch int. Defaults to 'now'"`
 }
 
 var ReportFailureCmd = &cli.Command{
@@ -82,16 +79,12 @@ var ReportFailureCmd = &cli.Command{
 
 		var workspace_devices []conch.ConchDevice
 
-		//if (argv.TimeStart == 0) && (argv.TimeEnd == 0) {
 		workspace_devices, err = api.GetWorkspaceDevices(
 			argv.Id,
 			false,
 			"",
 			"fail",
 		)
-		//} else {
-		//	return errors.New("start-time and end-time are not supported yet")
-		//}
 
 		if err != nil {
 			return err
