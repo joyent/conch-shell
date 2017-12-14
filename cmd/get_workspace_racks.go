@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 	"strconv"
 )
 
@@ -32,7 +33,12 @@ var GetWorkspaceRacksCmd = &cli.Command{
 
 		argv := args.Local.(*getWorkspaceRacksArgs)
 
-		racks, err := api.GetWorkspaceRacks(argv.Id)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
+		racks, err := api.GetWorkspaceRacks(workspace_id)
 		if err != nil {
 			return err
 		}
@@ -57,7 +63,7 @@ var GetWorkspaceRacksCmd = &cli.Command{
 
 		for _, r := range racks {
 			table.Append([]string{
-				fmt.Sprintf("%s", r.Id),
+				r.Id.String(),
 				r.Name,
 				r.Role,
 				strconv.Itoa(r.Unit),

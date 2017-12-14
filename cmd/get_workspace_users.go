@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 type getWorkspaceUsersArgs struct {
@@ -29,8 +30,12 @@ var GetWorkspaceUsersCmd = &cli.Command{
 		}
 
 		argv := args.Local.(*getWorkspaceUsersArgs)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
 
-		users, err := api.GetWorkspaceUsers(argv.Id)
+		users, err := api.GetWorkspaceUsers(workspace_id)
 		if err != nil {
 			return err
 		}

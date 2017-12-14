@@ -11,6 +11,7 @@ import (
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
 	//	"strconv"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 type getRelayDevicesArgs struct {
@@ -33,7 +34,12 @@ var GetRelayDevicesCmd = &cli.Command{
 
 		argv := args.Local.(*getRelayDevicesArgs)
 
-		relays, err := api.GetWorkspaceRelays(argv.WorkspaceId, false)
+		workspace_id, err := uuid.FromString(argv.WorkspaceId)
+		if err != nil {
+			return err
+		}
+
+		relays, err := api.GetWorkspaceRelays(workspace_id, false)
 		if err != nil {
 			return err
 		}

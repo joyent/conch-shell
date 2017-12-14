@@ -11,6 +11,7 @@ import (
 	"fmt"
 	pgtime "github.com/joyent/go-conch/pg_time"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 	"strconv"
 	"time"
 )
@@ -34,8 +35,12 @@ var GetWorkspaceRelaysCmd = &cli.Command{
 		}
 
 		argv := args.Local.(*getWorkspaceRelaysArgs)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
 
-		relays, err := api.GetWorkspaceRelays(argv.Id, argv.ActiveOnly)
+		relays, err := api.GetWorkspaceRelays(workspace_id, argv.ActiveOnly)
 		if err != nil {
 			return err
 		}

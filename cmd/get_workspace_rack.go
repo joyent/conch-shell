@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
 	"strconv"
 )
@@ -35,7 +36,17 @@ var GetWorkspaceRackCmd = &cli.Command{
 
 		argv := args.Local.(*getWorkspaceRackArgs)
 
-		rack, err := api.GetWorkspaceRack(argv.Id, argv.RackId)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
+		rack_id, err := uuid.FromString(argv.RackId)
+		if err != nil {
+			return err
+		}
+
+		rack, err := api.GetWorkspaceRack(workspace_id, rack_id)
 		if err != nil {
 			return err
 		}
@@ -56,8 +67,8 @@ Name: %s
 Role: %s
 Datacenter: %s
 `,
-			argv.Id,
-			argv.RackId,
+			workspace_id.String(),
+			rack_id.String(),
 			rack.Name,
 			rack.Role,
 			rack.Datacenter,

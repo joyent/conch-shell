@@ -9,6 +9,7 @@ package cmd
 import (
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 type getWorkspaceDevicesArgs struct {
@@ -33,7 +34,12 @@ var GetWorkspaceDevicesCmd = &cli.Command{
 
 		argv := args.Local.(*getWorkspaceDevicesArgs)
 
-		devices, err := api.GetWorkspaceDevices(argv.Id, argv.IdsOnly, argv.Graduated, argv.Health)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
+		devices, err := api.GetWorkspaceDevices(workspace_id, argv.IdsOnly, argv.Graduated, argv.Health)
 		if err != nil {
 			return err
 		}

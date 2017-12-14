@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 type getSubWorkspacesArgs struct {
@@ -30,7 +31,12 @@ var GetSubWorkspacesCmd = &cli.Command{
 
 		argv := args.Local.(*getSubWorkspacesArgs)
 
-		workspaces, err := api.GetSubWorkspaces(argv.Id)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
+		workspaces, err := api.GetSubWorkspaces(workspace_id)
 		if err != nil {
 			return err
 		}
@@ -50,7 +56,7 @@ var GetSubWorkspacesCmd = &cli.Command{
 			table.SetHeader([]string{"Role", "Id", "Name", "Description"})
 
 			for _, w := range workspaces {
-				table.Append([]string{w.Role, w.Id, w.Name, w.Description})
+				table.Append([]string{w.Role, w.Id.String(), w.Name, w.Description})
 			}
 
 			table.Render()

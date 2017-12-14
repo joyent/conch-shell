@@ -49,7 +49,7 @@ var GetWorkspacesCmd = &cli.Command{
 			table.SetHeader([]string{"Role", "Id", "Name", "Description"})
 
 			for _, w := range workspaces {
-				table.Append([]string{w.Role, w.Id, w.Name, w.Description})
+				table.Append([]string{w.Role, w.Id.String(), w.Name, w.Description})
 			}
 
 			table.Render()

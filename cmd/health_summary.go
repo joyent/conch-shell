@@ -59,8 +59,13 @@ var HealthSummaryCmd = &cli.Command{
 
 		argv := args.Local.(*healthSummaryArgs)
 
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
 		workspace_devices, err := api.GetWorkspaceDevices(
-			argv.Id,
+			workspace_id,
 			true,
 			"",
 			"",

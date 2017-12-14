@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mkideal/cli"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 type getWorkspaceRoomsArgs struct {
@@ -30,7 +31,12 @@ var GetWorkspaceRoomsCmd = &cli.Command{
 
 		argv := args.Local.(*getWorkspaceRoomsArgs)
 
-		rooms, err := api.GetWorkspaceRooms(argv.Id)
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
+		rooms, err := api.GetWorkspaceRooms(workspace_id)
 		if err != nil {
 			return err
 		}

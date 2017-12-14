@@ -77,10 +77,15 @@ var ReportFailureCmd = &cli.Command{
 
 		argv := args.Local.(*reportFailureArgs)
 
+		workspace_id, err := uuid.FromString(argv.Id)
+		if err != nil {
+			return err
+		}
+
 		var workspace_devices []conch.ConchDevice
 
 		workspace_devices, err = api.GetWorkspaceDevices(
-			argv.Id,
+			workspace_id,
 			false,
 			"",
 			"fail",
