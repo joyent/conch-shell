@@ -12,8 +12,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Getting The App
 
-A dev snapshot is available at http://us-east.manta.joyent.com/sungo/public/conch-shell 
-and will be updated whenever @sungo decides that's a good idea.
+A dev snapshot, compiled for macOS, is available at
+http://us-east.manta.joyent.com/sungo/public/conch-shell and will be updated
+whenever @sungo decides that's a good idea.
 
 Official releases are available at https://github.com/joyent/conch-shell/releases
 
