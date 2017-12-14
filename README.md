@@ -10,6 +10,13 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# Getting The App
+
+A dev snapshot is available at http://us-east.manta.joyent.com/sungo/public/conch-shell 
+and will be updated whenever @sungo decides that's a good idea.
+
+Official releases are available at https://github.com/joyent/conch-shell/releases
+
 # Setup and Build
 
 ## Setting up Go
