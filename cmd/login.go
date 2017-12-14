@@ -11,6 +11,7 @@ import (
 	config "github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
+	"strings"
 )
 
 type loginArgs struct {
@@ -33,7 +34,7 @@ var LoginCmd = &cli.Command{
 		}
 
 		api := &conch.Conch{
-			BaseUrl: argv.ApiUrl,
+			BaseUrl: strings.TrimRight(argv.ApiUrl, "/"),
 			User:    argv.User,
 		}
 
