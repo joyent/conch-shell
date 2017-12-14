@@ -74,6 +74,7 @@ func main() {
 		cli.Tree(cmd.GetDeviceSettingCmd),
 		cli.Tree(cmd.GetDeviceLocationCmd),
 		cli.Tree(cmd.ReportFailureCmd),
+		cli.Tree(cmd.HealthSummaryCmd),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
