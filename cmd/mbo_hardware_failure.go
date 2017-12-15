@@ -7,14 +7,17 @@
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
 	conch "github.com/joyent/go-conch"
 	"github.com/mkideal/cli"
 	"gopkg.in/montanaflynn/stats.v0"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"os"
 	"regexp"
 	"sort"
 	"time"
+	"strconv"
 )
 
 type mboComponentFailReport struct {
@@ -38,7 +41,7 @@ type mboHardwareFailureArgs struct {
 	Components  bool           `cli:"include-components" usage:"Breakout failures by component name, as well as type"`
 	Vendors     bool           `cli:"include-vendors" usage:"Include vendor data"`
 	Full        bool           `cli:"full" usage:"Include all data. --include-components and --include-vendors are ignored"`
-	CSV         bool           `cli:"csv" usage:"Output report as CSV."`
+	CSV         bool           `cli:"csv" usage:"Output report as CSV. Assumes --full"`
 }
 
 type mboTypeReport struct {
@@ -46,6 +49,27 @@ type mboTypeReport struct {
 	Mean   time.Duration
 	Median time.Duration
 	Count  int64
+}
+
+func mboDurationFormatCsv(t time.Duration) (pretty string) {
+	seconds := int64(t.Seconds()) % 60
+	minutes := int64(t.Minutes()) % 60
+	hours := int64(t.Hours()) % 24
+
+	days := int64(t/(24*time.Hour)) % 365 % 7
+	weeks := int64(t/(24*time.Hour)) / 7 % 52
+
+	// To make this work as a duration in Excel and Google Sheets, the duration
+	// string must be HH:MM:SS so we need to add things back in.
+	// I'm also ignoring years here on purpose.
+	hours = hours + (days*24) + (weeks*7*24)
+
+	return fmt.Sprintf(
+		"%s:%s:%s",
+		strconv.FormatInt(hours,10),
+		strconv.FormatInt(minutes,10),
+		strconv.FormatInt(seconds,10),
+	)
 }
 
 func mboPrettyComponentType(ugly string, category string) (pretty string) {
@@ -114,6 +138,31 @@ var MboHardwareFailureCmd = &cli.Command{
 			return err
 		}
 		argv := args.Local.(*mboHardwareFailureArgs)
+
+		if argv.CSV {
+			argv.Full = true
+		}
+
+		csv_vendor := make([][]string, 0)
+		csv_vendor = append(csv_vendor, []string{
+			"Datacenter",
+			"Vendor",
+			"Type",
+			"Count",
+			"Mean",
+			"Median",
+		})
+
+		csv_component := make([][]string, 0)
+		csv_component = append(csv_component, []string{
+			"Datacenter",
+			"Type",
+			"Component",
+			"Count",
+			"Mean",
+			"Median",
+		})
+
 
 		null_uuid := uuid.UUID{}
 		peer_re := regexp.MustCompile("_peer$")
@@ -310,7 +359,16 @@ var MboHardwareFailureCmd = &cli.Command{
 					for _, time_type := range time_types {
 						data := vendor_data[time_type]
 
-						if !argv.CSV {
+						if argv.CSV {
+							csv_vendor = append(csv_vendor, []string{
+								name,
+								vendor,
+								time_type,
+								strconv.FormatInt(data.Count,10),
+								mboDurationFormatCsv(data.Mean),
+								mboDurationFormatCsv(data.Median),
+							})
+						} else {
 							fmt.Printf("      %s: (%d)\n", time_type, data.Count)
 							fmt.Printf("        Mean   : %s\n", data.Mean)
 							fmt.Printf("        Median : %s\n", data.Median)
@@ -334,6 +392,7 @@ var MboHardwareFailureCmd = &cli.Command{
 
 			for _, time_type := range time_types {
 				data := az.TimesByType[time_type]
+
 
 				if !argv.CSV {
 					fmt.Println()
@@ -371,7 +430,16 @@ var MboHardwareFailureCmd = &cli.Command{
 							time_type,
 						)
 
-						if !argv.CSV {
+						if argv.CSV {
+							csv_component = append(csv_component,[]string{
+								name,
+								time_type,
+								pretty_sub_type,
+								strconv.FormatInt(sub_data.Count,10),
+								mboDurationFormatCsv(sub_data.Mean),
+								mboDurationFormatCsv(sub_data.Median),
+							})
+						} else {
 							fmt.Printf(
 								"        %s: (%d)\n",
 								pretty_sub_type,
@@ -393,6 +461,13 @@ var MboHardwareFailureCmd = &cli.Command{
 			if !argv.CSV {
 				fmt.Println()
 			}
+		}
+
+		if argv.CSV {
+			w := csv.NewWriter(os.Stdout)
+			w.WriteAll(csv_vendor)
+			fmt.Println()
+			w.WriteAll(csv_component)
 		}
 
 		return nil
