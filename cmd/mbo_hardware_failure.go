@@ -83,23 +83,6 @@ func mboPrettyComponentType(ugly string, category string) (pretty string) {
 	return pretty
 }
 
-func mboPrettyPrintComponents(component_data map[string]*typeReport, category string, indent string) {
-	sub_types := make([]string, 0)
-	for t := range component_data {
-		sub_types = append(sub_types, t)
-	}
-	sort.Strings(sub_types)
-
-	for _, sub_type := range sub_types {
-		sub_data := component_data[sub_type]
-		pretty_sub_type := mboPrettyComponentType(sub_type, category)
-
-		fmt.Printf("%s%s: (%d)\n", indent, pretty_sub_type, sub_data.Count)
-		fmt.Printf("%s  Mean   : %s\n", indent, sub_data.Mean)
-		fmt.Printf("%s  Median : %s\n", indent, sub_data.Median)
-	}
-}
-
 func mboCalcTimes(data *typeReport) {
 	mean, _ := stats.Mean(data.All)
 	median, _ := stats.Median(data.All)
@@ -352,6 +335,7 @@ var MboHardwareFailureCmd = &cli.Command{
 				fmt.Printf("    %s: (%d)\n", time_type, data.Count)
 				fmt.Printf("      Mean   : %s\n", data.Mean)
 				fmt.Printf("      Median : %s\n", data.Median)
+				fmt.Println()
 
 				switch time_type {
 				case "SAS_SSD":
@@ -370,12 +354,33 @@ var MboHardwareFailureCmd = &cli.Command{
 
 				if argv.Full || argv.Components {
 					fmt.Printf("      By Component:\n")
+					sub_types := make([]string, 0)
+					for t := range az.TimesBySubType[time_type] {
+						sub_types = append(sub_types, t)
+					}
+					sort.Strings(sub_types)
 
-					mboPrettyPrintComponents(
-						az.TimesBySubType[time_type],
-						time_type,
-						"        ",
-					)
+					for _, sub_type := range sub_types {
+						sub_data := az.TimesBySubType[time_type][sub_type]
+						pretty_sub_type := mboPrettyComponentType(
+							sub_type,
+							time_type,
+						)
+
+						fmt.Printf(
+							"        %s: (%d)\n",
+							pretty_sub_type,
+							sub_data.Count,
+						)
+						fmt.Printf(
+							"          Mean   : %s\n",
+							sub_data.Mean,
+						)
+						fmt.Printf(
+							"          Median : %s\n",
+							sub_data.Median,
+						)
+					}
 					fmt.Println()
 				}
 
