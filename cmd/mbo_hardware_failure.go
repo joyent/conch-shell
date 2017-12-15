@@ -110,17 +110,16 @@ var MboHardwareFailureCmd = &cli.Command{
 		/*****************/
 
 		args, _, api, err := GetStarted(&mboHardwareFailureArgs{}, ctx)
-
 		if err != nil {
 			return err
 		}
+		argv := args.Local.(*mboHardwareFailureArgs)
 
 		null_uuid := uuid.UUID{}
 		peer_re := regexp.MustCompile("_peer$")
 
 		report := make(map[string]datacenterReport)
 
-		argv := args.Local.(*mboHardwareFailureArgs)
 		for serial, failures := range argv.MantaReport {
 			device, err := api.GetDevice(serial)
 			if err != nil {
@@ -129,15 +128,6 @@ var MboHardwareFailureCmd = &cli.Command{
 
 			if uuid.Equal(device.HardwareProduct, null_uuid) {
 				continue
-			}
-
-			hardware_product, err := api.GetHardwareProduct(device.HardwareProduct)
-			if err != nil {
-				continue
-			}
-			vendor := hardware_product.Vendor
-			if vendor == "" {
-				vendor = "UNKNOWN"
 			}
 
 			datacenter := "UNKNOWN"
@@ -152,6 +142,16 @@ var MboHardwareFailureCmd = &cli.Command{
 				if datacenter != argv.Datacenter {
 					continue
 				}
+			}
+
+
+			hardware_product, err := api.GetHardwareProduct(device.HardwareProduct)
+			if err != nil {
+				continue
+			}
+			vendor := hardware_product.Vendor
+			if vendor == "" {
+				vendor = "UNKNOWN"
 			}
 
 			times_by_type := make(map[string]*mboTypeReport)
