@@ -16,6 +16,11 @@ A dev snapshot, compiled for macOS, is available at
 http://us-east.manta.joyent.com/sungo/public/conch-shell and will be updated
 whenever @sungo decides that's a good idea.
 
+A shell script is available at
+http://us-east.manta.joyent.com/sungo/public/conch-shell/conch-snap.sh which
+downloads the latest snap and runs it. Arguments are the same as the regular
+binary.
+
 Official releases are available at https://github.com/joyent/conch-shell/releases
 
 # Setup and Build
