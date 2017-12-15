@@ -40,7 +40,7 @@ type mboHardwareFailureArgs struct {
 	Full        bool           `cli:"full" usage:"Include all data. --include-components and --include-vendors are ignored"`
 }
 
-type typeReport struct {
+type mboTypeReport struct {
 	All    []float64
 	Mean   time.Duration
 	Median time.Duration
@@ -83,7 +83,7 @@ func mboPrettyComponentType(ugly string, category string) (pretty string) {
 	return pretty
 }
 
-func mboCalcTimes(data *typeReport) {
+func mboCalcTimes(data *mboTypeReport) {
 	mean, _ := stats.Mean(data.All)
 	median, _ := stats.Median(data.All)
 
@@ -106,9 +106,9 @@ var MboHardwareFailureCmd = &cli.Command{
 			Name string
 			Id   uuid.UUID
 
-			TimesByType          map[string]*typeReport
-			TimesBySubType       map[string]map[string]*typeReport
-			TimesByVendorAndType map[string]map[string]*typeReport
+			TimesByType          map[string]*mboTypeReport
+			TimesBySubType       map[string]map[string]*mboTypeReport
+			TimesByVendorAndType map[string]map[string]*mboTypeReport
 		}
 
 		const (
@@ -164,9 +164,9 @@ var MboHardwareFailureCmd = &cli.Command{
 				}
 			}
 
-			times_by_type := make(map[string]*typeReport)
-			times_by_subtype := make(map[string]map[string]*typeReport)
-			times_by_vendor := make(map[string]map[string]*typeReport)
+			times_by_type := make(map[string]*mboTypeReport)
+			times_by_subtype := make(map[string]map[string]*mboTypeReport)
+			times_by_vendor := make(map[string]map[string]*mboTypeReport)
 
 			zero_duration, err := time.ParseDuration("0s")
 			if _, ok := report[datacenter]; !ok {
@@ -184,7 +184,7 @@ var MboHardwareFailureCmd = &cli.Command{
 			}
 
 			if _, ok := times_by_vendor[vendor]; !ok {
-				times_by_vendor[vendor] = make(map[string]*typeReport)
+				times_by_vendor[vendor] = make(map[string]*mboTypeReport)
 			}
 
 			for _, failure := range failures {
@@ -213,7 +213,7 @@ var MboHardwareFailureCmd = &cli.Command{
 				}
 
 				if _, ok := times_by_type[failure_type]; !ok {
-					times_by_type[failure_type] = &typeReport{
+					times_by_type[failure_type] = &mboTypeReport{
 						make([]float64, 0),
 						zero_duration,
 						zero_duration,
@@ -227,7 +227,7 @@ var MboHardwareFailureCmd = &cli.Command{
 				times_by_type[failure_type].Count++
 
 				if _, ok := times_by_vendor[vendor][failure_type]; !ok {
-					times_by_vendor[vendor][failure_type] = &typeReport{
+					times_by_vendor[vendor][failure_type] = &mboTypeReport{
 						make([]float64, 0),
 						zero_duration,
 						zero_duration,
@@ -241,11 +241,11 @@ var MboHardwareFailureCmd = &cli.Command{
 				times_by_vendor[vendor][failure_type].Count++
 
 				if _, ok := times_by_subtype[failure_type]; !ok {
-					times_by_subtype[failure_type] = make(map[string]*typeReport)
+					times_by_subtype[failure_type] = make(map[string]*mboTypeReport)
 				}
 
 				if _, ok := times_by_subtype[failure_type][component_name]; !ok {
-					times_by_subtype[failure_type][component_name] = &typeReport{
+					times_by_subtype[failure_type][component_name] = &mboTypeReport{
 						make([]float64, 0),
 						zero_duration,
 						zero_duration,
