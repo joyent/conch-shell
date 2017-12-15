@@ -47,6 +47,42 @@ type typeReport struct {
 	Count  int64
 }
 
+func mboPrettyComponentType(ugly string, category string) (pretty string) {
+	switch ugly {
+	case "bios_firmware_version":
+		pretty = "BIOS Firmware Revision"
+	case "product_name":
+		if category == "BIOS" {
+			pretty = "Firmware Programming Issue"
+		} else {
+			pretty = "Product Name"
+		}
+	case "sas_hdd_num":
+		pretty = "Number of SAS HDDs"
+	case "sas_ssd_num":
+		pretty = "Number of SAS SSDs"
+	case "usb_hdd_num":
+		pretty = "Number of USB HDDs"
+	case "links_up":
+		pretty = "Number of Active Links"
+	case "nics_num":
+		pretty = "Number of Network Interfaces"
+	case "num_peer_switch_ports":
+		pretty = "Number of Peer Switch Ports"
+	case "num_switch_peers":
+		pretty = "Number of Switch Peers"
+	case "switch_peer":
+		pretty = "Switch Peer"
+	case "dimm_count":
+		pretty = "DIMM Count"
+	case "ram_total":
+		pretty = "Total RAM Size"
+	default:
+		pretty = category
+	}
+	return pretty
+}
+
 func mboPrettyPrintComponents(component_data map[string]*typeReport, category string, indent string) {
 	sub_types := make([]string, 0)
 	for t := range component_data {
@@ -56,40 +92,7 @@ func mboPrettyPrintComponents(component_data map[string]*typeReport, category st
 
 	for _, sub_type := range sub_types {
 		sub_data := component_data[sub_type]
-
-		pretty_sub_type := ""
-		switch sub_type {
-		case "bios_firmware_version":
-			pretty_sub_type = "BIOS Firmware Revision"
-		case "product_name":
-			if category == "BIOS" {
-				pretty_sub_type = "Firmware Programming Issue"
-			} else {
-				pretty_sub_type = "Product Name"
-			}
-		case "sas_hdd_num":
-			pretty_sub_type = "Number of SAS HDDs"
-		case "sas_ssd_num":
-			pretty_sub_type = "Number of SAS SSDs"
-		case "usb_hdd_num":
-			pretty_sub_type = "Number of USB HDDs"
-		case "links_up":
-			pretty_sub_type = "Number of Active Links"
-		case "nics_num":
-			pretty_sub_type = "Number of Network Interfaces"
-		case "num_peer_switch_ports":
-			pretty_sub_type = "Number of Peer Switch Ports"
-		case "num_switch_peers":
-			pretty_sub_type = "Number of Switch Peers"
-		case "switch_peer":
-			pretty_sub_type = "Switch Peer"
-		case "dimm_count":
-			pretty_sub_type = "DIMM Count"
-		case "ram_total":
-			pretty_sub_type = "Total RAM Size"
-		default:
-			pretty_sub_type = sub_type
-		}
+		pretty_sub_type := mboPrettyComponentType(sub_type, category)
 
 		fmt.Printf("%s%s: (%d)\n", indent, pretty_sub_type, sub_data.Count)
 		fmt.Printf("%s  Mean   : %s\n", indent, sub_data.Mean)
