@@ -98,11 +98,6 @@ var MboHardwareFailureCmd = &cli.Command{
 	Argv: func() interface{} { return new(mboHardwareFailureArgs) },
 	Fn: func(ctx *cli.Context) error {
 
-		type mboDevice struct {
-			Device   conch.ConchDevice
-			Failures map[string]mboComponentFail
-		}
-
 		type datacenterReport struct {
 			Name string
 			Id   uuid.UUID
