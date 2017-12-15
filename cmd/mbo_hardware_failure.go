@@ -38,6 +38,7 @@ type mboHardwareFailureArgs struct {
 	Components  bool           `cli:"include-components" usage:"Breakout failures by component name, as well as type"`
 	Vendors     bool           `cli:"include-vendors" usage:"Include vendor data"`
 	Full        bool           `cli:"full" usage:"Include all data. --include-components and --include-vendors are ignored"`
+	CSV         bool           `cli:"csv" usage:"Output report as CSV."`
 }
 
 type mboTypeReport struct {
@@ -290,10 +291,14 @@ var MboHardwareFailureCmd = &cli.Command{
 
 		for _, name := range az_names {
 			az := report[name]
-			fmt.Printf("%s:\n", az.Name)
+			if !argv.CSV {
+				fmt.Printf("%s:\n", az.Name)
+			}
 
 			if argv.Full || argv.Vendors {
-				fmt.Println("  By Vendor:")
+				if !argv.CSV {
+					fmt.Println("  By Vendor:")
+				}
 				vendors := make([]string, 0)
 				for v := range az.TimesByVendorAndType {
 					vendors = append(vendors, v)
@@ -301,7 +306,9 @@ var MboHardwareFailureCmd = &cli.Command{
 				sort.Strings(vendors)
 
 				for _, vendor := range vendors {
-					fmt.Printf("    %s:\n", vendor)
+					if !argv.CSV {
+						fmt.Printf("    %s:\n", vendor)
+					}
 
 					vendor_data := az.TimesByVendorAndType[vendor]
 
@@ -314,11 +321,15 @@ var MboHardwareFailureCmd = &cli.Command{
 					for _, time_type := range time_types {
 						data := vendor_data[time_type]
 
-						fmt.Printf("      %s: (%d)\n", time_type, data.Count)
-						fmt.Printf("        Mean   : %s\n", data.Mean)
-						fmt.Printf("        Median : %s\n", data.Median)
+						if !argv.CSV {
+							fmt.Printf("      %s: (%d)\n", time_type, data.Count)
+							fmt.Printf("        Mean   : %s\n", data.Mean)
+							fmt.Printf("        Median : %s\n", data.Median)
+						}
 					}
-					fmt.Println()
+					if !argv.CSV {
+						fmt.Println()
+					}
 				}
 			}
 
@@ -328,32 +339,36 @@ var MboHardwareFailureCmd = &cli.Command{
 			}
 			sort.Strings(time_types)
 
-			fmt.Println("  By Component Type:")
+			if !argv.CSV {
+				fmt.Println("  By Component Type:")
+			}
+
 			for _, time_type := range time_types {
 				data := az.TimesByType[time_type]
 
-				fmt.Printf("    %s: (%d)\n", time_type, data.Count)
-				fmt.Printf("      Mean   : %s\n", data.Mean)
-				fmt.Printf("      Median : %s\n", data.Median)
-				fmt.Println()
+				if !argv.CSV {
+					fmt.Println()
+					fmt.Printf("    %s: (%d)\n", time_type, data.Count)
+					fmt.Printf("      Mean   : %s\n", data.Mean)
+					fmt.Printf("      Median : %s\n", data.Median)
+				}
 
 				switch time_type {
 				case "SAS_SSD":
-					fmt.Println()
 					continue
 				case "SATA_SSD":
-					fmt.Println()
 					continue
 				case "SAS_HDD":
-					fmt.Println()
 					continue
 				case "CPU":
-					fmt.Println()
 					continue
 				}
 
 				if argv.Full || argv.Components {
-					fmt.Printf("      By Component:\n")
+					if !argv.CSV {
+						fmt.Println()
+						fmt.Printf("      By Component:\n")
+					}
 					sub_types := make([]string, 0)
 					for t := range az.TimesBySubType[time_type] {
 						sub_types = append(sub_types, t)
@@ -367,26 +382,28 @@ var MboHardwareFailureCmd = &cli.Command{
 							time_type,
 						)
 
-						fmt.Printf(
-							"        %s: (%d)\n",
-							pretty_sub_type,
-							sub_data.Count,
-						)
-						fmt.Printf(
-							"          Mean   : %s\n",
-							sub_data.Mean,
-						)
-						fmt.Printf(
-							"          Median : %s\n",
-							sub_data.Median,
-						)
+						if !argv.CSV {
+							fmt.Printf(
+								"        %s: (%d)\n",
+								pretty_sub_type,
+								sub_data.Count,
+							)
+							fmt.Printf(
+								"          Mean   : %s\n",
+								sub_data.Mean,
+							)
+							fmt.Printf(
+								"          Median : %s\n",
+								sub_data.Median,
+							)
+						}
 					}
-					fmt.Println()
 				}
-
 			}
 
-			fmt.Println()
+			if !argv.CSV {
+				fmt.Println()
+			}
 		}
 
 		return nil
