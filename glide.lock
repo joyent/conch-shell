@@ -1,10 +1,10 @@
-hash: 6d915ff28e7aa48020c4225592a8f1ee67fe6f00bec90308c6625008d017ce17
-updated: 2017-12-08T17:34:32.021599-05:00
+hash: f0381f12abb9ff6658b7464dcaf806e4957e18b72b711f5732b7818c2332043b
+updated: 2017-12-15T14:34:44.003555-05:00
 imports:
 - name: github.com/Bowery/prompt
   version: 753711fea478fa77bb2c83f6ec244b814d4a8bad
 - name: github.com/joyent/go-conch
-  version: b600358cac22876bde841bd69e2dd0f8e5dc127b
+  version: ec6bd170c1a420b5ad70725e9e8314257b5aa0c0
   subpackages:
   - pg_time
 - name: github.com/labstack/gommon
@@ -27,9 +27,11 @@ imports:
 - name: github.com/olekukonko/tablewriter
   version: 65fec0d89a572b4367094e2058d3ebe667de3b60
 - name: golang.org/x/sys
-  version: b8f5ef32195cae6470b728e8ca677f0dbed1a004
+  version: d5840adf789d732bc8b00f37b26ca956a7cc8e79
   subpackages:
   - unix
+- name: gopkg.in/montanaflynn/stats.v0
+  version: eeaced052adbcfeea372c749c281099ed7fdaa38
 - name: gopkg.in/satori/go.uuid.v1
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 testImports: []
