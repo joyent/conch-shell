@@ -112,12 +112,6 @@ var MboHardwareFailureCmd = &cli.Command{
 			TimesByVendorAndType map[string]map[string]*mboTypeReport
 		}
 
-		const (
-			default_component_type = "UNKNOWN"
-			default_datacenter     = "UNKNOWN"
-			default_rack           = "UNKNOWN"
-			default_rack_unit      = 0
-		)
 		/*****************/
 
 		args, _, api, err := GetStarted(&mboHardwareFailureArgs{}, ctx)
@@ -151,7 +145,7 @@ var MboHardwareFailureCmd = &cli.Command{
 				vendor = "UNKNOWN"
 			}
 
-			datacenter := default_datacenter
+			datacenter := "UNKNOWN"
 			datacenter_uuid := uuid.UUID{}
 
 			if device.Location.Datacenter.Name != "" {
