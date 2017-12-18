@@ -16,8 +16,8 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"time"
 	"strconv"
+	"time"
 )
 
 type mboComponentFailReport struct {
@@ -62,13 +62,13 @@ func mboDurationFormatCsv(t time.Duration) (pretty string) {
 	// To make this work as a duration in Excel and Google Sheets, the duration
 	// string must be HH:MM:SS so we need to add things back in.
 	// I'm also ignoring years here on purpose.
-	hours = hours + (days*24) + (weeks*7*24)
+	hours = hours + (days * 24) + (weeks * 7 * 24)
 
 	return fmt.Sprintf(
 		"%s:%s:%s",
-		strconv.FormatInt(hours,10),
-		strconv.FormatInt(minutes,10),
-		strconv.FormatInt(seconds,10),
+		strconv.FormatInt(hours, 10),
+		strconv.FormatInt(minutes, 10),
+		strconv.FormatInt(seconds, 10),
 	)
 }
 
@@ -163,7 +163,6 @@ var MboHardwareFailureCmd = &cli.Command{
 			"Median",
 		})
 
-
 		null_uuid := uuid.UUID{}
 		peer_re := regexp.MustCompile("_peer$")
 
@@ -192,7 +191,6 @@ var MboHardwareFailureCmd = &cli.Command{
 					continue
 				}
 			}
-
 
 			hardware_product, err := api.GetHardwareProduct(device.HardwareProduct)
 			if err != nil {
@@ -364,7 +362,7 @@ var MboHardwareFailureCmd = &cli.Command{
 								name,
 								vendor,
 								time_type,
-								strconv.FormatInt(data.Count,10),
+								strconv.FormatInt(data.Count, 10),
 								mboDurationFormatCsv(data.Mean),
 								mboDurationFormatCsv(data.Median),
 							})
@@ -392,7 +390,6 @@ var MboHardwareFailureCmd = &cli.Command{
 
 			for _, time_type := range time_types {
 				data := az.TimesByType[time_type]
-
 
 				if !argv.CSV {
 					fmt.Println()
@@ -431,11 +428,11 @@ var MboHardwareFailureCmd = &cli.Command{
 						)
 
 						if argv.CSV {
-							csv_component = append(csv_component,[]string{
+							csv_component = append(csv_component, []string{
 								name,
 								time_type,
 								pretty_sub_type,
-								strconv.FormatInt(sub_data.Count,10),
+								strconv.FormatInt(sub_data.Count, 10),
 								mboDurationFormatCsv(sub_data.Mean),
 								mboDurationFormatCsv(sub_data.Median),
 							})
