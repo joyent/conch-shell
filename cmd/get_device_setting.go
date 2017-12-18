@@ -23,7 +23,7 @@ var GetDeviceSettingCmd = &cli.Command{
 	Desc: "Get a single setting for a specific device serial",
 	Argv: func() interface{} { return new(getDeviceSettingArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getDeviceSettingArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getDeviceSettingArgs{})
 
 		if err != nil {
 			return err

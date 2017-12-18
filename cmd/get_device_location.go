@@ -22,7 +22,7 @@ var GetDeviceLocationCmd = &cli.Command{
 	Desc: "Get the location for a specific device serial",
 	Argv: func() interface{} { return new(getDeviceLocationArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getDeviceLocationArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getDeviceLocationArgs{})
 
 		if err != nil {
 			return err

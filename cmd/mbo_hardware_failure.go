@@ -133,7 +133,7 @@ var MboHardwareFailureCmd = &cli.Command{
 
 		/*****************/
 
-		args, _, api, err := GetStarted(&mboHardwareFailureArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &mboHardwareFailureArgs{}, nil)
 		if err != nil {
 			return err
 		}

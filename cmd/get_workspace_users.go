@@ -23,7 +23,7 @@ var GetWorkspaceUsersCmd = &cli.Command{
 	Desc: "Get a list of users for the given workspace ID",
 	Argv: func() interface{} { return new(getWorkspaceUsersArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getWorkspaceUsersArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getWorkspaceUsersArgs{})
 
 		if err != nil {
 			return err

@@ -26,7 +26,7 @@ var GetWorkspaceDevicesCmd = &cli.Command{
 	Desc: "Get a list of devices for the given workspace ID",
 	Argv: func() interface{} { return new(getWorkspaceDevicesArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getWorkspaceDevicesArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getWorkspaceDevicesArgs{})
 
 		if err != nil {
 			return err

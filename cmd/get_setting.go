@@ -22,7 +22,7 @@ var GetSettingCmd = &cli.Command{
 	Desc: "Get the value of the provided setting for the current user",
 	Argv: func() interface{} { return new(getSettingArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getSettingArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getSettingArgs{})
 
 		if err != nil {
 			return err

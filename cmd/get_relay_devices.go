@@ -26,7 +26,7 @@ var GetRelayDevicesCmd = &cli.Command{
 	Desc: "Get a list of relays for the given workspace ID",
 	Argv: func() interface{} { return new(getRelayDevicesArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getRelayDevicesArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getRelayDevicesArgs{})
 
 		if err != nil {
 			return err

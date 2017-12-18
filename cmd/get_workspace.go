@@ -23,7 +23,7 @@ var GetWorkspaceCmd = &cli.Command{
 	Desc: "Get information about a single workspace, by UUID",
 	Argv: func() interface{} { return new(getWorkspaceArgs) },
 	Fn: func(ctx *cli.Context) error {
-		args, _, api, err := GetStarted(&getWorkspaceArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &getWorkspaceArgs{})
 
 		if err != nil {
 			return err

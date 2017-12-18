@@ -51,7 +51,7 @@ var HealthSummaryCmd = &cli.Command{
 
 		full_report := make(map[string]datacenterReport)
 
-		args, _, api, err := GetStarted(&healthSummaryArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &healthSummaryArgs{}, nil)
 
 		if err != nil {
 			return err

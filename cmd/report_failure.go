@@ -69,7 +69,7 @@ var ReportFailureCmd = &cli.Command{
 		full_report := make(map[string]datacenterReport)
 		/*****************/
 
-		args, _, api, err := GetStarted(&reportFailureArgs{}, ctx)
+		args, _, api, err := GetStarted(ctx, &reportFailureArgs{}, nil)
 
 		if err != nil {
 			return err
