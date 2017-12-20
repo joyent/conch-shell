@@ -93,7 +93,6 @@ type mboComponentFail struct {
 }
 
 type mboMantaDevice map[string]mboComponentFail
-type mboMantaReport map[string]mboMantaDevice
 
 type mboTypeReport struct {
 	All    []float64
@@ -110,7 +109,242 @@ func (data *mboTypeReport) Calc() {
 	data.Median = time.Duration(median)
 }
 
+type mboDatacenterReport struct {
+	Name string
+	Id   uuid.UUID
+
+	TimesByType          map[string]*mboTypeReport
+	TimesBySubType       map[string]map[string]*mboTypeReport
+	TimesByVendorAndType map[string]map[string]*mboTypeReport
+}
+
+type mboMantaReport struct {
+	Raw       map[string]mboMantaDevice
+	Processed map[string]mboDatacenterReport
+}
+
+func (manta_report *mboMantaReport) NewFromFile(path string) (err error) {
+	var manta_report_raw map[string]mboMantaDevice
+	report_path, err := homedir.Expand(path)
+	if err != nil {
+		return err
+	}
+
+	manta_report_json, err := ioutil.ReadFile(report_path)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(manta_report_json, &manta_report_raw); err != nil {
+		return err
+	}
+
+	manta_report.Raw = manta_report_raw
+	return nil
+}
+
+func (manta_report *mboMantaReport) NewFromUrl(url string) (err error) {
+	var manta_report_raw map[string]mboMantaDevice
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(bodyBytes, &manta_report_raw); err != nil {
+		return err
+	}
+
+	manta_report.Raw = manta_report_raw
+	return nil
+}
+
+func (manta_report *mboMantaReport) Process(datacenter_choice string, remediation_min int) {
+	null_uuid := uuid.UUID{}
+	peer_re := regexp.MustCompile("_peer$")
+
+	hardware_products := make(map[uuid.UUID]conch.ConchHardwareProduct)
+
+	prods, err := util.API.GetHardwareProducts()
+	if err != nil {
+		util.Bail(err)
+	}
+
+	for _, prod := range prods {
+		hardware_products[prod.Id] = prod
+	}
+
+	report := make(map[string]mboDatacenterReport)
+
+	for serial, failures := range manta_report.Raw {
+		device, err := util.API.GetDevice(serial)
+		if err != nil {
+			continue
+		}
+
+		if uuid.Equal(device.HardwareProduct, null_uuid) {
+			continue
+		}
+
+		datacenter := "UNKNOWN"
+		datacenter_uuid := uuid.UUID{}
+
+		if device.Location.Datacenter.Name != "" {
+			datacenter = device.Location.Datacenter.Name
+			datacenter_uuid = device.Location.Datacenter.Id
+		}
+
+		if datacenter_choice != "" {
+			re := regexp.MustCompile(fmt.Sprintf("^%s-", datacenter_choice))
+			if (datacenter_uuid.String() != datacenter_choice) &&
+				(datacenter != datacenter_choice) &&
+				!re.MatchString(datacenter_choice) {
+				continue
+			}
+		}
+
+		vendor := "UNKNOWN"
+		if _, ok := hardware_products[device.HardwareProduct]; ok {
+			vendor = hardware_products[device.HardwareProduct].Vendor
+		}
+
+		times_by_type := make(map[string]*mboTypeReport)
+		times_by_subtype := make(map[string]map[string]*mboTypeReport)
+		times_by_vendor := make(map[string]map[string]*mboTypeReport)
+
+		zero_duration, err := time.ParseDuration("0s")
+		if _, ok := report[datacenter]; !ok {
+			report[datacenter] = mboDatacenterReport{
+				datacenter,
+				datacenter_uuid,
+				times_by_type,
+				times_by_subtype,
+				times_by_vendor,
+			}
+		} else {
+			times_by_type = report[datacenter].TimesByType
+			times_by_subtype = report[datacenter].TimesBySubType
+			times_by_vendor = report[datacenter].TimesByVendorAndType
+		}
+
+		if _, ok := times_by_vendor[vendor]; !ok {
+			times_by_vendor[vendor] = make(map[string]*mboTypeReport)
+		}
+
+		for _, failure := range failures {
+			failure_type := failure.FirstPass.Result.ComponentType
+			if (failure_type == "") || (failure_type == "Undetermined") {
+				failure_type = "UNKNOWN"
+			}
+
+			component_name := failure.FirstPass.Result.ComponentName
+			if (component_name == "") || (component_name == "Undetermined") {
+				component_name = "UNKNOWN"
+			}
+
+			if peer_re.MatchString(component_name) {
+				component_name = "switch_peer"
+			}
+
+			t_fail := failure.FirstFail.Created
+			if t_fail.IsZero() {
+				continue
+			}
+
+			t_pass := failure.FirstPass.Created
+			if t_pass.IsZero() {
+				continue
+			}
+
+			remediation_time := t_pass.Sub(t_fail)
+			if remediation_time.Seconds() < float64(remediation_min) {
+				continue
+			}
+
+			if _, ok := times_by_type[failure_type]; !ok {
+				times_by_type[failure_type] = &mboTypeReport{
+					make([]float64, 0),
+					zero_duration,
+					zero_duration,
+					0,
+				}
+			}
+			times_by_type[failure_type].All = append(
+				times_by_type[failure_type].All,
+				float64(remediation_time),
+			)
+			times_by_type[failure_type].Count++
+
+			if _, ok := times_by_vendor[vendor][failure_type]; !ok {
+				times_by_vendor[vendor][failure_type] = &mboTypeReport{
+					make([]float64, 0),
+					zero_duration,
+					zero_duration,
+					0,
+				}
+			}
+			times_by_vendor[vendor][failure_type].All = append(
+				times_by_vendor[vendor][failure_type].All,
+				float64(remediation_time),
+			)
+			times_by_vendor[vendor][failure_type].Count++
+
+			if _, ok := times_by_subtype[failure_type]; !ok {
+				times_by_subtype[failure_type] = make(map[string]*mboTypeReport)
+			}
+
+			if _, ok := times_by_subtype[failure_type][component_name]; !ok {
+				times_by_subtype[failure_type][component_name] = &mboTypeReport{
+					make([]float64, 0),
+					zero_duration,
+					zero_duration,
+					0,
+				}
+			}
+
+			times_by_subtype[failure_type][component_name].All = append(
+				times_by_subtype[failure_type][component_name].All,
+				float64(remediation_time),
+			)
+			times_by_subtype[failure_type][component_name].Count++
+
+		}
+
+	}
+
+	for _, az := range report {
+		for _, time_data := range az.TimesByType {
+			time_data.Calc()
+		}
+
+		for _, type_data := range az.TimesBySubType {
+			for _, sub_type := range type_data {
+				sub_type.Calc()
+			}
+		}
+
+		for _, vendor_data := range az.TimesByVendorAndType {
+			for _, type_data := range vendor_data {
+				type_data.Calc()
+			}
+		}
+
+	}
+
+	manta_report.Processed = report
+}
+
 func mboHardwareFailures(app *cli.Cmd) {
+	app.Command(
+		"sparkline sparks",
+		"Produce a sparkline of the hardware failure timeline",
+		mboHardwareFailureSparkline,
+	)
+
 	var (
 		manta_report_path  = app.StringOpt("manta-report path", "", "Path to Manta job output file")
 		manta_report_url   = app.StringOpt("manta-report-url url", "", "The url for manta report output")
@@ -126,252 +360,98 @@ func mboHardwareFailures(app *cli.Cmd) {
 
 	app.Action = func() {
 
-		type datacenterReport struct {
-			Name string
-			Id   uuid.UUID
-
-			TimesByType          map[string]*mboTypeReport
-			TimesBySubType       map[string]map[string]*mboTypeReport
-			TimesByVendorAndType map[string]map[string]*mboTypeReport
-		}
-
-		/*********************************/
-		if *csv_output {
-			*full_output = true
-		}
-
-		var manta_report mboMantaReport
+		manta_report := &mboMantaReport{}
 
 		if *manta_report_path != "" {
 			if !*csv_output {
 				fmt.Println("Opening file " + *manta_report_path)
 			}
-
-			report_path, err := homedir.Expand(*manta_report_path)
-			if err != nil {
-				util.Bail(err)
-			}
-
-			manta_report_json, err := ioutil.ReadFile(report_path)
-			if err != nil {
-				util.Bail(err)
-			}
-
-			if err := json.Unmarshal(manta_report_json, &manta_report); err != nil {
+			if err := manta_report.NewFromFile(*manta_report_path); err != nil {
 				util.Bail(err)
 			}
 		} else {
 			if !*csv_output {
 				fmt.Println("Downloading URL " + *manta_report_url)
 			}
-			resp, err := http.Get(*manta_report_url)
-			if err != nil {
-				util.Bail(err)
-			}
-			defer resp.Body.Close()
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				util.Bail(err)
-			}
-
-			if err := json.Unmarshal(bodyBytes, &manta_report); err != nil {
+			if err := manta_report.NewFromUrl(*manta_report_url); err != nil {
 				util.Bail(err)
 			}
 		}
+
 		if !*csv_output {
 			fmt.Println("Parsing complete. Processing...")
 			fmt.Println()
 		}
+		manta_report.Process(*datacenter_choice, *remediation_min)
+		report := manta_report.Processed
+		if *csv_output {
+			csv_vendor := make([][]string, 0)
+			csv_vendor = append(csv_vendor, []string{
+				"Datacenter",
+				"Vendor",
+				"Type",
+				"Failure Count",
+				"Mean",
+				"Median",
+			})
 
-		csv_vendor := make([][]string, 0)
-		csv_vendor = append(csv_vendor, []string{
-			"Datacenter",
-			"Vendor",
-			"Type",
-			"Failure Count",
-			"Mean",
-			"Median",
-		})
+			csv_component := make([][]string, 0)
+			csv_component = append(csv_component, []string{
+				"Datacenter",
+				"Type",
+				"Component",
+				"Failure Count",
+				"Mean",
+				"Median",
+			})
 
-		csv_component := make([][]string, 0)
-		csv_component = append(csv_component, []string{
-			"Datacenter",
-			"Type",
-			"Component",
-			"Failure Count",
-			"Mean",
-			"Median",
-		})
-
-		null_uuid := uuid.UUID{}
-		peer_re := regexp.MustCompile("_peer$")
-
-		hardware_products := make(map[uuid.UUID]conch.ConchHardwareProduct)
-
-		prods, err := util.API.GetHardwareProducts()
-		if err != nil {
-			util.Bail(err)
-		}
-
-		for _, prod := range prods {
-			hardware_products[prod.Id] = prod
-		}
-
-		report := make(map[string]datacenterReport)
-
-		for serial, failures := range manta_report {
-			device, err := util.API.GetDevice(serial)
-			if err != nil {
-				continue
-			}
-
-			if uuid.Equal(device.HardwareProduct, null_uuid) {
-				continue
-			}
-
-			datacenter := "UNKNOWN"
-			datacenter_uuid := uuid.UUID{}
-
-			if device.Location.Datacenter.Name != "" {
-				datacenter = device.Location.Datacenter.Name
-				datacenter_uuid = device.Location.Datacenter.Id
-			}
-
-			if *datacenter_choice != "" {
-				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenter_choice))
-				if (datacenter_uuid.String() != *datacenter_choice) &&
-					(datacenter != *datacenter_choice) &&
-					!re.MatchString(*datacenter_choice) {
-					continue
-				}
-			}
-
-			vendor := "UNKNOWN"
-			if _, ok := hardware_products[device.HardwareProduct]; ok {
-				vendor = hardware_products[device.HardwareProduct].Vendor
-			}
-
-			times_by_type := make(map[string]*mboTypeReport)
-			times_by_subtype := make(map[string]map[string]*mboTypeReport)
-			times_by_vendor := make(map[string]map[string]*mboTypeReport)
-
-			zero_duration, err := time.ParseDuration("0s")
-			if _, ok := report[datacenter]; !ok {
-				report[datacenter] = datacenterReport{
-					datacenter,
-					datacenter_uuid,
-					times_by_type,
-					times_by_subtype,
-					times_by_vendor,
-				}
-			} else {
-				times_by_type = report[datacenter].TimesByType
-				times_by_subtype = report[datacenter].TimesBySubType
-				times_by_vendor = report[datacenter].TimesByVendorAndType
-			}
-
-			if _, ok := times_by_vendor[vendor]; !ok {
-				times_by_vendor[vendor] = make(map[string]*mboTypeReport)
-			}
-
-			for _, failure := range failures {
-				failure_type := failure.FirstPass.Result.ComponentType
-				if (failure_type == "") || (failure_type == "Undetermined") {
-					failure_type = "UNKNOWN"
-				}
-
-				component_name := failure.FirstPass.Result.ComponentName
-				if (component_name == "") || (component_name == "Undetermined") {
-					component_name = "UNKNOWN"
-				}
-
-				if peer_re.MatchString(component_name) {
-					component_name = "switch_peer"
-				}
-
-				t_fail := failure.FirstFail.Created
-				if t_fail.IsZero() {
-					continue
-				}
-
-				t_pass := failure.FirstPass.Created
-				if t_pass.IsZero() {
-					continue
-				}
-
-				remediation_time := t_pass.Sub(t_fail)
-				if remediation_time.Seconds() < float64(*remediation_min) {
-					continue
-				}
-
-				if _, ok := times_by_type[failure_type]; !ok {
-					times_by_type[failure_type] = &mboTypeReport{
-						make([]float64, 0),
-						zero_duration,
-						zero_duration,
-						0,
+			for name, az := range report {
+				for vendor, vendor_data := range az.TimesByVendorAndType {
+					for time_type, data := range vendor_data {
+						csv_vendor = append(csv_vendor, []string{
+							name,
+							vendor,
+							time_type,
+							strconv.FormatInt(data.Count, 10),
+							mboDurationFormatCsv(data.Mean),
+							mboDurationFormatCsv(data.Median),
+						})
 					}
 				}
-				times_by_type[failure_type].All = append(
-					times_by_type[failure_type].All,
-					float64(remediation_time),
-				)
-				times_by_type[failure_type].Count++
+				for time_type, data := range az.TimesBySubType {
+					switch time_type {
+					case "SAS_SSD":
+						continue
+					case "SATA_SSD":
+						continue
+					case "SAS_HDD":
+						continue
+					case "CPU":
+						continue
+					}
 
-				if _, ok := times_by_vendor[vendor][failure_type]; !ok {
-					times_by_vendor[vendor][failure_type] = &mboTypeReport{
-						make([]float64, 0),
-						zero_duration,
-						zero_duration,
-						0,
+					for sub_type, sub_data := range data {
+						pretty_sub_type := mboPrettyComponentType(
+							sub_type,
+							time_type,
+						)
+
+						csv_component = append(csv_component, []string{
+							name,
+							time_type,
+							pretty_sub_type,
+							strconv.FormatInt(sub_data.Count, 10),
+							mboDurationFormatCsv(sub_data.Mean),
+							mboDurationFormatCsv(sub_data.Median),
+						})
 					}
 				}
-				times_by_vendor[vendor][failure_type].All = append(
-					times_by_vendor[vendor][failure_type].All,
-					float64(remediation_time),
-				)
-				times_by_vendor[vendor][failure_type].Count++
-
-				if _, ok := times_by_subtype[failure_type]; !ok {
-					times_by_subtype[failure_type] = make(map[string]*mboTypeReport)
-				}
-
-				if _, ok := times_by_subtype[failure_type][component_name]; !ok {
-					times_by_subtype[failure_type][component_name] = &mboTypeReport{
-						make([]float64, 0),
-						zero_duration,
-						zero_duration,
-						0,
-					}
-				}
-
-				times_by_subtype[failure_type][component_name].All = append(
-					times_by_subtype[failure_type][component_name].All,
-					float64(remediation_time),
-				)
-				times_by_subtype[failure_type][component_name].Count++
-
 			}
-
-		}
-
-		for _, az := range report {
-			for _, time_data := range az.TimesByType {
-				time_data.Calc()
-			}
-
-			for _, type_data := range az.TimesBySubType {
-				for _, sub_type := range type_data {
-					sub_type.Calc()
-				}
-			}
-
-			for _, vendor_data := range az.TimesByVendorAndType {
-				for _, type_data := range vendor_data {
-					type_data.Calc()
-				}
-			}
-
+			w := csv.NewWriter(os.Stdout)
+			w.WriteAll(csv_vendor)
+			fmt.Println()
+			w.WriteAll(csv_component)
+			return
 		}
 
 		az_names := make([]string, 0)
@@ -387,9 +467,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 			}
 
 			if *full_output || *include_vendors {
-				if !*csv_output {
-					fmt.Println("  By Vendor:")
-				}
+				fmt.Println("  By Vendor:")
 				vendors := make([]string, 0)
 				for v := range az.TimesByVendorAndType {
 					vendors = append(vendors, v)
@@ -397,9 +475,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 				sort.Strings(vendors)
 
 				for _, vendor := range vendors {
-					if !*csv_output {
-						fmt.Printf("    %s:\n", vendor)
-					}
+					fmt.Printf("    %s:\n", vendor)
 
 					vendor_data := az.TimesByVendorAndType[vendor]
 
@@ -411,25 +487,11 @@ func mboHardwareFailures(app *cli.Cmd) {
 
 					for _, time_type := range time_types {
 						data := vendor_data[time_type]
-
-						csv_vendor = append(csv_vendor, []string{
-							name,
-							vendor,
-							time_type,
-							strconv.FormatInt(data.Count, 10),
-							mboDurationFormatCsv(data.Mean),
-							mboDurationFormatCsv(data.Median),
-						})
-
-						if !*csv_output {
-							fmt.Printf("      %s: (%d)\n", time_type, data.Count)
-							fmt.Printf("        Mean   : %s\n", data.Mean)
-							fmt.Printf("        Median : %s\n", data.Median)
-						}
+						fmt.Printf("      %s: (%d)\n", time_type, data.Count)
+						fmt.Printf("        Mean   : %s\n", data.Mean)
+						fmt.Printf("        Median : %s\n", data.Median)
 					}
-					if !*csv_output {
-						fmt.Println()
-					}
+					fmt.Println()
 				}
 			}
 
@@ -439,19 +501,15 @@ func mboHardwareFailures(app *cli.Cmd) {
 			}
 			sort.Strings(time_types)
 
-			if !*csv_output {
-				fmt.Println("  By Component Type:")
-			}
+			fmt.Println("  By Component Type:")
 
 			for _, time_type := range time_types {
 				data := az.TimesByType[time_type]
 
-				if !*csv_output {
-					fmt.Println()
-					fmt.Printf("    %s: (%d)\n", time_type, data.Count)
-					fmt.Printf("      Mean   : %s\n", data.Mean)
-					fmt.Printf("      Median : %s\n", data.Median)
-				}
+				fmt.Println()
+				fmt.Printf("    %s: (%d)\n", time_type, data.Count)
+				fmt.Printf("      Mean   : %s\n", data.Mean)
+				fmt.Printf("      Median : %s\n", data.Median)
 
 				switch time_type {
 				case "SAS_SSD":
@@ -465,10 +523,9 @@ func mboHardwareFailures(app *cli.Cmd) {
 				}
 
 				if *full_output || *include_components {
-					if !*csv_output {
-						fmt.Println()
-						fmt.Printf("      By Component:\n")
-					}
+					fmt.Println()
+					fmt.Printf("      By Component:\n")
+
 					sub_types := make([]string, 0)
 					for t := range az.TimesBySubType[time_type] {
 						sub_types = append(sub_types, t)
@@ -481,45 +538,23 @@ func mboHardwareFailures(app *cli.Cmd) {
 							sub_type,
 							time_type,
 						)
-
-						csv_component = append(csv_component, []string{
-							name,
-							time_type,
+						fmt.Printf(
+							"        %s: (%d)\n",
 							pretty_sub_type,
-							strconv.FormatInt(sub_data.Count, 10),
-							mboDurationFormatCsv(sub_data.Mean),
-							mboDurationFormatCsv(sub_data.Median),
-						})
-
-						if !*csv_output {
-							fmt.Printf(
-								"        %s: (%d)\n",
-								pretty_sub_type,
-								sub_data.Count,
-							)
-							fmt.Printf(
-								"          Mean   : %s\n",
-								sub_data.Mean,
-							)
-							fmt.Printf(
-								"          Median : %s\n",
-								sub_data.Median,
-							)
-						}
+							sub_data.Count,
+						)
+						fmt.Printf(
+							"          Mean   : %s\n",
+							sub_data.Mean,
+						)
+						fmt.Printf(
+							"          Median : %s\n",
+							sub_data.Median,
+						)
 					}
 				}
 			}
-
-			if !*csv_output {
-				fmt.Println()
-			}
-		}
-
-		if *csv_output {
-			w := csv.NewWriter(os.Stdout)
-			w.WriteAll(csv_vendor)
 			fmt.Println()
-			w.WriteAll(csv_component)
 		}
 	}
 }
