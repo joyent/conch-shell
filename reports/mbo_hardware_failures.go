@@ -5,8 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 package reports
 
-// BUG(sungo): toss out data where remediation time is <90s
-
 // BUG(sungo): use getHardwareProducts and just look up by uuid rather than fetching it for every device
 
 import (
@@ -121,9 +119,10 @@ func mboHardwareFailures(app *cli.Cmd) {
 		include_vendors    = app.BoolOpt("include-vendors", false, "Include vendor data")
 		include_components = app.BoolOpt("include-components", false, "Break out failures by components")
 		manta_report_path  = app.StringOpt("manta-report", "", "Path to Manta job output file")
+		remediation_min = app.IntOpt("remediation-minimum", 90, "For a failure to be considered, its remediation time must be greater than or equal to this number")
 	)
 
-	app.Spec = "--manta-report [--full] [--csv] [--include-vendors] [--include-components] [--datacenter]"
+	app.Spec = "--manta-report [--full] [--csv] [--include-vendors] [--include-components] [--datacenter] [--remediation-minimum]"
 
 	app.Action = func() {
 
@@ -266,6 +265,11 @@ func mboHardwareFailures(app *cli.Cmd) {
 					continue
 				}
 
+				remediation_time := t_pass.Sub(t_fail)
+				if remediation_time.Seconds() < float64(*remediation_min) {
+					continue
+				}
+
 				if _, ok := times_by_type[failure_type]; !ok {
 					times_by_type[failure_type] = &mboTypeReport{
 						make([]float64, 0),
@@ -276,7 +280,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 				}
 				times_by_type[failure_type].All = append(
 					times_by_type[failure_type].All,
-					float64(t_pass.Sub(t_fail)),
+					float64(remediation_time),
 				)
 				times_by_type[failure_type].Count++
 
@@ -290,7 +294,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 				}
 				times_by_vendor[vendor][failure_type].All = append(
 					times_by_vendor[vendor][failure_type].All,
-					float64(t_pass.Sub(t_fail)),
+					float64(remediation_time),
 				)
 				times_by_vendor[vendor][failure_type].Count++
 
@@ -309,7 +313,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 
 				times_by_subtype[failure_type][component_name].All = append(
 					times_by_subtype[failure_type][component_name].All,
-					float64(t_pass.Sub(t_fail)),
+					float64(remediation_time),
 				)
 				times_by_subtype[failure_type][component_name].Count++
 
