@@ -188,7 +188,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 			"Datacenter",
 			"Vendor",
 			"Type",
-			"Count",
+			"Failure Count",
 			"Mean",
 			"Median",
 		})
@@ -198,7 +198,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 			"Datacenter",
 			"Type",
 			"Component",
-			"Count",
+			"Failure Count",
 			"Mean",
 			"Median",
 		})
