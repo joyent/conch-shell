@@ -339,12 +339,6 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 }
 
 func mboHardwareFailures(app *cli.Cmd) {
-	app.Command(
-		"sparkline sparks",
-		"Produce a sparkline of the hardware failure timeline",
-		mboHardwareFailureSparkline,
-	)
-
 	var (
 		manta_report_path  = app.StringOpt("manta-report path", "", "Path to Manta job output file")
 		manta_report_url   = app.StringOpt("manta-report-url url", "", "The url for manta report output")

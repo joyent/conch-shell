@@ -22,6 +22,12 @@ func Init(app *cli.Cli) {
 				"MBO hardware failure report",
 				mboHardwareFailures,
 			)
+
+			cmd.Command(
+				"mbo_graphs",
+				"Sets up a local webserver that provides various graphs about the mbo data",
+				mboHardwareFailureGraphListener,
+			)
 		},
 	)
 }

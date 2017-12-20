@@ -11,3 +11,6 @@ import:
 - package: github.com/mitchellh/go-homedir
 - package: github.com/mattn/go-runewidth
   version: ^0.0.2
+- package: github.com/wcharczuk/go-chart
+  version: ^2.0.0
+- package: github.com/blendlabs/go-exception

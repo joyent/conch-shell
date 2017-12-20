@@ -1,8 +1,15 @@
-hash: 9743046d5688f14885b9a610760c86f2ff55c5803f76a27e5d404b724ea22953
-updated: 2017-12-20T12:26:39.181359-05:00
+hash: b3256dd908e5290e643b4f2f8dddb17282eccdeb9fffb2a9c3f7d8029928ee98
+updated: 2017-12-20T15:48:18.412528-05:00
 imports:
+- name: github.com/blendlabs/go-exception
+  version: 8d6614c6a381fe586fa618174af22043ff966730
+- name: github.com/golang/freetype
+  version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
+  subpackages:
+  - raster
+  - truetype
 - name: github.com/joyent/go-conch
-  version: ec6bd170c1a420b5ad70725e9e8314257b5aa0c0
+  version: 195858be170dd9af5e1c3cbeea148a1e3c632cf8
   subpackages:
   - pg_time
 - name: github.com/mattn/go-runewidth
@@ -11,6 +18,17 @@ imports:
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/olekukonko/tablewriter
   version: 65fec0d89a572b4367094e2058d3ebe667de3b60
+- name: github.com/wcharczuk/go-chart
+  version: fc2973067ce43455507ea5f9aa9814aabbf8f2ca
+  subpackages:
+  - drawing
+- name: golang.org/x/image
+  version: 12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7
+  subpackages:
+  - draw
+  - font
+  - math/f64
+  - math/fixed
 - name: gopkg.in/jawher/mow.cli.v1
   version: 0e80ee9f63156ea1954dc2375c33a1c7e752c25c
 - name: gopkg.in/montanaflynn/stats.v0
