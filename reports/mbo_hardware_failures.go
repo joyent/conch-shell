@@ -5,8 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 package reports
 
-// BUG(sungo): use getHardwareProducts and just look up by uuid rather than fetching it for every device
-
 import (
 	"encoding/csv"
 	"encoding/json"
@@ -119,7 +117,7 @@ func mboHardwareFailures(app *cli.Cmd) {
 		include_vendors    = app.BoolOpt("include-vendors", false, "Include vendor data")
 		include_components = app.BoolOpt("include-components", false, "Break out failures by components")
 		manta_report_path  = app.StringOpt("manta-report", "", "Path to Manta job output file")
-		remediation_min = app.IntOpt("remediation-minimum", 90, "For a failure to be considered, its remediation time must be greater than or equal to this number")
+		remediation_min    = app.IntOpt("remediation-minimum", 90, "For a failure to be considered, its remediation time must be greater than or equal to this number")
 	)
 
 	app.Spec = "--manta-report [--full] [--csv] [--include-vendors] [--include-components] [--datacenter] [--remediation-minimum]"
@@ -179,6 +177,17 @@ func mboHardwareFailures(app *cli.Cmd) {
 		null_uuid := uuid.UUID{}
 		peer_re := regexp.MustCompile("_peer$")
 
+		hardware_products := make(map[uuid.UUID]conch.ConchHardwareProduct)
+
+		prods, err := util.API.GetHardwareProducts()
+		if err != nil {
+			util.Bail(err)
+		}
+
+		for _, prod := range prods {
+			hardware_products[prod.Id] = prod
+		}
+
 		report := make(map[string]datacenterReport)
 
 		for serial, failures := range manta_report {
@@ -208,13 +217,9 @@ func mboHardwareFailures(app *cli.Cmd) {
 				}
 			}
 
-			hardware_product, err := util.API.GetHardwareProduct(device.HardwareProduct)
-			if err != nil {
-				continue
-			}
-			vendor := hardware_product.Vendor
-			if vendor == "" {
-				vendor = "UNKNOWN"
+			vendor := "UNKNOWN"
+			if _, ok := hardware_products[device.HardwareProduct]; ok {
+				vendor = hardware_products[device.HardwareProduct].Vendor
 			}
 
 			times_by_type := make(map[string]*mboTypeReport)
