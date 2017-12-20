@@ -3,47 +3,42 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-package cmd
+package workspaces
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/joyent/conch-shell/util"
 	conch "github.com/joyent/go-conch"
-	"github.com/joyent/go-conch/pg_time"
-	"github.com/mkideal/cli"
+	pgtime "github.com/joyent/go-conch/pg_time"
+	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"regexp"
 	"sort"
 )
 
-type reportFailureArgs struct {
-	cli.Helper
-	Id         string `cli:"*workspace_id,workspace_uuid,workspace" usage:"ID of the workspace (required)"`
-	Breakout   bool   `cli:"breakout" usage:"Instead of just presenting a datacenter summary, breakout results by rack as well (Ignored in the presence of --json)"`
-	Uuids      bool   `cli:"uuids" usage:"Show UUIDs where appropriate"`
-	Datacenter string `cli:"datacenter" usage:"Limit the output to a particular datacenter UUID"`
-}
+func getFailures(app *cli.Cmd) {
+	var (
+		full_output       = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
+		show_uuids        = app.BoolOpt("uuids", false, "Show UUIDs where appropriate")
+		datacenter_choice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
+	)
 
-var ReportFailureCmd = &cli.Command{
-	Name: "report_failure",
-	Desc: "Report that shows info about hardware failures",
-	Argv: func() interface{} { return new(reportFailureArgs) },
-	Fn: func(ctx *cli.Context) error {
+	app.Action = func() {
 
 		type minimalReportDevice struct {
 			AssetTag          string                                   `json:"asset_tag"`
-			Created           pg_time.ConchPgTime                      `json:"created, int"`
-			Graduated         pg_time.ConchPgTime                      `json:"graduated"`
+			Created           pgtime.ConchPgTime                       `json:"created, int"`
+			Graduated         pgtime.ConchPgTime                       `json:"graduated"`
 			HardwareProduct   uuid.UUID                                `json:"hardware_product"`
 			Health            string                                   `json:"health"`
 			Id                string                                   `json:"id"`
-			LastSeen          pg_time.ConchPgTime                      `json:"last_seen, int"`
+			LastSeen          pgtime.ConchPgTime                       `json:"last_seen, int"`
 			Location          conch.ConchDeviceLocation                `json:"location"`
 			Role              string                                   `json:"role"`
 			State             string                                   `json:"state"`
 			SystemUuid        uuid.UUID                                `json:"system_uuid"`
-			Updated           pg_time.ConchPgTime                      `json:"updated, int"`
-			Validated         pg_time.ConchPgTime                      `json:"validated, int"`
+			Updated           pgtime.ConchPgTime                       `json:"updated, int"`
+			Validated         pgtime.ConchPgTime                       `json:"validated, int"`
 			FailedValidations map[string][]conch.ConchValidationReport `json:"failed_validations"`
 		}
 
@@ -67,38 +62,22 @@ var ReportFailureCmd = &cli.Command{
 		)
 
 		full_report := make(map[string]datacenterReport)
-		/*****************/
 
-		args, _, api, err := GetStarted(ctx, &reportFailureArgs{}, nil)
-
-		if err != nil {
-			return err
-		}
-
-		argv := args.Local.(*reportFailureArgs)
-
-		workspace_id, err := uuid.FromString(argv.Id)
-		if err != nil {
-			return err
-		}
-
-		var workspace_devices []conch.ConchDevice
-
-		workspace_devices, err = api.GetWorkspaceDevices(
-			workspace_id,
+		workspace_devices, err := util.API.GetWorkspaceDevices(
+			WorkspaceUuid,
 			false,
 			"",
 			"fail",
 		)
 
 		if err != nil {
-			return err
+			util.Bail(err)
 		}
 
 		for _, d := range workspace_devices {
-			full_d, err := api.FillInDevice(d)
+			full_d, err := util.API.FillInDevice(d)
 			if err != nil {
-				return err
+				util.Bail(err)
 			}
 
 			report_device := minimalReportDevice{
@@ -125,8 +104,12 @@ var ReportFailureCmd = &cli.Command{
 				datacenter_uuid = full_d.Location.Datacenter.Id
 
 			}
-			if argv.Datacenter != "" {
-				if datacenter_uuid.String() != argv.Datacenter {
+
+			if *datacenter_choice != "" {
+				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenter_choice))
+				if (datacenter_uuid.String() != *datacenter_choice) &&
+					(datacenter != *datacenter_choice) &&
+					!re.MatchString(*datacenter_choice) {
 					continue
 				}
 			}
@@ -178,13 +161,9 @@ var ReportFailureCmd = &cli.Command{
 
 		}
 
-		if args.Global.JSON {
-			j, err := json.Marshal(full_report)
-			if err != nil {
-				return err
-			}
-			fmt.Println(string(j))
-			return nil
+		if util.JSON {
+			util.JsonOut(full_report)
+			return
 		}
 
 		az := make([]string, 0)
@@ -194,7 +173,7 @@ var ReportFailureCmd = &cli.Command{
 		sort.Strings(az)
 
 		for _, a := range az {
-			if argv.Uuids {
+			if *show_uuids {
 				fmt.Printf("%s - %s\n", a, full_report[a].Id)
 			} else {
 				fmt.Println(a)
@@ -211,7 +190,7 @@ var ReportFailureCmd = &cli.Command{
 				fmt.Printf("    %8s: %d\n", t, full_report[a].Summary[t])
 			}
 
-			if !argv.Breakout {
+			if !*full_output {
 				fmt.Println()
 				continue
 			}
@@ -227,14 +206,14 @@ var ReportFailureCmd = &cli.Command{
 
 			for _, rack_name := range rack_names {
 				rack := full_report[a].Racks[rack_name]
-				if argv.Uuids {
+				if *show_uuids {
 					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.Id)
 				} else {
 					fmt.Printf("    %s:\n", rack_name)
 				}
 
 				for _, device := range rack.FailedDevices {
-					if argv.Uuids {
+					if *show_uuids {
 						fmt.Printf("      %s - %s:\n",
 							device.Id,
 							device.SystemUuid,
@@ -262,7 +241,5 @@ var ReportFailureCmd = &cli.Command{
 
 			fmt.Println()
 		}
-
-		return nil
-	},
+	}
 }

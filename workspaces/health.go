@@ -3,33 +3,27 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-package cmd
+package workspaces
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/joyent/conch-shell/util"
 	conch "github.com/joyent/go-conch"
-	"github.com/mkideal/cli"
+	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"regexp"
 	"sort"
 )
 
-type healthSummaryArgs struct {
-	cli.Helper
-	Id           string `cli:"*workspace_id,workspace_uuid,workspace" usage:"ID of the workspace (required)"`
-	Breakout     bool   `cli:"breakout" usage:"Instead of just presenting a datacenter summary, breakout results by rack as well (Ignored in the presence of --json)"`
-	Uuids        bool   `cli:"uuids" usage:"Show UUIDs where appropriate"`
-	PlatformName bool   `cli:"platform-name" usage:"Use the platform name (like 'Joyent-Foo-Platform-XXXX') instead of common name (like 'Mantis Shrimp MkIII')"`
-	Datacenter   string `cli:"datacenter" usage:"Limit the output to a particular datacenter UUID"`
-}
+func getHealth(app *cli.Cmd) {
+	var (
+		full_output       = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
+		show_uuids        = app.BoolOpt("uuids", false, "Show UUIDs where appropriate")
+		platform_name     = app.BoolOpt("platform-name", false, "Use the platform name (like 'Joyent-Foo-Platform-XXXX') instead of the common name (like 'Mantis Shrimp MkIII')")
+		datacenter_choice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
+	)
 
-var HealthSummaryCmd = &cli.Command{
-	Name: "health_summary",
-	Desc: "Report that shows info about health summary by hardware type",
-	Argv: func() interface{} { return new(healthSummaryArgs) },
-	Fn: func(ctx *cli.Context) error {
-
+	app.Action = func() {
 		type reportRack struct {
 			Rack    conch.ConchRack           `json:"rack"`
 			Summary map[string]map[string]int `json:"summary"`
@@ -46,39 +40,25 @@ var HealthSummaryCmd = &cli.Command{
 			default_hardware_type = "UNKNOWN"
 			default_datacenter    = "UNKNOWN"
 			default_rack          = "UNKNOWN"
-			default_rack_unit     = 0
 		)
 
 		full_report := make(map[string]datacenterReport)
 
-		args, _, api, err := GetStarted(ctx, &healthSummaryArgs{}, nil)
-
-		if err != nil {
-			return err
-		}
-
-		argv := args.Local.(*healthSummaryArgs)
-
-		workspace_id, err := uuid.FromString(argv.Id)
-		if err != nil {
-			return err
-		}
-
-		workspace_devices, err := api.GetWorkspaceDevices(
-			workspace_id,
+		workspace_devices, err := util.API.GetWorkspaceDevices(
+			WorkspaceUuid,
 			true,
 			"",
 			"",
 		)
 
 		if err != nil {
-			return err
+			util.Bail(err)
 		}
 
 		for _, d := range workspace_devices {
-			full_d, err := api.FillInDevice(d)
+			full_d, err := util.API.FillInDevice(d)
 			if err != nil {
-				return err
+				util.Bail(err)
 			}
 
 			datacenter := default_datacenter
@@ -89,8 +69,11 @@ var HealthSummaryCmd = &cli.Command{
 
 			}
 
-			if argv.Datacenter != "" {
-				if datacenter_uuid.String() != argv.Datacenter {
+			if *datacenter_choice != "" {
+				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenter_choice))
+				if (datacenter_uuid.String() != *datacenter_choice) &&
+					(datacenter != *datacenter_choice) &&
+					!re.MatchString(*datacenter_choice) {
 					continue
 				}
 			}
@@ -116,7 +99,7 @@ var HealthSummaryCmd = &cli.Command{
 			}
 
 			hwtype := default_hardware_type
-			if argv.PlatformName {
+			if *platform_name {
 				if full_d.Location.TargetHardwareProduct.Name != "" {
 					hwtype = full_d.Location.TargetHardwareProduct.Name
 				}
@@ -137,13 +120,9 @@ var HealthSummaryCmd = &cli.Command{
 
 		}
 
-		if args.Global.JSON {
-			j, err := json.Marshal(full_report)
-			if err != nil {
-				return err
-			}
-			fmt.Println(string(j))
-			return nil
+		if util.JSON {
+			util.JsonOut(full_report)
+			return
 		}
 
 		az := make([]string, 0)
@@ -153,7 +132,7 @@ var HealthSummaryCmd = &cli.Command{
 		sort.Strings(az)
 
 		for _, a := range az {
-			if argv.Uuids {
+			if *show_uuids {
 				fmt.Printf("%s - %s\n", a, full_report[a].Id)
 			} else {
 				fmt.Println(a)
@@ -180,7 +159,7 @@ var HealthSummaryCmd = &cli.Command{
 				fmt.Println()
 			}
 
-			if !argv.Breakout {
+			if !*full_output {
 				fmt.Println()
 				continue
 			}
@@ -195,7 +174,7 @@ var HealthSummaryCmd = &cli.Command{
 
 			for _, rack_name := range rack_names {
 				rack := full_report[a].Racks[rack_name]
-				if argv.Uuids {
+				if *show_uuids {
 					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.Id)
 				} else {
 					fmt.Printf("    %s:\n", rack_name)
@@ -223,7 +202,5 @@ var HealthSummaryCmd = &cli.Command{
 				fmt.Println()
 			}
 		}
-
-		return nil
-	},
+	}
 }

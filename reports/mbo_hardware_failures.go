@@ -3,53 +3,29 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+package reports
 
-package cmd
+// BUG(sungo): toss out data where remediation time is <90s
+
+// BUG(sungo): use getHardwareProducts and just look up by uuid rather than fetching it for every device
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"github.com/joyent/conch-shell/util"
 	conch "github.com/joyent/go-conch"
-	"github.com/mkideal/cli"
+	homedir "github.com/mitchellh/go-homedir"
+	"gopkg.in/jawher/mow.cli.v1"
 	"gopkg.in/montanaflynn/stats.v0"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
 	"strconv"
 	"time"
 )
-
-type mboComponentFailReport struct {
-	DeviceId string                      `json:"device_id"`
-	Created  time.Time                   `json:"created"`
-	Result   conch.ConchValidationReport `json:"validation_result"`
-}
-
-type mboComponentFail struct {
-	FirstFail mboComponentFailReport `json:"first_fail"`
-	FirstPass mboComponentFailReport `json:"first_pass"`
-}
-
-type mboMantaDevice map[string]mboComponentFail
-type mboMantaReport map[string]mboMantaDevice
-
-type mboHardwareFailureArgs struct {
-	cli.Helper
-	MantaReport mboMantaReport `cli:"manta-report" usage:"The Manta job output file" parser:"jsonfile"`
-	Datacenter  string         `cli:"datacenter" usage:"Limit the output to a particular datacenter"`
-	Components  bool           `cli:"include-components" usage:"Breakout failures by component name, as well as type"`
-	Vendors     bool           `cli:"include-vendors" usage:"Include vendor data"`
-	Full        bool           `cli:"full" usage:"Include all data. --include-components and --include-vendors are ignored"`
-	CSV         bool           `cli:"csv" usage:"Output report as CSV. Assumes --full"`
-}
-
-type mboTypeReport struct {
-	All    []float64
-	Mean   time.Duration
-	Median time.Duration
-	Count  int64
-}
 
 func mboDurationFormatCsv(t time.Duration) (pretty string) {
 	seconds := int64(t.Seconds()) % 60
@@ -108,7 +84,28 @@ func mboPrettyComponentType(ugly string, category string) (pretty string) {
 	return pretty
 }
 
-func mboCalcTimes(data *mboTypeReport) {
+type mboComponentFailReport struct {
+	DeviceId string                      `json:"device_id"`
+	Created  time.Time                   `json:"created"`
+	Result   conch.ConchValidationReport `json:"validation_result"`
+}
+
+type mboComponentFail struct {
+	FirstFail mboComponentFailReport `json:"first_fail"`
+	FirstPass mboComponentFailReport `json:"first_pass"`
+}
+
+type mboMantaDevice map[string]mboComponentFail
+type mboMantaReport map[string]mboMantaDevice
+
+type mboTypeReport struct {
+	All    []float64
+	Mean   time.Duration
+	Median time.Duration
+	Count  int64
+}
+
+func (data *mboTypeReport) Calc() {
 	mean, _ := stats.Mean(data.All)
 	median, _ := stats.Median(data.All)
 
@@ -116,11 +113,19 @@ func mboCalcTimes(data *mboTypeReport) {
 	data.Median = time.Duration(median)
 }
 
-var MboHardwareFailureCmd = &cli.Command{
-	Name: "mbo_hardware_failure",
-	Desc: "Report that shows info about hardware failures, as per LP-42570027",
-	Argv: func() interface{} { return new(mboHardwareFailureArgs) },
-	Fn: func(ctx *cli.Context) error {
+func mboHardwareFailures(app *cli.Cmd) {
+	var (
+		full_output        = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
+		datacenter_choice  = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
+		csv_output         = app.BoolOpt("csv", false, "Output report as CSV. Assumes --full and overrides --json")
+		include_vendors    = app.BoolOpt("include-vendors", false, "Include vendor data")
+		include_components = app.BoolOpt("include-components", false, "Break out failures by components")
+		manta_report_path  = app.StringOpt("manta-report", "", "Path to Manta job output file")
+	)
+
+	app.Spec = "--manta-report [--full] [--csv] [--include-vendors] [--include-components] [--datacenter]"
+
+	app.Action = func() {
 
 		type datacenterReport struct {
 			Name string
@@ -131,16 +136,25 @@ var MboHardwareFailureCmd = &cli.Command{
 			TimesByVendorAndType map[string]map[string]*mboTypeReport
 		}
 
-		/*****************/
+		/*********************************/
 
-		args, _, api, err := GetStarted(ctx, &mboHardwareFailureArgs{}, nil)
-		if err != nil {
-			return err
+		if *csv_output {
+			*full_output = true
 		}
-		argv := args.Local.(*mboHardwareFailureArgs)
 
-		if argv.CSV {
-			argv.Full = true
+		report_path, err := homedir.Expand(*manta_report_path)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		manta_report_json, err := ioutil.ReadFile(report_path)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		var manta_report mboMantaReport
+		if err := json.Unmarshal(manta_report_json, &manta_report); err != nil {
+			util.Bail(err)
 		}
 
 		csv_vendor := make([][]string, 0)
@@ -168,8 +182,8 @@ var MboHardwareFailureCmd = &cli.Command{
 
 		report := make(map[string]datacenterReport)
 
-		for serial, failures := range argv.MantaReport {
-			device, err := api.GetDevice(serial)
+		for serial, failures := range manta_report {
+			device, err := util.API.GetDevice(serial)
 			if err != nil {
 				continue
 			}
@@ -186,13 +200,16 @@ var MboHardwareFailureCmd = &cli.Command{
 				datacenter_uuid = device.Location.Datacenter.Id
 			}
 
-			if argv.Datacenter != "" {
-				if datacenter != argv.Datacenter {
+			if *datacenter_choice != "" {
+				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenter_choice))
+				if (datacenter_uuid.String() != *datacenter_choice) &&
+					(datacenter != *datacenter_choice) &&
+					!re.MatchString(*datacenter_choice) {
 					continue
 				}
 			}
 
-			hardware_product, err := api.GetHardwareProduct(device.HardwareProduct)
+			hardware_product, err := util.API.GetHardwareProduct(device.HardwareProduct)
 			if err != nil {
 				continue
 			}
@@ -302,18 +319,18 @@ var MboHardwareFailureCmd = &cli.Command{
 
 		for _, az := range report {
 			for _, time_data := range az.TimesByType {
-				mboCalcTimes(time_data)
+				time_data.Calc()
 			}
 
 			for _, type_data := range az.TimesBySubType {
 				for _, sub_type := range type_data {
-					mboCalcTimes(sub_type)
+					sub_type.Calc()
 				}
 			}
 
 			for _, vendor_data := range az.TimesByVendorAndType {
 				for _, type_data := range vendor_data {
-					mboCalcTimes(type_data)
+					type_data.Calc()
 				}
 			}
 
@@ -327,12 +344,12 @@ var MboHardwareFailureCmd = &cli.Command{
 
 		for _, name := range az_names {
 			az := report[name]
-			if !argv.CSV {
+			if !*csv_output {
 				fmt.Printf("%s:\n", az.Name)
 			}
 
-			if argv.Full || argv.Vendors {
-				if !argv.CSV {
+			if *full_output || *include_vendors {
+				if !*csv_output {
 					fmt.Println("  By Vendor:")
 				}
 				vendors := make([]string, 0)
@@ -342,7 +359,7 @@ var MboHardwareFailureCmd = &cli.Command{
 				sort.Strings(vendors)
 
 				for _, vendor := range vendors {
-					if !argv.CSV {
+					if !*csv_output {
 						fmt.Printf("    %s:\n", vendor)
 					}
 
@@ -357,22 +374,22 @@ var MboHardwareFailureCmd = &cli.Command{
 					for _, time_type := range time_types {
 						data := vendor_data[time_type]
 
-						if argv.CSV {
-							csv_vendor = append(csv_vendor, []string{
-								name,
-								vendor,
-								time_type,
-								strconv.FormatInt(data.Count, 10),
-								mboDurationFormatCsv(data.Mean),
-								mboDurationFormatCsv(data.Median),
-							})
-						} else {
+						csv_vendor = append(csv_vendor, []string{
+							name,
+							vendor,
+							time_type,
+							strconv.FormatInt(data.Count, 10),
+							mboDurationFormatCsv(data.Mean),
+							mboDurationFormatCsv(data.Median),
+						})
+
+						if !*csv_output {
 							fmt.Printf("      %s: (%d)\n", time_type, data.Count)
 							fmt.Printf("        Mean   : %s\n", data.Mean)
 							fmt.Printf("        Median : %s\n", data.Median)
 						}
 					}
-					if !argv.CSV {
+					if !*csv_output {
 						fmt.Println()
 					}
 				}
@@ -384,14 +401,14 @@ var MboHardwareFailureCmd = &cli.Command{
 			}
 			sort.Strings(time_types)
 
-			if !argv.CSV {
+			if !*csv_output {
 				fmt.Println("  By Component Type:")
 			}
 
 			for _, time_type := range time_types {
 				data := az.TimesByType[time_type]
 
-				if !argv.CSV {
+				if !*csv_output {
 					fmt.Println()
 					fmt.Printf("    %s: (%d)\n", time_type, data.Count)
 					fmt.Printf("      Mean   : %s\n", data.Mean)
@@ -409,8 +426,8 @@ var MboHardwareFailureCmd = &cli.Command{
 					continue
 				}
 
-				if argv.Full || argv.Components {
-					if !argv.CSV {
+				if *full_output || *include_components {
+					if !*csv_output {
 						fmt.Println()
 						fmt.Printf("      By Component:\n")
 					}
@@ -427,16 +444,16 @@ var MboHardwareFailureCmd = &cli.Command{
 							time_type,
 						)
 
-						if argv.CSV {
-							csv_component = append(csv_component, []string{
-								name,
-								time_type,
-								pretty_sub_type,
-								strconv.FormatInt(sub_data.Count, 10),
-								mboDurationFormatCsv(sub_data.Mean),
-								mboDurationFormatCsv(sub_data.Median),
-							})
-						} else {
+						csv_component = append(csv_component, []string{
+							name,
+							time_type,
+							pretty_sub_type,
+							strconv.FormatInt(sub_data.Count, 10),
+							mboDurationFormatCsv(sub_data.Mean),
+							mboDurationFormatCsv(sub_data.Median),
+						})
+
+						if !*csv_output {
 							fmt.Printf(
 								"        %s: (%d)\n",
 								pretty_sub_type,
@@ -455,18 +472,16 @@ var MboHardwareFailureCmd = &cli.Command{
 				}
 			}
 
-			if !argv.CSV {
+			if !*csv_output {
 				fmt.Println()
 			}
 		}
 
-		if argv.CSV {
+		if *csv_output {
 			w := csv.NewWriter(os.Stdout)
 			w.WriteAll(csv_vendor)
 			fmt.Println()
 			w.WriteAll(csv_component)
 		}
-
-		return nil
-	},
+	}
 }

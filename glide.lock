@@ -1,35 +1,18 @@
-hash: f0381f12abb9ff6658b7464dcaf806e4957e18b72b711f5732b7818c2332043b
-updated: 2017-12-15T14:34:44.003555-05:00
+hash: 9743046d5688f14885b9a610760c86f2ff55c5803f76a27e5d404b724ea22953
+updated: 2017-12-20T12:26:39.181359-05:00
 imports:
-- name: github.com/Bowery/prompt
-  version: 753711fea478fa77bb2c83f6ec244b814d4a8bad
 - name: github.com/joyent/go-conch
   version: ec6bd170c1a420b5ad70725e9e8314257b5aa0c0
   subpackages:
   - pg_time
-- name: github.com/labstack/gommon
-  version: 57409ada9da0f2afad6664c49502f8c50fbd8476
-  subpackages:
-  - color
-- name: github.com/mattn/go-colorable
-  version: 6fcc0c1fd9b620311d821b106a400b35dc95c497
-- name: github.com/mattn/go-isatty
-  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/mattn/go-runewidth
   version: 9e777a8366cce605130a531d2cd6363d07ad7317
-- name: github.com/mkideal/cli
-  version: a9c1104566927924fdb041d198f05617492913f9
-- name: github.com/mkideal/pkg
-  version: 3e188c9e7ecc83d0fe7040a9161ce3c67885470d
-  subpackages:
-  - debug
-  - expr
+- name: github.com/mitchellh/go-homedir
+  version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/olekukonko/tablewriter
   version: 65fec0d89a572b4367094e2058d3ebe667de3b60
-- name: golang.org/x/sys
-  version: d5840adf789d732bc8b00f37b26ca956a7cc8e79
-  subpackages:
-  - unix
+- name: gopkg.in/jawher/mow.cli.v1
+  version: 0e80ee9f63156ea1954dc2375c33a1c7e752c25c
 - name: gopkg.in/montanaflynn/stats.v0
   version: eeaced052adbcfeea372c749c281099ed7fdaa38
 - name: gopkg.in/satori/go.uuid.v1

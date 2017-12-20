@@ -5,15 +5,14 @@ CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty`
 
 
-conch: main.go cmd/** config/** vendor
+conch: main.go config/** util/** workspaces/** user/** devices/** reports/**
 	go build -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" -v -o conch
 
 clean: 
 	rm -f conch
 
 sane:
-	go tool vet -all -v config/*.go cmd/*.go *.go
-	gofmt -w -s config/*.go cmd/*.go *.go
+	gofmt -w -s config/*.go util/*.go workspaces/*.go devices/*.go user/*.go reports/*.go
 
 deps:
 	glide install

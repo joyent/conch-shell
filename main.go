@@ -7,11 +7,17 @@
 package main
 
 import (
-	"fmt"
-	"github.com/joyent/conch-shell/cmd"
-	"github.com/mkideal/cli"
 	"os"
+	"github.com/joyent/conch-shell/config"
+	"github.com/joyent/conch-shell/util"
+	"github.com/joyent/conch-shell/workspaces"
+	"github.com/joyent/conch-shell/user"
+	"github.com/joyent/conch-shell/reports"
+	"github.com/joyent/conch-shell/devices"
+	homedir "github.com/mitchellh/go-homedir"
+	"gopkg.in/jawher/mow.cli.v1"
 )
+
 
 var (
 	Version   string
@@ -19,65 +25,43 @@ var (
 	GitRev    string
 )
 
-var versionCmd = &cli.Command{
-	Name: "version",
-	Desc: "Display version information",
-	Fn: func(ctx *cli.Context) error {
-		fmt.Printf(
-			"Conch Shell v%s\n"+
-				"  Git Revision: %s\n"+
-				"  Build Time: %s\n",
-			Version,
-			GitRev,
-			BuildTime,
-		)
-		return nil
-	},
-}
-
 func main() {
-	/*
-		nesting commands looks like:
-		cli.Root(
-			rootCmd,
-			cli.Tree(
-				levelOneCmd,
-				cli.Tree(
-					levelTwoCmd,
-					cli.Tree(
-						levelThreeCmd,
-					),
-				),
-			),
-			cli.Tree(anotherLevelOneCmd),
-		).Run
-	*/
+	app := cli.App("conch", "Command line interface for Conch")
+	app.Version("version", Version)
 
-	if err := cli.Root(
-		cmd.RootCmd,
-		cli.Tree(versionCmd),
-		cli.Tree(cmd.LoginCmd),
-		cli.Tree(cmd.GetWorkspacesCmd),
-		cli.Tree(cmd.GetWorkspaceCmd),
-		cli.Tree(cmd.GetSubWorkspacesCmd),
-		cli.Tree(cmd.GetWorkspaceUsersCmd),
-		cli.Tree(cmd.GetWorkspaceRoomsCmd),
-		cli.Tree(cmd.GetSettingsCmd),
-		cli.Tree(cmd.GetSettingCmd),
-		cli.Tree(cmd.GetWorkspaceDevicesCmd),
-		cli.Tree(cmd.GetWorkspaceRelaysCmd),
-		cli.Tree(cmd.GetWorkspaceRacksCmd),
-		cli.Tree(cmd.GetWorkspaceRackCmd),
-		cli.Tree(cmd.GetRelayDevicesCmd),
-		cli.Tree(cmd.GetDeviceCmd),
-		cli.Tree(cmd.GetDeviceSettingsCmd),
-		cli.Tree(cmd.GetDeviceSettingCmd),
-		cli.Tree(cmd.GetDeviceLocationCmd),
-		cli.Tree(cmd.ReportFailureCmd),
-		cli.Tree(cmd.HealthSummaryCmd),
-		cli.Tree(cmd.MboHardwareFailureCmd),
-	).Run(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+	var (
+		use_json    = app.BoolOpt("json", false, "Output JSON")
+		config_file = app.StringOpt("config c", "~/.conch.json", "Path to config file")
+	)
+
+	app.Before = func() {
+		if *use_json {
+			util.JSON = true
+		} else {
+			util.JSON = false
+		}
+
+		config_file_path, err := homedir.Expand(*config_file)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		cfg, err := config.NewFromJsonFile(config_file_path)
+		if err != nil {
+			cfg.Path = config_file_path
+		}
+		util.Config = cfg
 	}
+
+
+	workspaces.Init(app)
+	devices.Init(app)
+	user.Init(app)
+	reports.Init(app)
+
+	app.Command("login", "Log in", user.Login)
+
+	app.Run(os.Args)
 }
+
+

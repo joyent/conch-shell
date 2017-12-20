@@ -1,12 +1,13 @@
 package: github.com/joyent/conch-shell
 import:
-- package: github.com/mkideal/cli
-- package: github.com/Bowery/prompt
 - package: github.com/joyent/go-conch
 - package: github.com/olekukonko/tablewriter
-- package: github.com/mattn/go-runewidth
-  version: ^0.0.2
 - package: gopkg.in/satori/go.uuid.v1
   version: ^1.1.0
 - package: gopkg.in/montanaflynn/stats.v0
   version: ^0.2.0
+- package: gopkg.in/jawher/mow.cli.v1
+  version: ^1.0.3
+- package: github.com/mitchellh/go-homedir
+- package: github.com/mattn/go-runewidth
+  version: ^0.0.2
