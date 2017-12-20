@@ -16,6 +16,7 @@ import (
 	"gopkg.in/montanaflynn/stats.v0"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"regexp"
 	"sort"
@@ -111,16 +112,17 @@ func (data *mboTypeReport) Calc() {
 
 func mboHardwareFailures(app *cli.Cmd) {
 	var (
+		manta_report_path  = app.StringOpt("manta-report path", "", "Path to Manta job output file")
+		manta_report_url   = app.StringOpt("manta-report-url url", "", "The url for manta report output")
 		full_output        = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
 		datacenter_choice  = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
 		csv_output         = app.BoolOpt("csv", false, "Output report as CSV. Assumes --full and overrides --json")
 		include_vendors    = app.BoolOpt("include-vendors", false, "Include vendor data")
 		include_components = app.BoolOpt("include-components", false, "Break out failures by components")
-		manta_report_path  = app.StringOpt("manta-report", "", "Path to Manta job output file")
 		remediation_min    = app.IntOpt("remediation-minimum", 90, "For a failure to be considered, its remediation time must be greater than or equal to this number")
 	)
 
-	app.Spec = "--manta-report [--full] [--csv] [--include-vendors] [--include-components] [--datacenter] [--remediation-minimum]"
+	app.Spec = "--manta-report=<manta-report.json> | --manta-report-url=<https://manta/report.json> [OPTIONS]"
 
 	app.Action = func() {
 
@@ -134,24 +136,51 @@ func mboHardwareFailures(app *cli.Cmd) {
 		}
 
 		/*********************************/
-
 		if *csv_output {
 			*full_output = true
 		}
 
-		report_path, err := homedir.Expand(*manta_report_path)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		manta_report_json, err := ioutil.ReadFile(report_path)
-		if err != nil {
-			util.Bail(err)
-		}
-
 		var manta_report mboMantaReport
-		if err := json.Unmarshal(manta_report_json, &manta_report); err != nil {
-			util.Bail(err)
+
+		if *manta_report_path != "" {
+			if !*csv_output {
+				fmt.Println("Opening file " + *manta_report_path)
+			}
+
+			report_path, err := homedir.Expand(*manta_report_path)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			manta_report_json, err := ioutil.ReadFile(report_path)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			if err := json.Unmarshal(manta_report_json, &manta_report); err != nil {
+				util.Bail(err)
+			}
+		} else {
+			if !*csv_output {
+				fmt.Println("Downloading URL " + *manta_report_url)
+			}
+			resp, err := http.Get(*manta_report_url)
+			if err != nil {
+				util.Bail(err)
+			}
+			defer resp.Body.Close()
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			if err := json.Unmarshal(bodyBytes, &manta_report); err != nil {
+				util.Bail(err)
+			}
+		}
+		if !*csv_output {
+			fmt.Println("Parsing complete. Processing...")
+			fmt.Println()
 		}
 
 		csv_vendor := make([][]string, 0)
