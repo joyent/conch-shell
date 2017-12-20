@@ -170,7 +170,7 @@ func getRack(app *cli.Cmd) {
 		slot_detail = app.BoolOpt("slots", false, "Show details about each rack slot")
 	)
 
-	app.Spec = "RACK [--slots]"
+	app.Spec = "RACK [OPTIONS]"
 	app.Action = func() {
 		rack_uuid, err := uuid.FromString(*rack_id)
 		if err != nil {
