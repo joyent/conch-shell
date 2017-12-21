@@ -94,11 +94,21 @@ type mboComponentFail struct {
 
 type mboMantaDevice map[string]mboComponentFail
 
+type mboTypeReportDevice struct {
+	DeviceId        string
+	FailureType     string
+	ComponentName   string
+	RemediationTime time.Duration
+	FirstFail       mboComponentFailReport
+	FirstPass       mboComponentFailReport
+}
+
 type mboTypeReport struct {
-	All    []float64
-	Mean   time.Duration
-	Median time.Duration
-	Count  int64
+	All     []float64
+	Mean    time.Duration
+	Median  time.Duration
+	Count   int64
+	Devices []mboTypeReportDevice
 }
 
 func (data *mboTypeReport) Calc() {
@@ -119,8 +129,8 @@ type mboDatacenterReport struct {
 }
 
 type mboMantaReport struct {
-	Raw       map[string]mboMantaDevice
-	Processed map[string]mboDatacenterReport
+	Raw           map[string]mboMantaDevice
+	Processed     map[string]mboDatacenterReport
 	BeenProcessed bool
 }
 
@@ -243,6 +253,7 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 
 		for _, failure := range failures {
 			failure_type := failure.FirstPass.Result.ComponentType
+
 			if (failure_type == "") || (failure_type == "Undetermined") {
 				failure_type = "UNKNOWN"
 			}
@@ -271,12 +282,22 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 				continue
 			}
 
+			full_failure := mboTypeReportDevice{
+				serial,
+				failure_type,
+				component_name,
+				remediation_time,
+				failure.FirstFail,
+				failure.FirstPass,
+			}
+
 			if _, ok := times_by_type[failure_type]; !ok {
 				times_by_type[failure_type] = &mboTypeReport{
 					make([]float64, 0),
 					zero_duration,
 					zero_duration,
 					0,
+					make([]mboTypeReportDevice, 0),
 				}
 			}
 			times_by_type[failure_type].All = append(
@@ -284,6 +305,10 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 				float64(remediation_time),
 			)
 			times_by_type[failure_type].Count++
+			times_by_type[failure_type].Devices = append(
+				times_by_type[failure_type].Devices,
+				full_failure,
+			)
 
 			if _, ok := times_by_vendor[vendor][failure_type]; !ok {
 				times_by_vendor[vendor][failure_type] = &mboTypeReport{
@@ -291,6 +316,7 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 					zero_duration,
 					zero_duration,
 					0,
+					make([]mboTypeReportDevice, 0),
 				}
 			}
 			times_by_vendor[vendor][failure_type].All = append(
@@ -298,6 +324,10 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 				float64(remediation_time),
 			)
 			times_by_vendor[vendor][failure_type].Count++
+			times_by_vendor[vendor][failure_type].Devices = append(
+				times_by_vendor[vendor][failure_type].Devices,
+				full_failure,
+			)
 
 			if _, ok := times_by_subtype[failure_type]; !ok {
 				times_by_subtype[failure_type] = make(map[string]*mboTypeReport)
@@ -309,6 +339,7 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 					zero_duration,
 					zero_duration,
 					0,
+					make([]mboTypeReportDevice, 0),
 				}
 			}
 
@@ -317,6 +348,10 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 				float64(remediation_time),
 			)
 			times_by_subtype[failure_type][component_name].Count++
+			times_by_subtype[failure_type][component_name].Devices = append(
+				times_by_subtype[failure_type][component_name].Devices,
+				full_failure,
+			)
 
 		}
 
@@ -394,7 +429,7 @@ func (manta_report *mboMantaReport) AsText(full_output bool, include_vendors boo
 						data.Mean,
 					))
 					output_buff.WriteString(fmt.Sprintf(
-						"        Median : %s\n", 
+						"        Median : %s\n",
 						data.Median,
 					))
 				}
@@ -547,7 +582,6 @@ func (manta_report *mboMantaReport) AsCsv() (data string) {
 	w.WriteAll(csv_vendor)
 	output_buff.WriteString("\n")
 	w.WriteAll(csv_component)
-
 
 	return output_buff.String()
 }
