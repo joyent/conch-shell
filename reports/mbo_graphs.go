@@ -84,6 +84,84 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 		})
 
 
+
+		gorilla.HandleFunc("/reports/times/{az}", func(w http.ResponseWriter, req *http.Request) {
+			params := mux.Vars(req)
+			az_param := string(params["az"])
+			if (len(az_param) == 0) {
+				http.Error(w, "", 404)
+				return
+			}
+
+			if _, ok := manta_report.Processed[az_param]; !ok {
+				http.Error(w,"No data found for "+az_param,404)
+				return
+			}
+			az_data := manta_report.Processed[az_param]
+
+			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsIndex)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+
+			w.Header().Set("content-type", "text/html")
+			tmpl.Execute(w,
+				struct {
+					Name string
+					Data mboDatacenterReport 
+				}{
+					az_param,
+					az_data,
+				},
+			)
+		})
+
+		gorilla.HandleFunc("/reports/times/{az}/{subtype}", func(w http.ResponseWriter, req *http.Request) {
+			params := mux.Vars(req)
+			az_param := string(params["az"])
+			if (len(az_param) == 0) {
+				http.Error(w, "", 404)
+				return
+			}
+			subtype_param := string(params["subtype"])
+			if (len(subtype_param) == 0) {
+				http.Error(w, "", 404)
+				return
+			}
+
+			if _, ok := manta_report.Processed[az_param]; !ok {
+				http.Error(w,"No data found for "+az_param,404)
+				return
+			}
+			az_data := manta_report.Processed[az_param]
+
+			if _, ok := az_data.TimesBySubType[subtype_param]; !ok {
+				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", az_param, subtype_param), 404)
+				return
+			}
+			subtype_data := az_data.TimesBySubType[subtype_param]
+
+			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsBySubtype)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+
+			w.Header().Set("content-type", "text/html")
+			tmpl.Execute(w,
+				struct {
+					Az string
+					Name string
+					Data map[string]*mboTypeReport
+				}{
+					az_param,
+					subtype_param,
+					subtype_data,
+				},
+			)
+		})
+
 		gorilla.HandleFunc("/graphics/{az}/by_type.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
 			az_param := string(params["az"])

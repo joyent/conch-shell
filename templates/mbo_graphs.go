@@ -10,9 +10,17 @@ var MboGraphsIndex = `
 	<body>
 		<h1>Conch : MBO Hardware Failures</h1>
 		<h2>Text Reports</h2>
+
+		<h3>Full Report</h3>
+		<ul>
+			<li><a href="/full">Text</a></li>
+			<li><a href="/full.csv">CSV</a></li>
+		</ul>
+
+		<h3>Remediation Times</h3>
 		<ul>
 		{{ range .AzNames }}
-			<li><a href="/reports/{{.}}">{{.}}</a></li>
+			<li><a href="/reports/times/{{.}}">{{.}}</a></li>
 		{{ end }}
 		</ul>
 
@@ -31,6 +39,42 @@ var MboGraphsIndex = `
 			<li><a href="/graphics/{{.}}/by_vendor.png">{{.}}</a></li>
 		{{ end }}
 		</ul>
+	</body>
+</html>
+`
+
+var MboGraphsReportsIndex = `
+<html>
+	<body>
+		<h1>Conch: Hardware Failures for {{ .Name }}</h1>
+
+		<ul>
+		{{ range $type, $data := .Data.TimesByType }}
+			<li><a href="/reports/times/{{ $.Name }}/{{ $type }}">{{ $type }}</a><ul>
+				<li>Mean: {{ $data.Mean }}</li>
+				<li>Median: {{ $data.Median }}</li>
+			</ul></li>
+		{{ end }}
+		</ul>
+
+	</body>
+</html>
+`
+
+var MboGraphsReportsBySubtype = `
+<html>
+	<body>
+		<h1>Conch: Hardware Failures for {{.Az}}, Type {{.Name}} </h1>
+
+		<ul>
+		{{ range $type, $data := .Data }}
+			<li>{{ $type }}<ul>
+				<li>Mean: {{ $data.Mean }}</li>
+				<li>Median: {{ $data.Median }}</li>
+			</ul></li>
+		{{ end }}
+		</ul>
+
 	</body>
 </html>
 `
