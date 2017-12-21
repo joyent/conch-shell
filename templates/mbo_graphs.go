@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 package templates
 
-var MboGraphsIndex = `
+const MboGraphsIndex = `
 <html>
 	<body>
 		<h1>Conch : MBO Hardware Failures</h1>
@@ -43,7 +43,7 @@ var MboGraphsIndex = `
 </html>
 `
 
-var MboGraphsReportsIndex = `
+const MboGraphsReportsIndex = `
 <html>
 	<body>
 		<h1>Conch: Hardware Failures for {{ .Name }}</h1>
@@ -51,6 +51,7 @@ var MboGraphsReportsIndex = `
 		<ul>
 		{{ range $type, $data := .Data.TimesByType }}
 			<li><a href="/reports/times/{{ $.Name }}/{{ $type }}">{{ $type }}</a><ul>
+				<li>Failure Count: {{$data.Count}}</li>
 				<li>Mean: {{ $data.Mean }}</li>
 				<li>Median: {{ $data.Median }}</li>
 			</ul></li>
@@ -61,14 +62,15 @@ var MboGraphsReportsIndex = `
 </html>
 `
 
-var MboGraphsReportsBySubtype = `
+const MboGraphsReportsBySubtype = `
 <html>
 	<body>
 		<h1>Conch: Hardware Failures for {{.Az}}, Type {{.Name}} </h1>
 
 		<ul>
 		{{ range $type, $data := .Data }}
-			<li>{{ $type }}<ul>
+			<li><a href="/reports/times/{{ $.Az }}/{{ $.Name }}/{{ $type }}">{{ $type }}</a><ul>
+				<li>Failure Count: {{$data.Count}}</li>
 				<li>Mean: {{ $data.Mean }}</li>
 				<li>Median: {{ $data.Median }}</li>
 			</ul></li>
@@ -77,4 +79,39 @@ var MboGraphsReportsBySubtype = `
 
 	</body>
 </html>
+`
+
+const MboGraphsReportsByComponentAndSubtype = `
+<html>
+	<body>
+		<h1>Conch: Hardware Failures for {{.Az}}, Type {{.Component}}, Subtype {{.Subtype}} </h1>
+
+		<ul>
+			<li>Failure Count: {{ .Data.Count }}</li>
+			<li>Mean: {{ .Data.Mean }}</li>
+			<li>Median: {{ .Data.Median }}</li>
+		</ul>
+
+		<h2>Affected Devices</h2>
+		<ul>
+		{{ range .Data.Devices }}
+			<li><a href="https://conch.joyent.us/#!/device/{{.DeviceId}}" target="_blank">{{ .DeviceId }}</a><ul>
+				<li>Remediation Time: {{ .RemediationTime }}</li>
+				<li>Results:<ul>
+					<li>First Failure:<ul>
+						<li>Reported: {{ .FirstFail.Created }}</li>
+						<li>Log: {{ .FirstFail.Result.Log }}</li>
+					</ul></li>
+					<li>First Pass:<ul>
+						<li>Reported: {{ .FirstPass.Created }}</li>
+						<li>Log: {{ .FirstPass.Result.Log }}</li>
+					</ul></li>
+				</ul></li>
+			</ul></li>
+		{{ end }}
+		</ul>
+
+	</body>
+</html>
+
 `

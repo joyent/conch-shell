@@ -7,6 +7,7 @@ package reports
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	c_templates "github.com/joyent/conch-shell/templates"
 	"github.com/joyent/conch-shell/util"
 	chart "github.com/wcharczuk/go-chart"
@@ -14,7 +15,6 @@ import (
 	"html/template"
 	"net/http"
 	"sort"
-	"github.com/gorilla/mux"
 )
 
 func mboHardwareFailureGraphListener(app *cli.Cmd) {
@@ -83,18 +83,16 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			fmt.Fprintf(w, manta_report.AsCsv())
 		})
 
-
-
 		gorilla.HandleFunc("/reports/times/{az}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
 			az_param := string(params["az"])
-			if (len(az_param) == 0) {
+			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
 			if _, ok := manta_report.Processed[az_param]; !ok {
-				http.Error(w,"No data found for "+az_param,404)
+				http.Error(w, "No data found for "+az_param, 404)
 				return
 			}
 			az_data := manta_report.Processed[az_param]
@@ -109,7 +107,7 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			tmpl.Execute(w,
 				struct {
 					Name string
-					Data mboDatacenterReport 
+					Data mboDatacenterReport
 				}{
 					az_param,
 					az_data,
@@ -117,30 +115,30 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			)
 		})
 
-		gorilla.HandleFunc("/reports/times/{az}/{subtype}", func(w http.ResponseWriter, req *http.Request) {
+		gorilla.HandleFunc("/reports/times/{az}/{component}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
 			az_param := string(params["az"])
-			if (len(az_param) == 0) {
+			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
-			subtype_param := string(params["subtype"])
-			if (len(subtype_param) == 0) {
+			component_param := string(params["component"])
+			if len(component_param) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
 			if _, ok := manta_report.Processed[az_param]; !ok {
-				http.Error(w,"No data found for "+az_param,404)
+				http.Error(w, "No data found for "+az_param, 404)
 				return
 			}
 			az_data := manta_report.Processed[az_param]
 
-			if _, ok := az_data.TimesBySubType[subtype_param]; !ok {
-				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", az_param, subtype_param), 404)
+			if _, ok := az_data.TimesBySubType[component_param]; !ok {
+				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", az_param, component_param), 404)
 				return
 			}
-			subtype_data := az_data.TimesBySubType[subtype_param]
+			subtype_data := az_data.TimesBySubType[component_param]
 
 			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsBySubtype)
 			if err != nil {
@@ -151,11 +149,77 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			w.Header().Set("content-type", "text/html")
 			tmpl.Execute(w,
 				struct {
-					Az string
+					Az   string
 					Name string
 					Data map[string]*mboTypeReport
 				}{
 					az_param,
+					component_param,
+					subtype_data,
+				},
+			)
+		})
+
+		gorilla.HandleFunc("/reports/times/{az}/{component}/{subtype}", func(w http.ResponseWriter, req *http.Request) {
+			params := mux.Vars(req)
+			az_param := string(params["az"])
+			if len(az_param) == 0 {
+				http.Error(w, "", 404)
+				return
+			}
+
+			if _, ok := manta_report.Processed[az_param]; !ok {
+				http.Error(w, "No data found for "+az_param, 404)
+				return
+			}
+			az_data := manta_report.Processed[az_param]
+
+			component_param := string(params["component"])
+			if len(component_param) == 0 {
+				http.Error(w, "", 404)
+				return
+			}
+			if _, ok := az_data.TimesBySubType[component_param]; !ok {
+				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", az_param, component_param), 404)
+				return
+			}
+			component_data := az_data.TimesBySubType[component_param]
+
+			/**/
+
+			subtype_param := string(params["subtype"])
+			if len(subtype_param) == 0 {
+				http.Error(w, "", 404)
+				return
+			}
+
+			if _, ok := component_data[subtype_param]; !ok {
+				http.Error(w, fmt.Sprintf(
+					"No data found for AZ %s, type %s, subtype %s",
+					az_param,
+					component_param,
+					subtype_param,
+				), 404)
+				return
+			}
+			subtype_data := component_data[subtype_param]
+
+			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsByComponentAndSubtype)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+
+			w.Header().Set("content-type", "text/html")
+			tmpl.Execute(w,
+				struct {
+					Az        string
+					Component string
+					Subtype   string
+					Data      *mboTypeReport
+				}{
+					az_param,
+					component_param,
 					subtype_param,
 					subtype_data,
 				},
@@ -165,7 +229,7 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 		gorilla.HandleFunc("/graphics/{az}/by_type.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
 			az_param := string(params["az"])
-			if (len(az_param) == 0) {
+			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
@@ -205,11 +269,10 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 		gorilla.HandleFunc("/graphics/{az}/by_vendor.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
 			az_param := string(params["az"])
-			if (len(az_param) == 0) {
+			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
-
 
 			az, ok := report[az_param]
 			if !ok {
