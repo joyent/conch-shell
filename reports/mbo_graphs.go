@@ -7,9 +7,11 @@ package reports
 
 import (
 	"fmt"
+	c_templates "github.com/joyent/conch-shell/templates"
 	"github.com/joyent/conch-shell/util"
 	chart "github.com/wcharczuk/go-chart"
 	"gopkg.in/jawher/mow.cli.v1"
+	"html/template"
 	"net/http"
 	"sort"
 )
@@ -53,22 +55,20 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 		fmt.Printf("Opening listener on port %d\n", *port)
 
 		http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-			w.Header().Set("content-type", "text/html")
-			fmt.Fprintf(w, "<html><body><h1>Conch : MBO Hardware Failures</h1>")
-			fmt.Fprintf(w, "<h2>By Type</h2>")
-			fmt.Fprintf(w, "<ul>")
-			for _, name := range az_names {
-				fmt.Fprintf(w, "<li><a href='/by_type.png?az=%s'>%s</a></li>", name, name)
+			tmpl, err := template.New("index").Parse(c_templates.MboGraphsIndex)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
 			}
-			fmt.Fprintf(w, "</ul>")
-			fmt.Fprintf(w, "<h2>By Vendor</h2>")
-			fmt.Fprintf(w, "<ul>")
-			for _, name := range az_names {
-				fmt.Fprintf(w, "<li><a href='/by_vendor.png?az=%s'>%s</a></li>", name, name)
-			}
-			fmt.Fprintf(w, "</ul>")
 
-			fmt.Fprintf(w, "</body></html>")
+			w.Header().Set("content-type", "text/html")
+			tmpl.Execute(w,
+				struct {
+					AzNames []string
+				}{
+					az_names,
+				},
+			)
 		})
 
 		http.HandleFunc("/by_type.png", func(w http.ResponseWriter, req *http.Request) {
