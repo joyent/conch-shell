@@ -6,6 +6,7 @@
 package reports
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -121,6 +121,7 @@ type mboDatacenterReport struct {
 type mboMantaReport struct {
 	Raw       map[string]mboMantaDevice
 	Processed map[string]mboDatacenterReport
+	BeenProcessed bool
 }
 
 func (manta_report *mboMantaReport) NewFromFile(path string) (err error) {
@@ -140,6 +141,8 @@ func (manta_report *mboMantaReport) NewFromFile(path string) (err error) {
 	}
 
 	manta_report.Raw = manta_report_raw
+	manta_report.BeenProcessed = false
+	manta_report.Processed = make(map[string]mboDatacenterReport)
 	return nil
 }
 
@@ -160,6 +163,9 @@ func (manta_report *mboMantaReport) NewFromUrl(url string) (err error) {
 	}
 
 	manta_report.Raw = manta_report_raw
+	manta_report.BeenProcessed = false
+	manta_report.Processed = make(map[string]mboDatacenterReport)
+
 	return nil
 }
 
@@ -336,6 +342,214 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 	}
 
 	manta_report.Processed = report
+	manta_report.BeenProcessed = true
+}
+
+func (manta_report *mboMantaReport) AsText(full_output bool, include_vendors bool, include_components bool) (output string) {
+	if !manta_report.BeenProcessed {
+		return ""
+	}
+
+	report := manta_report.Processed
+
+	var output_buff bytes.Buffer
+	az_names := make([]string, 0)
+	for name := range report {
+		az_names = append(az_names, name)
+	}
+	sort.Strings(az_names)
+
+	for _, name := range az_names {
+		az := report[name]
+		output_buff.WriteString(fmt.Sprintf("%s:\n", az.Name))
+
+		if full_output || include_vendors {
+			output_buff.WriteString(fmt.Sprintln("  By Vendor:"))
+			vendors := make([]string, 0)
+			for v := range az.TimesByVendorAndType {
+				vendors = append(vendors, v)
+			}
+			sort.Strings(vendors)
+
+			for _, vendor := range vendors {
+				output_buff.WriteString(fmt.Sprintf("    %s:\n", vendor))
+
+				vendor_data := az.TimesByVendorAndType[vendor]
+
+				time_types := make([]string, 0)
+				for t := range vendor_data {
+					time_types = append(time_types, t)
+				}
+				sort.Strings(time_types)
+
+				for _, time_type := range time_types {
+					data := vendor_data[time_type]
+					output_buff.WriteString(fmt.Sprintf(
+						"      %s: (%d)\n",
+						time_type,
+						data.Count,
+					))
+					output_buff.WriteString(fmt.Sprintf(
+						"        Mean   : %s\n",
+						data.Mean,
+					))
+					output_buff.WriteString(fmt.Sprintf(
+						"        Median : %s\n", 
+						data.Median,
+					))
+				}
+				output_buff.WriteString(fmt.Sprintln())
+			}
+		}
+
+		time_types := make([]string, 0)
+		for t := range az.TimesByType {
+			time_types = append(time_types, t)
+		}
+		sort.Strings(time_types)
+
+		output_buff.WriteString(fmt.Sprintln("  By Component Type:"))
+
+		for _, time_type := range time_types {
+			data := az.TimesByType[time_type]
+
+			output_buff.WriteString(fmt.Sprintln())
+			output_buff.WriteString(fmt.Sprintf(
+				"    %s: (%d)\n",
+				time_type,
+				data.Count,
+			))
+			output_buff.WriteString(fmt.Sprintf(
+				"      Mean   : %s\n",
+				data.Mean,
+			))
+			output_buff.WriteString(fmt.Sprintf(
+				"      Median : %s\n",
+				data.Median,
+			))
+
+			switch time_type {
+			case "SAS_SSD":
+				continue
+			case "SATA_SSD":
+				continue
+			case "SAS_HDD":
+				continue
+			case "CPU":
+				continue
+			}
+
+			if full_output || include_components {
+				output_buff.WriteString(fmt.Sprintln())
+				output_buff.WriteString(fmt.Sprintln("      By Component:"))
+
+				sub_types := make([]string, 0)
+				for t := range az.TimesBySubType[time_type] {
+					sub_types = append(sub_types, t)
+				}
+				sort.Strings(sub_types)
+
+				for _, sub_type := range sub_types {
+					sub_data := az.TimesBySubType[time_type][sub_type]
+					pretty_sub_type := mboPrettyComponentType(
+						sub_type,
+						time_type,
+					)
+					output_buff.WriteString(fmt.Sprintf(
+						"        %s: (%d)\n",
+						pretty_sub_type,
+						sub_data.Count,
+					))
+					output_buff.WriteString(fmt.Sprintf(
+						"          Mean   : %s\n",
+						sub_data.Mean,
+					))
+					output_buff.WriteString(fmt.Sprintf(
+						"          Median : %s\n",
+						sub_data.Median,
+					))
+				}
+			}
+		}
+		output_buff.WriteString(fmt.Sprintln())
+	}
+	return output_buff.String()
+
+}
+
+func (manta_report *mboMantaReport) AsCsv() (data string) {
+
+	csv_vendor := make([][]string, 0)
+	csv_vendor = append(csv_vendor, []string{
+		"Datacenter",
+		"Vendor",
+		"Type",
+		"Failure Count",
+		"Mean",
+		"Median",
+	})
+
+	csv_component := make([][]string, 0)
+	csv_component = append(csv_component, []string{
+		"Datacenter",
+		"Type",
+		"Component",
+		"Failure Count",
+		"Mean",
+		"Median",
+	})
+
+	for name, az := range manta_report.Processed {
+		for vendor, vendor_data := range az.TimesByVendorAndType {
+			for time_type, data := range vendor_data {
+				csv_vendor = append(csv_vendor, []string{
+					name,
+					vendor,
+					time_type,
+					strconv.FormatInt(data.Count, 10),
+					mboDurationFormatCsv(data.Mean),
+					mboDurationFormatCsv(data.Median),
+				})
+			}
+		}
+		for time_type, data := range az.TimesBySubType {
+			switch time_type {
+			case "SAS_SSD":
+				continue
+			case "SATA_SSD":
+				continue
+			case "SAS_HDD":
+				continue
+			case "CPU":
+				continue
+			}
+
+			for sub_type, sub_data := range data {
+				pretty_sub_type := mboPrettyComponentType(
+					sub_type,
+					time_type,
+				)
+
+				csv_component = append(csv_component, []string{
+					name,
+					time_type,
+					pretty_sub_type,
+					strconv.FormatInt(sub_data.Count, 10),
+					mboDurationFormatCsv(sub_data.Mean),
+					mboDurationFormatCsv(sub_data.Median),
+				})
+			}
+		}
+	}
+
+	var output_buff bytes.Buffer
+	w := csv.NewWriter(&output_buff)
+	w.WriteAll(csv_vendor)
+	output_buff.WriteString("\n")
+	w.WriteAll(csv_component)
+
+
+	return output_buff.String()
 }
 
 func mboHardwareFailures(app *cli.Cmd) {
@@ -377,178 +591,14 @@ func mboHardwareFailures(app *cli.Cmd) {
 			fmt.Println()
 		}
 		manta_report.Process(*datacenter_choice, *remediation_min)
-		report := manta_report.Processed
 		if *csv_output {
-			csv_vendor := make([][]string, 0)
-			csv_vendor = append(csv_vendor, []string{
-				"Datacenter",
-				"Vendor",
-				"Type",
-				"Failure Count",
-				"Mean",
-				"Median",
-			})
-
-			csv_component := make([][]string, 0)
-			csv_component = append(csv_component, []string{
-				"Datacenter",
-				"Type",
-				"Component",
-				"Failure Count",
-				"Mean",
-				"Median",
-			})
-
-			for name, az := range report {
-				for vendor, vendor_data := range az.TimesByVendorAndType {
-					for time_type, data := range vendor_data {
-						csv_vendor = append(csv_vendor, []string{
-							name,
-							vendor,
-							time_type,
-							strconv.FormatInt(data.Count, 10),
-							mboDurationFormatCsv(data.Mean),
-							mboDurationFormatCsv(data.Median),
-						})
-					}
-				}
-				for time_type, data := range az.TimesBySubType {
-					switch time_type {
-					case "SAS_SSD":
-						continue
-					case "SATA_SSD":
-						continue
-					case "SAS_HDD":
-						continue
-					case "CPU":
-						continue
-					}
-
-					for sub_type, sub_data := range data {
-						pretty_sub_type := mboPrettyComponentType(
-							sub_type,
-							time_type,
-						)
-
-						csv_component = append(csv_component, []string{
-							name,
-							time_type,
-							pretty_sub_type,
-							strconv.FormatInt(sub_data.Count, 10),
-							mboDurationFormatCsv(sub_data.Mean),
-							mboDurationFormatCsv(sub_data.Median),
-						})
-					}
-				}
-			}
-			w := csv.NewWriter(os.Stdout)
-			w.WriteAll(csv_vendor)
-			fmt.Println()
-			w.WriteAll(csv_component)
-			return
-		}
-
-		az_names := make([]string, 0)
-		for name := range report {
-			az_names = append(az_names, name)
-		}
-		sort.Strings(az_names)
-
-		for _, name := range az_names {
-			az := report[name]
-			if !*csv_output {
-				fmt.Printf("%s:\n", az.Name)
-			}
-
-			if *full_output || *include_vendors {
-				fmt.Println("  By Vendor:")
-				vendors := make([]string, 0)
-				for v := range az.TimesByVendorAndType {
-					vendors = append(vendors, v)
-				}
-				sort.Strings(vendors)
-
-				for _, vendor := range vendors {
-					fmt.Printf("    %s:\n", vendor)
-
-					vendor_data := az.TimesByVendorAndType[vendor]
-
-					time_types := make([]string, 0)
-					for t := range vendor_data {
-						time_types = append(time_types, t)
-					}
-					sort.Strings(time_types)
-
-					for _, time_type := range time_types {
-						data := vendor_data[time_type]
-						fmt.Printf("      %s: (%d)\n", time_type, data.Count)
-						fmt.Printf("        Mean   : %s\n", data.Mean)
-						fmt.Printf("        Median : %s\n", data.Median)
-					}
-					fmt.Println()
-				}
-			}
-
-			time_types := make([]string, 0)
-			for t := range az.TimesByType {
-				time_types = append(time_types, t)
-			}
-			sort.Strings(time_types)
-
-			fmt.Println("  By Component Type:")
-
-			for _, time_type := range time_types {
-				data := az.TimesByType[time_type]
-
-				fmt.Println()
-				fmt.Printf("    %s: (%d)\n", time_type, data.Count)
-				fmt.Printf("      Mean   : %s\n", data.Mean)
-				fmt.Printf("      Median : %s\n", data.Median)
-
-				switch time_type {
-				case "SAS_SSD":
-					continue
-				case "SATA_SSD":
-					continue
-				case "SAS_HDD":
-					continue
-				case "CPU":
-					continue
-				}
-
-				if *full_output || *include_components {
-					fmt.Println()
-					fmt.Printf("      By Component:\n")
-
-					sub_types := make([]string, 0)
-					for t := range az.TimesBySubType[time_type] {
-						sub_types = append(sub_types, t)
-					}
-					sort.Strings(sub_types)
-
-					for _, sub_type := range sub_types {
-						sub_data := az.TimesBySubType[time_type][sub_type]
-						pretty_sub_type := mboPrettyComponentType(
-							sub_type,
-							time_type,
-						)
-						fmt.Printf(
-							"        %s: (%d)\n",
-							pretty_sub_type,
-							sub_data.Count,
-						)
-						fmt.Printf(
-							"          Mean   : %s\n",
-							sub_data.Mean,
-						)
-						fmt.Printf(
-							"          Median : %s\n",
-							sub_data.Median,
-						)
-					}
-				}
-			}
-			fmt.Println()
+			fmt.Println(manta_report.AsCsv())
+		} else {
+			fmt.Println(manta_report.AsText(
+				*full_output,
+				*include_vendors,
+				*include_components,
+			))
 		}
 	}
 }
