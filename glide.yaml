@@ -14,3 +14,5 @@ import:
 - package: github.com/wcharczuk/go-chart
   version: ^2.0.0
 - package: github.com/blendlabs/go-exception
+- package: github.com/gorilla/mux
+  version: ^1.6.0

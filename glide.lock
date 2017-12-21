@@ -1,5 +1,5 @@
-hash: b3256dd908e5290e643b4f2f8dddb17282eccdeb9fffb2a9c3f7d8029928ee98
-updated: 2017-12-20T15:48:18.412528-05:00
+hash: ae515516f6da3640076539f70f929b067920d041cd3da55d2b33865c94f41d38
+updated: 2017-12-21T11:40:22.245844-05:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
@@ -8,6 +8,10 @@ imports:
   subpackages:
   - raster
   - truetype
+- name: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/mux
+  version: 7f08801859139f86dfafd1c296e2cba9a80d292e
 - name: github.com/joyent/go-conch
   version: 195858be170dd9af5e1c3cbeea148a1e3c632cf8
   subpackages:

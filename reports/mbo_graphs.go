@@ -14,6 +14,7 @@ import (
 	"html/template"
 	"net/http"
 	"sort"
+	"github.com/gorilla/mux"
 )
 
 func mboHardwareFailureGraphListener(app *cli.Cmd) {
@@ -54,7 +55,9 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 
 		fmt.Printf("Opening listener on port %d\n", *port)
 
-		http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		gorilla := mux.NewRouter()
+
+		gorilla.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 			tmpl, err := template.New("index").Parse(c_templates.MboGraphsIndex)
 			if err != nil {
 				http.Error(w, err.Error(), 500)
@@ -71,13 +74,13 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			)
 		})
 
-		http.HandleFunc("/by_type.png", func(w http.ResponseWriter, req *http.Request) {
-			az_params, ok := req.URL.Query()["az"]
-			if !ok || (len(az_params) == 0) {
+		gorilla.HandleFunc("/graphics/{az}/by_type.png", func(w http.ResponseWriter, req *http.Request) {
+			params := mux.Vars(req)
+			az_param := string(params["az"])
+			if (len(az_param) == 0) {
 				http.Error(w, "", 404)
 				return
 			}
-			az_param := az_params[0]
 
 			az, ok := report[az_param]
 			if !ok {
@@ -111,13 +114,14 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			}
 		})
 
-		http.HandleFunc("/by_vendor.png", func(w http.ResponseWriter, req *http.Request) {
-			az_params, ok := req.URL.Query()["az"]
-			if !ok || (len(az_params) == 0) {
+		gorilla.HandleFunc("/graphics/{az}/by_vendor.png", func(w http.ResponseWriter, req *http.Request) {
+			params := mux.Vars(req)
+			az_param := string(params["az"])
+			if (len(az_param) == 0) {
 				http.Error(w, "", 404)
 				return
 			}
-			az_param := az_params[0]
+
 
 			az, ok := report[az_param]
 			if !ok {
@@ -156,6 +160,8 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 				return
 			}
 		})
+
+		http.Handle("/", gorilla)
 		util.Bail(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 
 	}
