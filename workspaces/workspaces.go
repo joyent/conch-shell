@@ -91,7 +91,7 @@ func getUsers(app *cli.Cmd) {
 func getDevices(app *cli.Cmd) {
 
 	var (
-		full_output = app.BoolOpt("full", false, "When global --json is used and --ids-only is *not* used, provide full data about the devices rather than normal truncated data")
+		full_output = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
 		ids_only    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
 		graduated   = app.StringOpt("graduated", "", "Filter by the 'graduated' field")
 		health      = app.StringOpt("health", "", "Filter by the 'health' field")
@@ -109,7 +109,7 @@ func getDevices(app *cli.Cmd) {
 		}
 
 		if *ids_only {
-			ids := make([]string,0)
+			ids := make([]string, 0)
 			if util.JSON {
 				for _, d := range devices {
 					ids = append(ids, d.Id)
@@ -134,9 +134,9 @@ func getDevices(app *cli.Cmd) {
 				filled_in = append(filled_in, full_d)
 			}
 			devices = filled_in
-
 		}
-		if err := util.DisplayDevices(devices, false); err != nil {
+
+		if err := util.DisplayDevices(devices, *full_output); err != nil {
 			util.Bail(err)
 		}
 	}

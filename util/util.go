@@ -33,6 +33,8 @@ type MinimalDevice struct {
 	LastSeen pgtime.ConchPgTime `json:"last_seen,int"`
 	Health   string             `json:"health"`
 	Flags    string             `json:"flags"`
+	AZ       string             `json:"az"`
+	Rack     string             `json:"rack"`
 }
 
 func BuildApiAndVerifyLogin() {
@@ -92,6 +94,8 @@ func DisplayDevices(devices []conch.ConchDevice, full_output bool) (err error) {
 			d.LastSeen,
 			d.Health,
 			GenerateDeviceFlags(d),
+			d.Location.Datacenter.Name,
+			d.Location.Rack.Name,
 		})
 	}
 
@@ -109,22 +113,35 @@ func DisplayDevices(devices []conch.ConchDevice, full_output bool) (err error) {
 		return nil
 	}
 
-	TableizeMinimalDevices(minimals, GetMarkdownTable()).Render()
+	TableizeMinimalDevices(minimals, full_output, GetMarkdownTable()).Render()
 
 	return nil
 }
 
 // TableizeMinimalDevices() is an abstraction to make sure that tables of
 // ConchDevices-turned-MinimalDevices are uniform
-func TableizeMinimalDevices(devices []MinimalDevice, table *tablewriter.Table) *tablewriter.Table {
-	table.SetHeader([]string{
-		"ID",
-		"Asset Tag",
-		"Created",
-		"Last Seen",
-		"Health",
-		"Flags",
-	})
+func TableizeMinimalDevices(devices []MinimalDevice, full_output bool, table *tablewriter.Table) *tablewriter.Table {
+	if full_output {
+		table.SetHeader([]string{
+			"AZ",
+			"Rack",
+			"ID",
+			"Asset Tag",
+			"Created",
+			"Last Seen",
+			"Health",
+			"Flags",
+		})
+	} else {
+		table.SetHeader([]string{
+			"ID",
+			"Asset Tag",
+			"Created",
+			"Last Seen",
+			"Health",
+			"Flags",
+		})
+	}
 
 	for _, d := range devices {
 		last_seen := ""
@@ -132,14 +149,27 @@ func TableizeMinimalDevices(devices []MinimalDevice, table *tablewriter.Table) *
 			last_seen = d.LastSeen.Format(time.UnixDate)
 		}
 
-		table.Append([]string{
-			d.Id,
-			d.AssetTag,
-			d.Created.Format(time.UnixDate),
-			last_seen,
-			d.Health,
-			d.Flags,
-		})
+		if full_output {
+			table.Append([]string{
+				d.AZ,
+				d.Rack,
+				d.Id,
+				d.AssetTag,
+				d.Created.Format(time.UnixDate),
+				last_seen,
+				d.Health,
+				d.Flags,
+			})
+		} else {
+			table.Append([]string{
+				d.Id,
+				d.AssetTag,
+				d.Created.Format(time.UnixDate),
+				last_seen,
+				d.Health,
+				d.Flags,
+			})
+		}
 	}
 
 	return table
