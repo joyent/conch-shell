@@ -133,7 +133,6 @@ const MboGraphsReportsByComponentAndSubtype = `
 
 `
 
-
 const MboGraphsReportsCss = `
 body {
 	font-family: sans-serif;

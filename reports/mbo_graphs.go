@@ -7,16 +7,16 @@ package reports
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	c_templates "github.com/joyent/conch-shell/templates"
 	"github.com/joyent/conch-shell/util"
 	chart "github.com/wcharczuk/go-chart"
 	"gopkg.in/jawher/mow.cli.v1"
 	"html/template"
 	"net/http"
-	"sort"
 	"os"
+	"sort"
 )
 
 func mboHardwareFailureGraphListener(app *cli.Cmd) {
@@ -259,7 +259,7 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 				})
 			}
 			bar_chart := chart.BarChart{
-				Height: 512,
+				Height:   512,
 				BarWidth: 60,
 				XAxis: chart.Style{
 					Show: true,
@@ -325,7 +325,6 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 				Bars: values,
 			}
 
-
 			w.Header().Set("Content-Type", "image/png")
 			if err := bar_chart.Render(chart.PNG, w); err != nil {
 				fmt.Printf("Error rendering pie chart: %v\n", err)
@@ -334,7 +333,7 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			}
 		})
 
-		logger := handlers.CombinedLoggingHandler(os.Stdout,gorilla)
+		logger := handlers.CombinedLoggingHandler(os.Stdout, gorilla)
 		http.Handle("/", gorilla)
 		util.Bail(http.ListenAndServe(
 			fmt.Sprintf(":%d", *port),
