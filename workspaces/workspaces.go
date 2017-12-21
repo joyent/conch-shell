@@ -90,9 +90,6 @@ func getUsers(app *cli.Cmd) {
 
 func getDevices(app *cli.Cmd) {
 
-	// BUG(sungo): 'ids_only' appears to do pretty much nothing. This should
-	// probably dump out a list of IDs rather than the same tables
-
 	var (
 		full_output = app.BoolOpt("full", false, "When global --json is used and --ids-only is *not* used, provide full data about the devices rather than normal truncated data")
 		ids_only    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
@@ -109,6 +106,22 @@ func getDevices(app *cli.Cmd) {
 		)
 		if err != nil {
 			util.Bail(err)
+		}
+
+		if *ids_only {
+			ids := make([]string,0)
+			if util.JSON {
+				for _, d := range devices {
+					ids = append(ids, d.Id)
+				}
+				util.JsonOut(ids)
+				return
+			} else {
+				for _, d := range devices {
+					fmt.Println(d.Id)
+				}
+				return
+			}
 		}
 
 		if *full_output {
