@@ -55,6 +55,8 @@ const MboGraphsReportsIndex = `
 	<body>
 		<h1>Conch: Hardware Failures for {{ .Name }}</h1>
 
+		<img src="/graphics/{{.Name}}/by_type.png" />
+
 		<ul>
 		{{ range $type, $data := .Data.TimesByType }}
 			<li><a href="/reports/times/{{ $.Name }}/{{ $type }}">{{ $type }}</a><ul>
@@ -133,6 +135,11 @@ const MboGraphsReportsByComponentAndSubtype = `
 
 
 const MboGraphsReportsCss = `
+body {
+	font-family: sans-serif;
+}
+
+
 ul {
 	padding-bottom: 1em;
 }

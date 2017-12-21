@@ -258,15 +258,22 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 					Label: fmt.Sprintf("%s : %d", data_type, data.Count),
 				})
 			}
-
-			pie := chart.PieChart{
-				Width:  512,
+			bar_chart := chart.BarChart{
 				Height: 512,
-				Values: values,
+				BarWidth: 60,
+				XAxis: chart.Style{
+					Show: true,
+				},
+				YAxis: chart.YAxis{
+					Style: chart.Style{
+						Show: true,
+					},
+				},
+				Bars: values,
 			}
 
 			w.Header().Set("Content-Type", "image/png")
-			if err := pie.Render(chart.PNG, w); err != nil {
+			if err := bar_chart.Render(chart.PNG, w); err != nil {
 				fmt.Printf("Error rendering pie chart: %v\n", err)
 				http.Error(w, err.Error(), 500)
 				return
@@ -305,15 +312,22 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 				})
 			}
 
-			pie := chart.PieChart{
-				Width:  512,
+			bar_chart := chart.BarChart{
 				Height: 512,
-				Values: values,
+				XAxis: chart.Style{
+					Show: true,
+				},
+				YAxis: chart.YAxis{
+					Style: chart.Style{
+						Show: true,
+					},
+				},
+				Bars: values,
 			}
 
 
 			w.Header().Set("Content-Type", "image/png")
-			if err := pie.Render(chart.PNG, w); err != nil {
+			if err := bar_chart.Render(chart.PNG, w); err != nil {
 				fmt.Printf("Error rendering pie chart: %v\n", err)
 				http.Error(w, err.Error(), 500)
 				return
