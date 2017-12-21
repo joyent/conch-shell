@@ -1,5 +1,5 @@
-hash: ae515516f6da3640076539f70f929b067920d041cd3da55d2b33865c94f41d38
-updated: 2017-12-21T11:40:22.245844-05:00
+hash: bdb92ad5fc79d978d560480b899f633c6dedc28f5182a2c9f4c188f7e45e2aa8
+updated: 2017-12-21T15:45:16.060883-05:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
@@ -10,6 +10,8 @@ imports:
   - truetype
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/handlers
+  version: 90663712d74cb411cbef281bc1e08c19d1a76145
 - name: github.com/gorilla/mux
   version: 7f08801859139f86dfafd1c296e2cba9a80d292e
 - name: github.com/joyent/go-conch
