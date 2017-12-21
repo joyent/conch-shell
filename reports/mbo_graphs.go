@@ -73,6 +73,16 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 				},
 			)
 		})
+		gorilla.HandleFunc("/full", func(w http.ResponseWriter, req *http.Request) {
+			w.Header().Set("content-type", "text/plain")
+			fmt.Fprintf(w, manta_report.AsText(true, true, true))
+		})
+
+		gorilla.HandleFunc("/full.csv", func(w http.ResponseWriter, req *http.Request) {
+			w.Header().Set("content-type", "text/csv")
+			fmt.Fprintf(w, manta_report.AsCsv())
+		})
+
 
 		gorilla.HandleFunc("/graphics/{az}/by_type.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
@@ -163,6 +173,5 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 
 		http.Handle("/", gorilla)
 		util.Bail(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
-
 	}
 }
