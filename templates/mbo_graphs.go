@@ -7,6 +7,9 @@ package templates
 
 const MboGraphsIndex = `
 <html>
+	<head>
+		<link rel="stylesheet" href="/style.css">
+	</head>
 	<body>
 		<h1>Conch : MBO Hardware Failures</h1>
 		<h2>Text Reports</h2>
@@ -45,6 +48,10 @@ const MboGraphsIndex = `
 
 const MboGraphsReportsIndex = `
 <html>
+	<head>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+
 	<body>
 		<h1>Conch: Hardware Failures for {{ .Name }}</h1>
 
@@ -64,6 +71,10 @@ const MboGraphsReportsIndex = `
 
 const MboGraphsReportsBySubtype = `
 <html>
+	<head>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+
 	<body>
 		<h1>Conch: Hardware Failures for {{.Az}}, Type {{.Name}} </h1>
 
@@ -83,6 +94,10 @@ const MboGraphsReportsBySubtype = `
 
 const MboGraphsReportsByComponentAndSubtype = `
 <html>
+	<head>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+
 	<body>
 		<h1>Conch: Hardware Failures for {{.Az}}, Type {{.Component}}, Subtype {{.Subtype}} </h1>
 
@@ -114,4 +129,11 @@ const MboGraphsReportsByComponentAndSubtype = `
 	</body>
 </html>
 
+`
+
+
+const MboGraphsReportsCss = `
+ul {
+	padding-bottom: 1em;
+}
 `

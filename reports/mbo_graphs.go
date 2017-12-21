@@ -83,6 +83,11 @@ func mboHardwareFailureGraphListener(app *cli.Cmd) {
 			fmt.Fprintf(w, manta_report.AsCsv())
 		})
 
+		gorilla.HandleFunc("/style.css", func(w http.ResponseWriter, req *http.Request) {
+			w.Header().Set("content-type", "text/css")
+			fmt.Fprintf(w, c_templates.MboGraphsReportsCss)
+		})
+
 		gorilla.HandleFunc("/reports/times/{az}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
 			az_param := string(params["az"])
