@@ -13,6 +13,8 @@ import (
 	"github.com/joyent/conch-shell/util"
 	conch "github.com/joyent/go-conch"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/vbauerster/mpb"
+	"github.com/vbauerster/mpb/decor"
 	"gopkg.in/jawher/mow.cli.v1"
 	"gopkg.in/montanaflynn/stats.v0"
 	uuid "gopkg.in/satori/go.uuid.v1"
@@ -185,7 +187,16 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 
 	hardware_products := make(map[uuid.UUID]conch.ConchHardwareProduct)
 
+	if util.Pretty {
+		fmt.Println("Fetching hardware products...")
+		util.Spin.Start()
+	}
+
 	prods, err := util.API.GetHardwareProducts()
+	if util.Pretty {
+		util.Spin.Stop()
+	}
+
 	if err != nil {
 		util.Bail(err)
 	}
@@ -196,7 +207,25 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 
 	report := make(map[string]mboDatacenterReport)
 
+	var p *mpb.Progress
+	var bar *mpb.Bar
+	if util.Pretty {
+		p = mpb.New()
+		bar = p.AddBar(int64(len(manta_report.Raw)),
+			mpb.AppendDecorators(
+				decor.Percentage(3, decor.DSyncSpace),
+			),
+		)
+	}
+	defer func() { p.Stop() }()
+	if util.Pretty {
+		fmt.Println("Processing manta report records....")
+	}
+
 	for serial, failures := range manta_report.Raw {
+		if util.Pretty {
+			bar.Increment()
+		}
 		device, err := util.API.GetDevice(serial)
 		if err != nil {
 			continue
@@ -355,6 +384,10 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 
 		}
 
+	}
+	if util.Pretty {
+		fmt.Println("Complete...")
+		p.Stop()
 	}
 
 	for _, az := range report {
@@ -603,6 +636,10 @@ func mboHardwareFailures(app *cli.Cmd) {
 	app.Action = func() {
 
 		manta_report := &mboMantaReport{}
+
+		if *csv_output {
+			util.Pretty = false
+		}
 
 		if *manta_report_path != "" {
 			if !*csv_output {

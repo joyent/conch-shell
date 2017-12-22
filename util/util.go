@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/briandowns/spinner"
 	"github.com/joyent/conch-shell/config"
 	conch "github.com/joyent/go-conch"
 	pgtime "github.com/joyent/go-conch/pg_time"
@@ -24,6 +25,8 @@ var (
 	JSON   bool
 	Config *config.ConchConfig
 	API    *conch.Conch
+	Pretty bool
+	Spin   *spinner.Spinner
 )
 
 type MinimalDevice struct {

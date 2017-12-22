@@ -16,6 +16,8 @@ import (
 	"github.com/joyent/conch-shell/devices"
 	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/jawher/mow.cli.v1"
+	"github.com/briandowns/spinner"
+	"time"
 )
 
 
@@ -32,6 +34,8 @@ func main() {
 	var (
 		use_json    = app.BoolOpt("json", false, "Output JSON")
 		config_file = app.StringOpt("config c", "~/.conch.json", "Path to config file")
+		pretty = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
+
 	)
 
 	app.Before = func() {
@@ -39,6 +43,12 @@ func main() {
 			util.JSON = true
 		} else {
 			util.JSON = false
+		}
+
+		util.Pretty = *pretty
+		if *pretty {
+			util.Spin = spinner.New(spinner.CharSets[10], 100*time.Millisecond)
+			util.Spin.FinalMSG = "Complete.\n"
 		}
 
 		config_file_path, err := homedir.Expand(*config_file)

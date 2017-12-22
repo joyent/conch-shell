@@ -1,8 +1,12 @@
-hash: bdb92ad5fc79d978d560480b899f633c6dedc28f5182a2c9f4c188f7e45e2aa8
-updated: 2017-12-21T15:45:16.060883-05:00
+hash: 8b95dcfbda989e70dc841c4a610db58f3b891bcfde96076b7fc5309d957f7140
+updated: 2017-12-22T14:16:29.780808-05:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
+- name: github.com/briandowns/spinner
+  version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
+- name: github.com/fatih/color
+  version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
 - name: github.com/golang/freetype
   version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
   subpackages:
@@ -18,12 +22,20 @@ imports:
   version: 195858be170dd9af5e1c3cbeea148a1e3c632cf8
   subpackages:
   - pg_time
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+  repo: https://github.com/mattn/go-isatty
 - name: github.com/mattn/go-runewidth
   version: 9e777a8366cce605130a531d2cd6363d07ad7317
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/olekukonko/tablewriter
   version: 65fec0d89a572b4367094e2058d3ebe667de3b60
+- name: github.com/vbauerster/mpb
+  version: c3f4de968cf14bbfac144e59e2835094e2dbd6b3
 - name: github.com/wcharczuk/go-chart
   version: fc2973067ce43455507ea5f9aa9814aabbf8f2ca
   subpackages:
@@ -35,6 +47,11 @@ imports:
   - font
   - math/f64
   - math/fixed
+- name: golang.org/x/sys
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
+  repo: https://go.googlesource.com/sys
+  subpackages:
+  - unix
 - name: gopkg.in/jawher/mow.cli.v1
   version: 0e80ee9f63156ea1954dc2375c33a1c7e752c25c
 - name: gopkg.in/montanaflynn/stats.v0
