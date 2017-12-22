@@ -18,6 +18,7 @@ import (
 	"gopkg.in/jawher/mow.cli.v1"
 	"github.com/briandowns/spinner"
 	"time"
+	"fmt"
 )
 
 
@@ -31,11 +32,27 @@ func main() {
 	app := cli.App("conch", "Command line interface for Conch")
 	app.Version("version", Version)
 
+	app.Command(
+		"version",
+		"Get more detailed version info than --version",
+		func(cmd *cli.Cmd) {
+			cmd.Action = func() {
+				fmt.Printf(
+					"Conch Shell v%s\n"+
+						"  Git Revision: %s\n"+
+						"  Build Time: %s\n",
+					Version,
+					GitRev,
+					BuildTime,
+				)
+			}
+		},
+	)
+
 	var (
 		use_json    = app.BoolOpt("json", false, "Output JSON")
 		config_file = app.StringOpt("config c", "~/.conch.json", "Path to config file")
 		pretty = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
-
 	)
 
 	app.Before = func() {
