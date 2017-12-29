@@ -7,20 +7,16 @@
 package main
 
 import (
-	"os"
-	"github.com/joyent/conch-shell/config"
-	"github.com/joyent/conch-shell/util"
-	"github.com/joyent/conch-shell/workspaces"
-	"github.com/joyent/conch-shell/user"
-	"github.com/joyent/conch-shell/reports"
-	"github.com/joyent/conch-shell/devices"
+	"fmt"
+	"github.com/briandowns/spinner"
+	"github.com/joyent/conch-shell/pkg/commands"
+	"github.com/joyent/conch-shell/pkg/config"
+	"github.com/joyent/conch-shell/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/jawher/mow.cli.v1"
-	"github.com/briandowns/spinner"
+	"os"
 	"time"
-	"fmt"
 )
-
 
 var (
 	Version   string
@@ -52,7 +48,7 @@ func main() {
 	var (
 		use_json    = app.BoolOpt("json", false, "Output JSON")
 		config_file = app.StringOpt("config c", "~/.conch.json", "Path to config file")
-		pretty = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
+		pretty      = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
 	)
 
 	app.Before = func() {
@@ -80,15 +76,7 @@ func main() {
 		util.Config = cfg
 	}
 
-
-	workspaces.Init(app)
-	devices.Init(app)
-	user.Init(app)
-	reports.Init(app)
-
-	app.Command("login", "Log in", user.Login)
+	commands.Init(app)
 
 	app.Run(os.Args)
 }
-
-
