@@ -6,7 +6,7 @@
 package reports
 
 import (
-	"github.com/joyent/conch-shell/util"
+	"github.com/joyent/conch-shell/pkg/util"
 	"gopkg.in/jawher/mow.cli.v1"
 )
 
@@ -21,12 +21,6 @@ func Init(app *cli.Cli) {
 				"mbo_hardware_failures mbo mhf",
 				"MBO hardware failure report",
 				mboHardwareFailures,
-			)
-
-			cmd.Command(
-				"mbo_graphs",
-				"Sets up a local webserver that provides various graphs about the mbo data",
-				mboHardwareFailureGraphListener,
 			)
 		},
 	)

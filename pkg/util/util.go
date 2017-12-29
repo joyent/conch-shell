@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/briandowns/spinner"
-	"github.com/joyent/conch-shell/config"
+	"github.com/joyent/conch-shell/pkg/config"
 	conch "github.com/joyent/go-conch"
 	pgtime "github.com/joyent/go-conch/pg_time"
 	"github.com/olekukonko/tablewriter"
@@ -43,7 +43,7 @@ type MinimalDevice struct {
 func BuildApiAndVerifyLogin() {
 	API = &conch.Conch{
 		BaseUrl: Config.Api,
-		User:    Config.Api,
+		User:    Config.User,
 		Session: Config.Session,
 	}
 
@@ -56,7 +56,7 @@ func BuildApiAndVerifyLogin() {
 func BuildApi() {
 	API = &conch.Conch{
 		BaseUrl: Config.Api,
-		User:    Config.Api,
+		User:    Config.User,
 		Session: Config.Session,
 	}
 }

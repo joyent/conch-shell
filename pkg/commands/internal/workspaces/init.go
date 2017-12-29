@@ -6,7 +6,7 @@
 package workspaces
 
 import (
-	"github.com/joyent/conch-shell/util"
+	"github.com/joyent/conch-shell/pkg/util"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
