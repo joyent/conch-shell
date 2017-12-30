@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/joyent/go-conch"
-	pgtime "github.com/joyent/go-conch/pg_time"
+	"github.com/joyent/go-conch/pgtime"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
@@ -36,7 +36,7 @@ func getAll(app *cli.Cmd) {
 		table.SetHeader([]string{"Role", "Id", "Name", "Description"})
 
 		for _, w := range workspaces {
-			table.Append([]string{w.Role, w.Id.String(), w.Name, w.Description})
+			table.Append([]string{w.Role, w.ID.String(), w.Name, w.Description})
 		}
 
 		table.Render()
@@ -58,7 +58,7 @@ func getOne(app *cli.Cmd) {
 		fmt.Printf(
 			"Role: %s\nID: %s\nName: %s\nDescription: %s\n",
 			workspace.Role,
-			workspace.Id.String(),
+			workspace.ID.String(),
 			workspace.Name,
 			workspace.Description,
 		)
@@ -112,20 +112,20 @@ func getDevices(app *cli.Cmd) {
 			ids := make([]string, 0)
 			if util.JSON {
 				for _, d := range devices {
-					ids = append(ids, d.Id)
+					ids = append(ids, d.ID)
 				}
 				util.JsonOut(ids)
 				return
 			} else {
 				for _, d := range devices {
-					fmt.Println(d.Id)
+					fmt.Println(d.ID)
 				}
 				return
 			}
 		}
 
 		if *full_output {
-			filled_in := make([]conch.ConchDevice, 0)
+			filled_in := make([]conch.Device, 0)
 			for _, d := range devices {
 				full_d, err := util.API.FillInDevice(d)
 				if err != nil {
@@ -165,7 +165,7 @@ func getRacks(app *cli.Cmd) {
 
 		for _, r := range racks {
 			table.Append([]string{
-				r.Id.String(),
+				r.ID.String(),
 				r.Name,
 				r.Role,
 				strconv.Itoa(r.Unit),
@@ -241,9 +241,9 @@ Datacenter: %s
 				occupant_id := ""
 				occupant_health := ""
 
-				if slot.Occupant.Id != "" {
+				if slot.Occupant.ID != "" {
 					occupied = "+"
-					occupant_id = slot.Occupant.Id
+					occupant_id = slot.Occupant.ID
 					occupant_health = slot.Occupant.Health
 				}
 
@@ -281,14 +281,14 @@ func getRelays(app *cli.Cmd) {
 		}
 
 		type resultRow struct {
-			Id         string             `json:"id"`
-			Alias      string             `json:"asset_tag"`
-			Created    pgtime.ConchPgTime `json:"created, int"`
-			IpAddr     string             `json:"ipaddr"`
-			SshPort    int                `json:"ssh_port"`
-			Updated    pgtime.ConchPgTime `json:"updated"`
-			Version    string             `json:"version"`
-			NumDevices int                `json:"num_devices"`
+			Id         string        `json:"id"`
+			Alias      string        `json:"asset_tag"`
+			Created    pgtime.PgTime `json:"created, int"`
+			IpAddr     string        `json:"ipaddr"`
+			SshPort    int           `json:"ssh_port"`
+			Updated    pgtime.PgTime `json:"updated"`
+			Version    string        `json:"version"`
+			NumDevices int           `json:"num_devices"`
 		}
 
 		results := make([]resultRow, 0)
@@ -296,11 +296,11 @@ func getRelays(app *cli.Cmd) {
 		for _, r := range relays {
 			num_devices := len(r.Devices)
 			results = append(results, resultRow{
-				r.Id,
+				r.ID,
 				r.Alias,
 				r.Created,
-				r.IpAddr,
-				r.SshPort,
+				r.IPAddr,
+				r.SSHPort,
 				r.Updated,
 				r.Version,
 				num_devices,
@@ -362,7 +362,7 @@ func getRooms(app *cli.Cmd) {
 		table.SetHeader([]string{"ID", "AZ", "Alias", "Vendor Name"})
 
 		for _, r := range rooms {
-			table.Append([]string{r.Id, r.Az, r.Alias, r.VendorName})
+			table.Append([]string{r.ID, r.AZ, r.Alias, r.VendorName})
 		}
 
 		table.Render()
@@ -386,7 +386,7 @@ func getSubs(app *cli.Cmd) {
 		table.SetHeader([]string{"Role", "Id", "Name", "Description"})
 
 		for _, w := range workspaces {
-			table.Append([]string{w.Role, w.Id.String(), w.Name, w.Description})
+			table.Append([]string{w.Role, w.ID.String(), w.Name, w.Description})
 		}
 		table.Render()
 	}
@@ -402,16 +402,16 @@ func getRelayDevices(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		var relay conch.ConchRelay
+		var relay conch.Relay
 		found_relay := false
 		for _, r := range relays {
-			if r.Id == RelayId {
+			if r.ID == RelayId {
 				relay = r
 				found_relay = true
 			}
 		}
 		if found_relay == false {
-			util.Bail(conch.ConchDataNotFound)
+			util.Bail(conch.ErrDataNotFound)
 		}
 
 		util.DisplayDevices(relay.Devices, *full_output)

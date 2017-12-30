@@ -64,7 +64,7 @@ func main() {
 		util.Config = cfg
 
 		api = &conch.Conch{
-			BaseUrl: cfg.Api,
+			BaseURL: cfg.Api,
 			User:    cfg.User,
 			Session: cfg.Session,
 		}

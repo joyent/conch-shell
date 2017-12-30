@@ -1,5 +1,5 @@
 hash: 8b95dcfbda989e70dc841c4a610db58f3b891bcfde96076b7fc5309d957f7140
-updated: 2017-12-22T14:16:29.780808-05:00
+updated: 2017-12-30T15:28:23.774152506-05:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
@@ -19,9 +19,9 @@ imports:
 - name: github.com/gorilla/mux
   version: 7f08801859139f86dfafd1c296e2cba9a80d292e
 - name: github.com/joyent/go-conch
-  version: 195858be170dd9af5e1c3cbeea148a1e3c632cf8
+  version: 15c963bd58efbabbfb96d9bd17756241fe952fc3
   subpackages:
-  - pg_time
+  - pgtime
 - name: github.com/mattn/go-colorable
   version: 5411d3eea5978e6cdc258b30de592b60df6aba96
   repo: https://github.com/mattn/go-colorable
@@ -36,6 +36,9 @@ imports:
   version: 65fec0d89a572b4367094e2058d3ebe667de3b60
 - name: github.com/vbauerster/mpb
   version: c3f4de968cf14bbfac144e59e2835094e2dbd6b3
+  subpackages:
+  - cwriter
+  - decor
 - name: github.com/wcharczuk/go-chart
   version: fc2973067ce43455507ea5f9aa9814aabbf8f2ca
   subpackages:

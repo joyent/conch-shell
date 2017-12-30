@@ -12,7 +12,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/joyent/conch-shell/pkg/config"
 	conch "github.com/joyent/go-conch"
-	pgtime "github.com/joyent/go-conch/pg_time"
+	"github.com/joyent/go-conch/pgtime"
 	"github.com/olekukonko/tablewriter"
 	cli "gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
@@ -30,19 +30,19 @@ var (
 )
 
 type MinimalDevice struct {
-	Id       string             `json:"id"`
-	AssetTag string             `json:"asset_tag"`
-	Created  pgtime.ConchPgTime `json:"created,int"`
-	LastSeen pgtime.ConchPgTime `json:"last_seen,int"`
-	Health   string             `json:"health"`
-	Flags    string             `json:"flags"`
-	AZ       string             `json:"az"`
-	Rack     string             `json:"rack"`
+	Id       string        `json:"id"`
+	AssetTag string        `json:"asset_tag"`
+	Created  pgtime.PgTime `json:"created,int"`
+	LastSeen pgtime.PgTime `json:"last_seen,int"`
+	Health   string        `json:"health"`
+	Flags    string        `json:"flags"`
+	AZ       string        `json:"az"`
+	Rack     string        `json:"rack"`
 }
 
 func BuildApiAndVerifyLogin() {
 	API = &conch.Conch{
-		BaseUrl: Config.Api,
+		BaseURL: Config.Api,
 		User:    Config.User,
 		Session: Config.Session,
 	}
@@ -55,7 +55,7 @@ func BuildApiAndVerifyLogin() {
 
 func BuildApi() {
 	API = &conch.Conch{
-		BaseUrl: Config.Api,
+		BaseURL: Config.Api,
 		User:    Config.User,
 		Session: Config.Session,
 	}
@@ -86,12 +86,12 @@ func Bail(err error) {
 }
 
 // DisplayDevices() is an abstraction to make sure that the output of
-// ConchDevices is uniform, be it tables, json, or full json
-func DisplayDevices(devices []conch.ConchDevice, full_output bool) (err error) {
+// Devices is uniform, be it tables, json, or full json
+func DisplayDevices(devices []conch.Device, full_output bool) (err error) {
 	minimals := make([]MinimalDevice, 0)
 	for _, d := range devices {
 		minimals = append(minimals, MinimalDevice{
-			d.Id,
+			d.ID,
 			d.AssetTag,
 			d.Created,
 			d.LastSeen,
@@ -122,7 +122,7 @@ func DisplayDevices(devices []conch.ConchDevice, full_output bool) (err error) {
 }
 
 // TableizeMinimalDevices() is an abstraction to make sure that tables of
-// ConchDevices-turned-MinimalDevices are uniform
+// Devices-turned-MinimalDevices are uniform
 func TableizeMinimalDevices(devices []MinimalDevice, full_output bool, table *tablewriter.Table) *tablewriter.Table {
 	if full_output {
 		table.SetHeader([]string{
@@ -179,8 +179,8 @@ func TableizeMinimalDevices(devices []MinimalDevice, full_output bool, table *ta
 }
 
 // GenerateDeviceFlags() is an abstraction to make sure that the 'flags' field
-// for ConchDevices remains uniform
-func GenerateDeviceFlags(d conch.ConchDevice) (flags string) {
+// for Devices remains uniform
+func GenerateDeviceFlags(d conch.Device) (flags string) {
 	flags = ""
 
 	if !d.Deactivated.IsZero() {
@@ -220,8 +220,8 @@ func MagicWorkspaceId(wat string) (id uuid.UUID, err error) {
 
 	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
 	for _, w := range workspaces {
-		if (w.Name == wat) || re.MatchString(w.Id.String()) {
-			return w.Id, nil
+		if (w.Name == wat) || re.MatchString(w.ID.String()) {
+			return w.ID, nil
 		}
 	}
 
