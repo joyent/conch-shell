@@ -55,7 +55,7 @@ func main() {
 			util.Bail(err)
 		}
 
-		cfg, err = config.NewFromJsonFile(config_file_path)
+		cfg, err = config.NewFromJSONFile(config_file_path)
 		if err != nil {
 			fmt.Println("A login error occurred. Please use 'conch' to login...")
 			util.Bail(err)
@@ -64,7 +64,7 @@ func main() {
 		util.Config = cfg
 
 		api = &conch.Conch{
-			BaseURL: cfg.Api,
+			BaseURL: cfg.API,
 			User:    cfg.User,
 			Session: cfg.Session,
 		}
@@ -87,7 +87,7 @@ func main() {
 			}
 		} else {
 			fmt.Println("Downloading URL " + *manta_report_url)
-			if err := manta_report.NewFromUrl(*manta_report_url); err != nil {
+			if err := manta_report.NewFromURL(*manta_report_url); err != nil {
 				util.Bail(err)
 			}
 		}
