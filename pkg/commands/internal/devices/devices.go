@@ -15,7 +15,7 @@ import (
 )
 
 func getOne(app *cli.Cmd) {
-	var full_output = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
+	var fullOutput = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
 	app.Action = func() {
 		device, err := util.API.GetDevice(DeviceSerial)
 		if err != nil {
@@ -24,7 +24,7 @@ func getOne(app *cli.Cmd) {
 		devices := make([]conch.Device, 0)
 		devices = append(devices, device)
 
-		util.DisplayDevices(devices, *full_output)
+		_ = util.DisplayDevices(devices, *fullOutput)
 	}
 }
 
@@ -58,12 +58,11 @@ func getLocation(app *cli.Cmd) {
 			location.Rack.Role,
 			location.Rack.Unit,
 		)
-		return
 	}
 }
 
 func getSettings(app *cli.Cmd) {
-	var keys_only = app.BoolOpt("keys-only", false, "Only display the setting keys/names")
+	var keysOnly = app.BoolOpt("keys-only", false, "Only display the setting keys/names")
 	app.Action = func() {
 		settings, err := util.API.GetDeviceSettings(DeviceSerial)
 		if err != nil {
@@ -76,7 +75,7 @@ func getSettings(app *cli.Cmd) {
 		}
 		sort.Strings(keys)
 
-		if *keys_only {
+		if *keysOnly {
 			if util.JSON {
 				util.JsonOut(keys)
 				return
@@ -96,23 +95,22 @@ func getSettings(app *cli.Cmd) {
 		for _, k := range keys {
 			fmt.Printf("%s : %v\n", k, settings[k])
 		}
-		return
 	}
 }
 
 func getSetting(app *cli.Cmd) {
-	var setting_str = app.StringArg("SETTING", "", "The name of the setting to retrieve")
+	var settingStr = app.StringArg("SETTING", "", "The name of the setting to retrieve")
 	app.Spec = "SETTING"
 
 	app.Action = func() {
 
-		setting, err := util.API.GetDeviceSetting(DeviceSerial, *setting_str)
+		setting, err := util.API.GetDeviceSetting(DeviceSerial, *settingStr)
 		if err != nil {
 			util.Bail(err)
 		}
 
 		if util.JSON {
-			util.JsonOut(map[string]string{*setting_str: setting})
+			util.JsonOut(map[string]string{*settingStr: setting})
 		} else {
 			fmt.Println(setting)
 		}
