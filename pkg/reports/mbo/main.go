@@ -3,6 +3,9 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package mbo provides processing and formatting for data coming out of the
+// MBO hardware failure Manta job
 package mbo
 
 import (
@@ -25,6 +28,8 @@ import (
 	"time"
 )
 
+// DurationFormatCsv formats time.Duration into a string that Excel-ish
+// products recognize as a duration
 func DurationFormatCsv(t time.Duration) (pretty string) {
 	seconds := int64(t.Seconds()) % 60
 	minutes := int64(t.Minutes()) % 60
@@ -46,6 +51,8 @@ func DurationFormatCsv(t time.Duration) (pretty string) {
 	)
 }
 
+// PrettyComponentType takes a raw component type string like 'sas_hdd_num' and
+// provides a human friendly name like 'Number of SAS HDDs'
 func PrettyComponentType(ugly string, category string) (pretty string) {
 	switch ugly {
 	case "bios_firmware_version":
@@ -82,21 +89,28 @@ func PrettyComponentType(ugly string, category string) (pretty string) {
 	return pretty
 }
 
+// ComponentFailReport represents a validation result, munged for the report
 type ComponentFailReport struct {
-	DeviceId string                 `json:"device_id"`
+	DeviceID string                 `json:"device_id"`
 	Created  time.Time              `json:"created"`
 	Result   conch.ValidationReport `json:"validation_result"`
 }
 
+// ComponentFail reports the first time a validation failed and the first time
+// it succeeded
 type ComponentFail struct {
 	FirstFail ComponentFailReport `json:"first_fail"`
 	FirstPass ComponentFailReport `json:"first_pass"`
 }
 
+// MantaDevice is a map of ComponentFails, keyed by component type
 type MantaDevice map[string]ComponentFail
 
+// TypeReportDevice is our munged version of the Component reports, gathering
+// device information, the failure data, and remediation time based on the
+// timestamps of the FailReports
 type TypeReportDevice struct {
-	DeviceId        string
+	DeviceID        string
 	FailureType     string
 	ComponentName   string
 	RemediationTime time.Duration
@@ -104,6 +118,7 @@ type TypeReportDevice struct {
 	FirstPass       ComponentFailReport
 }
 
+// TypeReport is a summary of failures for a component type
 type TypeReport struct {
 	All     []float64
 	Mean    time.Duration
@@ -112,6 +127,7 @@ type TypeReport struct {
 	Devices []TypeReportDevice
 }
 
+// Calc calculates mean and median remediation times for a Type Report
 func (data *TypeReport) Calc() {
 	mean, _ := stats.Mean(data.All)
 	median, _ := stats.Median(data.All)
@@ -120,45 +136,53 @@ func (data *TypeReport) Calc() {
 	data.Median = time.Duration(median)
 }
 
+// DatacenterReport gathers TypeReports for a datacenter, bundling them by
+// type, subtype, and vendor
 type DatacenterReport struct {
 	Name string
-	Id   uuid.UUID
+	ID   uuid.UUID
 
 	TimesByType          map[string]*TypeReport
 	TimesBySubType       map[string]map[string]*TypeReport
 	TimesByVendorAndType map[string]map[string]*TypeReport
 }
 
+// MantaReport represents both the raw (from json) and processed-for-our-usage
+// versions of the Manta job output
 type MantaReport struct {
 	Raw           map[string]MantaDevice
 	Processed     map[string]DatacenterReport
 	BeenProcessed bool
 }
 
-func (manta_report *MantaReport) NewFromFile(path string) (err error) {
-	var manta_report_raw map[string]MantaDevice
-	report_path, err := homedir.Expand(path)
+// NewFromFile loads and parses the JSON output of the Manta job from a file on
+// disk
+func (r *MantaReport) NewFromFile(path string) (err error) {
+	var rawReport map[string]MantaDevice
+	reportPath, err := homedir.Expand(path)
 	if err != nil {
 		return err
 	}
 
-	manta_report_json, err := ioutil.ReadFile(report_path)
+	j, err := ioutil.ReadFile(reportPath)
 	if err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(manta_report_json, &manta_report_raw); err != nil {
+	if err := json.Unmarshal(j, &rawReport); err != nil {
 		return err
 	}
 
-	manta_report.Raw = manta_report_raw
-	manta_report.BeenProcessed = false
-	manta_report.Processed = make(map[string]DatacenterReport)
+	r.Raw = rawReport
+	r.BeenProcessed = false
+	r.Processed = make(map[string]DatacenterReport)
 	return nil
 }
 
-func (manta_report *MantaReport) NewFromUrl(url string) (err error) {
-	var manta_report_raw map[string]MantaDevice
+// NewFromURL loads and parses the JSON output of the Manta job from an HTTP/S
+// URL
+func (r *MantaReport) NewFromURL(url string) (err error) {
+	var rawReport map[string]MantaDevice
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
@@ -169,22 +193,24 @@ func (manta_report *MantaReport) NewFromUrl(url string) (err error) {
 		return err
 	}
 
-	if err := json.Unmarshal(bodyBytes, &manta_report_raw); err != nil {
+	if err := json.Unmarshal(bodyBytes, &rawReport); err != nil {
 		return err
 	}
 
-	manta_report.Raw = manta_report_raw
-	manta_report.BeenProcessed = false
-	manta_report.Processed = make(map[string]DatacenterReport)
+	r.Raw = rawReport
+	r.BeenProcessed = false
+	r.Processed = make(map[string]DatacenterReport)
 
 	return nil
 }
 
-func (manta_report *MantaReport) Process(datacenter_choice string, remediation_min int) {
-	null_uuid := uuid.UUID{}
-	peer_re := regexp.MustCompile("_peer$")
+// Process is the heavy lifter, turning the raw JSON into all the various
+// summaries and aggregates
+func (r *MantaReport) Process(datacenterChoice string, remediationMin int) {
+	nullUUID := uuid.UUID{}
+	peerRe := regexp.MustCompile("_peer$")
 
-	hardware_products := make(map[uuid.UUID]conch.HardwareProduct)
+	hardwareProducts := make(map[uuid.UUID]conch.HardwareProduct)
 
 	if util.Pretty {
 		fmt.Println("Fetching hardware products...")
@@ -201,7 +227,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 	}
 
 	for _, prod := range prods {
-		hardware_products[prod.ID] = prod
+		hardwareProducts[prod.ID] = prod
 	}
 
 	report := make(map[string]DatacenterReport)
@@ -210,7 +236,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 	var bar *mpb.Bar
 	if util.Pretty {
 		p = mpb.New()
-		bar = p.AddBar(int64(len(manta_report.Raw)),
+		bar = p.AddBar(int64(len(r.Raw)),
 			mpb.AppendDecorators(
 				decor.Percentage(3, decor.DSyncSpace),
 			),
@@ -219,7 +245,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 		fmt.Println("Processing manta report records....")
 	}
 
-	for serial, failures := range manta_report.Raw {
+	for serial, failures := range r.Raw {
 		if util.Pretty {
 			bar.Increment()
 		}
@@ -228,155 +254,155 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 			continue
 		}
 
-		if uuid.Equal(device.HardwareProduct, null_uuid) {
+		if uuid.Equal(device.HardwareProduct, nullUUID) {
 			continue
 		}
 
 		datacenter := "UNKNOWN"
-		datacenter_uuid := uuid.UUID{}
+		datacenterUUID := uuid.UUID{}
 
 		if device.Location.Datacenter.Name != "" {
 			datacenter = device.Location.Datacenter.Name
-			datacenter_uuid = device.Location.Datacenter.ID
+			datacenterUUID = device.Location.Datacenter.ID
 		}
 
-		if datacenter_choice != "" {
-			re := regexp.MustCompile(fmt.Sprintf("^%s-", datacenter_choice))
-			if (datacenter_uuid.String() != datacenter_choice) &&
-				(datacenter != datacenter_choice) &&
-				!re.MatchString(datacenter_choice) {
+		if datacenterChoice != "" {
+			re := regexp.MustCompile(fmt.Sprintf("^%s-", datacenterChoice))
+			if (datacenterUUID.String() != datacenterChoice) &&
+				(datacenter != datacenterChoice) &&
+				!re.MatchString(datacenterChoice) {
 				continue
 			}
 		}
 
 		vendor := "UNKNOWN"
-		if _, ok := hardware_products[device.HardwareProduct]; ok {
-			vendor = hardware_products[device.HardwareProduct].Vendor
+		if _, ok := hardwareProducts[device.HardwareProduct]; ok {
+			vendor = hardwareProducts[device.HardwareProduct].Vendor
 		}
 
-		times_by_type := make(map[string]*TypeReport)
-		times_by_subtype := make(map[string]map[string]*TypeReport)
-		times_by_vendor := make(map[string]map[string]*TypeReport)
+		timesType := make(map[string]*TypeReport)
+		timesSubType := make(map[string]map[string]*TypeReport)
+		timesVendor := make(map[string]map[string]*TypeReport)
 
-		zero_duration, err := time.ParseDuration("0s")
+		zeroDuration, err := time.ParseDuration("0s")
 		if _, ok := report[datacenter]; !ok {
 			report[datacenter] = DatacenterReport{
 				datacenter,
-				datacenter_uuid,
-				times_by_type,
-				times_by_subtype,
-				times_by_vendor,
+				datacenterUUID,
+				timesType,
+				timesSubType,
+				timesVendor,
 			}
 		} else {
-			times_by_type = report[datacenter].TimesByType
-			times_by_subtype = report[datacenter].TimesBySubType
-			times_by_vendor = report[datacenter].TimesByVendorAndType
+			timesType = report[datacenter].TimesByType
+			timesSubType = report[datacenter].TimesBySubType
+			timesVendor = report[datacenter].TimesByVendorAndType
 		}
 
-		if _, ok := times_by_vendor[vendor]; !ok {
-			times_by_vendor[vendor] = make(map[string]*TypeReport)
+		if _, ok := timesVendor[vendor]; !ok {
+			timesVendor[vendor] = make(map[string]*TypeReport)
 		}
 
 		for _, failure := range failures {
-			failure_type := failure.FirstPass.Result.ComponentType
+			failureType := failure.FirstPass.Result.ComponentType
 
-			if (failure_type == "") || (failure_type == "Undetermined") {
-				failure_type = "UNKNOWN"
+			if (failureType == "") || (failureType == "Undetermined") {
+				failureType = "UNKNOWN"
 			}
 
-			component_name := failure.FirstPass.Result.ComponentName
-			if (component_name == "") || (component_name == "Undetermined") {
-				component_name = "UNKNOWN"
+			componentName := failure.FirstPass.Result.ComponentName
+			if (componentName == "") || (componentName == "Undetermined") {
+				componentName = "UNKNOWN"
 			}
 
-			if peer_re.MatchString(component_name) {
-				component_name = "switch_peer"
+			if peerRe.MatchString(componentName) {
+				componentName = "switch_peer"
 			}
 
-			t_fail := failure.FirstFail.Created
-			if t_fail.IsZero() {
+			tFail := failure.FirstFail.Created
+			if tFail.IsZero() {
 				continue
 			}
 
-			t_pass := failure.FirstPass.Created
-			if t_pass.IsZero() {
+			tPass := failure.FirstPass.Created
+			if tPass.IsZero() {
 				continue
 			}
 
-			remediation_time := t_pass.Sub(t_fail)
-			if remediation_time.Seconds() < float64(remediation_min) {
+			remediationTime := tPass.Sub(tFail)
+			if remediationTime.Seconds() < float64(remediationMin) {
 				continue
 			}
 
-			full_failure := TypeReportDevice{
+			fullFailure := TypeReportDevice{
 				serial,
-				failure_type,
-				component_name,
-				remediation_time,
+				failureType,
+				componentName,
+				remediationTime,
 				failure.FirstFail,
 				failure.FirstPass,
 			}
 
-			if _, ok := times_by_type[failure_type]; !ok {
-				times_by_type[failure_type] = &TypeReport{
+			if _, ok := timesType[failureType]; !ok {
+				timesType[failureType] = &TypeReport{
 					make([]float64, 0),
-					zero_duration,
-					zero_duration,
+					zeroDuration,
+					zeroDuration,
 					0,
 					make([]TypeReportDevice, 0),
 				}
 			}
-			times_by_type[failure_type].All = append(
-				times_by_type[failure_type].All,
-				float64(remediation_time),
+			timesType[failureType].All = append(
+				timesType[failureType].All,
+				float64(remediationTime),
 			)
-			times_by_type[failure_type].Count++
-			times_by_type[failure_type].Devices = append(
-				times_by_type[failure_type].Devices,
-				full_failure,
+			timesType[failureType].Count++
+			timesType[failureType].Devices = append(
+				timesType[failureType].Devices,
+				fullFailure,
 			)
 
-			if _, ok := times_by_vendor[vendor][failure_type]; !ok {
-				times_by_vendor[vendor][failure_type] = &TypeReport{
+			if _, ok := timesVendor[vendor][failureType]; !ok {
+				timesVendor[vendor][failureType] = &TypeReport{
 					make([]float64, 0),
-					zero_duration,
-					zero_duration,
+					zeroDuration,
+					zeroDuration,
 					0,
 					make([]TypeReportDevice, 0),
 				}
 			}
-			times_by_vendor[vendor][failure_type].All = append(
-				times_by_vendor[vendor][failure_type].All,
-				float64(remediation_time),
+			timesVendor[vendor][failureType].All = append(
+				timesVendor[vendor][failureType].All,
+				float64(remediationTime),
 			)
-			times_by_vendor[vendor][failure_type].Count++
-			times_by_vendor[vendor][failure_type].Devices = append(
-				times_by_vendor[vendor][failure_type].Devices,
-				full_failure,
+			timesVendor[vendor][failureType].Count++
+			timesVendor[vendor][failureType].Devices = append(
+				timesVendor[vendor][failureType].Devices,
+				fullFailure,
 			)
 
-			if _, ok := times_by_subtype[failure_type]; !ok {
-				times_by_subtype[failure_type] = make(map[string]*TypeReport)
+			if _, ok := timesSubType[failureType]; !ok {
+				timesSubType[failureType] = make(map[string]*TypeReport)
 			}
 
-			if _, ok := times_by_subtype[failure_type][component_name]; !ok {
-				times_by_subtype[failure_type][component_name] = &TypeReport{
+			if _, ok := timesSubType[failureType][componentName]; !ok {
+				timesSubType[failureType][componentName] = &TypeReport{
 					make([]float64, 0),
-					zero_duration,
-					zero_duration,
+					zeroDuration,
+					zeroDuration,
 					0,
 					make([]TypeReportDevice, 0),
 				}
 			}
 
-			times_by_subtype[failure_type][component_name].All = append(
-				times_by_subtype[failure_type][component_name].All,
-				float64(remediation_time),
+			timesSubType[failureType][componentName].All = append(
+				timesSubType[failureType][componentName].All,
+				float64(remediationTime),
 			)
-			times_by_subtype[failure_type][component_name].Count++
-			times_by_subtype[failure_type][component_name].Devices = append(
-				times_by_subtype[failure_type][component_name].Devices,
-				full_failure,
+			timesSubType[failureType][componentName].Count++
+			timesSubType[failureType][componentName].Devices = append(
+				timesSubType[failureType][componentName].Devices,
+				fullFailure,
 			)
 
 		}
@@ -388,48 +414,50 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 	}
 
 	for _, az := range report {
-		for _, time_data := range az.TimesByType {
-			time_data.Calc()
+		for _, t := range az.TimesByType {
+			t.Calc()
 		}
 
-		for _, type_data := range az.TimesBySubType {
-			for _, sub_type := range type_data {
-				sub_type.Calc()
+		for _, t := range az.TimesBySubType {
+			for _, s := range t {
+				s.Calc()
 			}
 		}
 
-		for _, vendor_data := range az.TimesByVendorAndType {
-			for _, type_data := range vendor_data {
-				type_data.Calc()
+		for _, v := range az.TimesByVendorAndType {
+			for _, t := range v {
+				t.Calc()
 			}
 		}
 
 	}
 
-	manta_report.Processed = report
-	manta_report.BeenProcessed = true
+	r.Processed = report
+	r.BeenProcessed = true
 }
 
-func (manta_report *MantaReport) AsText(full_output bool, include_vendors bool, include_components bool) (output string) {
-	if !manta_report.BeenProcessed {
+// AsText turns the processed data into a text report. If Process has not been
+// called, an empty string is returned
+func (r *MantaReport) AsText(fullOutput bool, includeVendors bool, includeComponents bool) (output string) {
+	if !r.BeenProcessed {
 		return ""
 	}
 
-	report := manta_report.Processed
+	report := r.Processed
 
-	var output_buff bytes.Buffer
-	az_names := make([]string, 0)
+	var outputBuf bytes.Buffer
+	azNames := make([]string, 0)
 	for name := range report {
-		az_names = append(az_names, name)
+		azNames = append(azNames, name)
 	}
-	sort.Strings(az_names)
+	sort.Strings(azNames)
 
-	for _, name := range az_names {
+	for _, name := range azNames {
 		az := report[name]
-		output_buff.WriteString(fmt.Sprintf("%s:\n", az.Name))
+		outputBuf.WriteString(fmt.Sprintf("%s:\n", az.Name))
 
-		if full_output || include_vendors {
-			output_buff.WriteString(fmt.Sprintln("  By Vendor:"))
+		if fullOutput || includeVendors {
+			outputBuf.WriteString(fmt.Sprintln("  By Vendor:"))
 			vendors := make([]string, 0)
 			for v := range az.TimesByVendorAndType {
 				vendors = append(vendors, v)
@@ -437,63 +465,63 @@ func (manta_report *MantaReport) AsText(full_output bool, include_vendors bool, 
 			sort.Strings(vendors)
 
 			for _, vendor := range vendors {
-				output_buff.WriteString(fmt.Sprintf("    %s:\n", vendor))
+				outputBuf.WriteString(fmt.Sprintf("    %s:\n", vendor))
 
-				vendor_data := az.TimesByVendorAndType[vendor]
+				vendorData := az.TimesByVendorAndType[vendor]
 
-				time_types := make([]string, 0)
-				for t := range vendor_data {
-					time_types = append(time_types, t)
+				timeTypes := make([]string, 0)
+				for t := range vendorData {
+					timeTypes = append(timeTypes, t)
 				}
-				sort.Strings(time_types)
+				sort.Strings(timeTypes)
 
-				for _, time_type := range time_types {
-					data := vendor_data[time_type]
-					output_buff.WriteString(fmt.Sprintf(
+				for _, timeType := range timeTypes {
+					data := vendorData[timeType]
+					outputBuf.WriteString(fmt.Sprintf(
 						"      %s: (%d)\n",
-						time_type,
+						timeType,
 						data.Count,
 					))
-					output_buff.WriteString(fmt.Sprintf(
+					outputBuf.WriteString(fmt.Sprintf(
 						"        Mean   : %s\n",
 						data.Mean,
 					))
-					output_buff.WriteString(fmt.Sprintf(
+					outputBuf.WriteString(fmt.Sprintf(
 						"        Median : %s\n",
 						data.Median,
 					))
 				}
-				output_buff.WriteString(fmt.Sprintln())
+				outputBuf.WriteString(fmt.Sprintln())
 			}
 		}
 
-		time_types := make([]string, 0)
+		timeTypes := make([]string, 0)
 		for t := range az.TimesByType {
-			time_types = append(time_types, t)
+			timeTypes = append(timeTypes, t)
 		}
-		sort.Strings(time_types)
+		sort.Strings(timeTypes)
 
-		output_buff.WriteString(fmt.Sprintln("  By Component Type:"))
+		outputBuf.WriteString(fmt.Sprintln("  By Component Type:"))
 
-		for _, time_type := range time_types {
-			data := az.TimesByType[time_type]
+		for _, timeType := range timeTypes {
+			data := az.TimesByType[timeType]
 
-			output_buff.WriteString(fmt.Sprintln())
-			output_buff.WriteString(fmt.Sprintf(
+			outputBuf.WriteString(fmt.Sprintln())
+			outputBuf.WriteString(fmt.Sprintf(
 				"    %s: (%d)\n",
-				time_type,
+				timeType,
 				data.Count,
 			))
-			output_buff.WriteString(fmt.Sprintf(
+			outputBuf.WriteString(fmt.Sprintf(
 				"      Mean   : %s\n",
 				data.Mean,
 			))
-			output_buff.WriteString(fmt.Sprintf(
+			outputBuf.WriteString(fmt.Sprintf(
 				"      Median : %s\n",
 				data.Median,
 			))
 
-			switch time_type {
+			switch timeType {
 			case "SAS_SSD":
 				continue
 			case "SATA_SSD":
@@ -504,48 +532,49 @@ func (manta_report *MantaReport) AsText(full_output bool, include_vendors bool, 
 				continue
 			}
 
-			if full_output || include_components {
-				output_buff.WriteString(fmt.Sprintln())
-				output_buff.WriteString(fmt.Sprintln("      By Component:"))
+			if fullOutput || includeComponents {
+				outputBuf.WriteString(fmt.Sprintln())
+				outputBuf.WriteString(fmt.Sprintln("      By Component:"))
 
-				sub_types := make([]string, 0)
-				for t := range az.TimesBySubType[time_type] {
-					sub_types = append(sub_types, t)
+				subTypes := make([]string, 0)
+				for t := range az.TimesBySubType[timeType] {
+					subTypes = append(subTypes, t)
 				}
-				sort.Strings(sub_types)
+				sort.Strings(subTypes)
 
-				for _, sub_type := range sub_types {
-					sub_data := az.TimesBySubType[time_type][sub_type]
-					pretty_sub_type := PrettyComponentType(
-						sub_type,
-						time_type,
+				for _, subType := range subTypes {
+					subData := az.TimesBySubType[timeType][subType]
+					prettySubType := PrettyComponentType(
+						subType,
+						timeType,
 					)
-					output_buff.WriteString(fmt.Sprintf(
+					outputBuf.WriteString(fmt.Sprintf(
 						"        %s: (%d)\n",
-						pretty_sub_type,
-						sub_data.Count,
+						prettySubType,
+						subData.Count,
 					))
-					output_buff.WriteString(fmt.Sprintf(
+					outputBuf.WriteString(fmt.Sprintf(
 						"          Mean   : %s\n",
-						sub_data.Mean,
+						subData.Mean,
 					))
-					output_buff.WriteString(fmt.Sprintf(
+					outputBuf.WriteString(fmt.Sprintf(
 						"          Median : %s\n",
-						sub_data.Median,
+						subData.Median,
 					))
 				}
 			}
 		}
-		output_buff.WriteString(fmt.Sprintln())
+		outputBuf.WriteString(fmt.Sprintln())
 	}
-	return output_buff.String()
+	return outputBuf.String()
 
 }
 
-func (manta_report *MantaReport) AsCsv() (data string) {
+// AsCsv takes the processed report data and returns a csv
+func (r *MantaReport) AsCsv() (data string) {
 
-	csv_vendor := make([][]string, 0)
-	csv_vendor = append(csv_vendor, []string{
+	csvVendor := make([][]string, 0)
+	csvVendor = append(csvVendor, []string{
 		"Datacenter",
 		"Vendor",
 		"Type",
@@ -554,8 +583,8 @@ func (manta_report *MantaReport) AsCsv() (data string) {
 		"Median",
 	})
 
-	csv_component := make([][]string, 0)
-	csv_component = append(csv_component, []string{
+	csvComponent := make([][]string, 0)
+	csvComponent = append(csvComponent, []string{
 		"Datacenter",
 		"Type",
 		"Component",
@@ -564,21 +593,21 @@ func (manta_report *MantaReport) AsCsv() (data string) {
 		"Median",
 	})
 
-	for name, az := range manta_report.Processed {
-		for vendor, vendor_data := range az.TimesByVendorAndType {
-			for time_type, data := range vendor_data {
-				csv_vendor = append(csv_vendor, []string{
+	for name, az := range r.Processed {
+		for vendor, vendorData := range az.TimesByVendorAndType {
+			for timeType, data := range vendorData {
+				csvVendor = append(csvVendor, []string{
 					name,
 					vendor,
-					time_type,
+					timeType,
 					strconv.FormatInt(data.Count, 10),
 					DurationFormatCsv(data.Mean),
 					DurationFormatCsv(data.Median),
 				})
 			}
 		}
-		for time_type, data := range az.TimesBySubType {
-			switch time_type {
+		for timeType, data := range az.TimesBySubType {
+			switch timeType {
 			case "SAS_SSD":
 				continue
 			case "SATA_SSD":
@@ -589,29 +618,29 @@ func (manta_report *MantaReport) AsCsv() (data string) {
 				continue
 			}
 
-			for sub_type, sub_data := range data {
-				pretty_sub_type := PrettyComponentType(
-					sub_type,
-					time_type,
+			for subType, subData := range data {
+				prettySubType := PrettyComponentType(
+					subType,
+					timeType,
 				)
 
-				csv_component = append(csv_component, []string{
+				csvComponent = append(csvComponent, []string{
 					name,
-					time_type,
-					pretty_sub_type,
-					strconv.FormatInt(sub_data.Count, 10),
-					DurationFormatCsv(sub_data.Mean),
-					DurationFormatCsv(sub_data.Median),
+					timeType,
+					prettySubType,
+					strconv.FormatInt(subData.Count, 10),
+					DurationFormatCsv(subData.Mean),
+					DurationFormatCsv(subData.Median),
 				})
 			}
 		}
 	}
 
-	var output_buff bytes.Buffer
-	w := csv.NewWriter(&output_buff)
-	w.WriteAll(csv_vendor)
-	output_buff.WriteString("\n")
-	w.WriteAll(csv_component)
+	var outputBuf bytes.Buffer
+	w := csv.NewWriter(&outputBuf)
+	w.WriteAll(csvVendor)
+	outputBuf.WriteString("\n")
+	w.WriteAll(csvComponent)
 
-	return output_buff.String()
+	return outputBuf.String()
 }
