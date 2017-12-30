@@ -3,6 +3,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package user
 
 import (
@@ -36,11 +37,11 @@ func getSettings(app *cli.Cmd) {
 func getSetting(app *cli.Cmd) {
 	app.Before = util.BuildApiAndVerifyLogin
 
-	var setting_id_str = app.StringArg("ID", "", "Setting name")
+	var settingID = app.StringArg("ID", "", "Setting name")
 	app.Spec = "ID"
 
 	app.Action = func() {
-		setting, err := util.API.GetUserSetting(*setting_id_str)
+		setting, err := util.API.GetUserSetting(*settingID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -53,24 +54,23 @@ func getSetting(app *cli.Cmd) {
 	}
 }
 
-// Login() is exported so that it can be used as a first level command as well
+// Login is exported so that it can be used as a first level command as well
 // as a nested one
-
-// BUG(sungo): prompt for data if args are empty
 func Login(app *cli.Cmd) {
 	var (
-		api_str      = app.StringOpt("api", "https://conch.joyent.us", "The url of the API server")
-		user_str     = app.StringOpt("user u", "", "The user name to log in with")
-		password_str = app.StringOpt("password p", "", "The user's password")
+		apiURL   = app.StringOpt("api", "https://conch.joyent.us", "The url of the API server")
+		user     = app.StringOpt("user u", "", "The user name to log in with")
+		password = app.StringOpt("password p", "", "The user's password")
 	)
 
+	// BUG(sungo): prompt for data if args are empty
 	app.Action = func() {
 		api := &conch.Conch{
-			BaseURL: strings.TrimRight(*api_str, "/"),
-			User:    *user_str,
+			BaseURL: strings.TrimRight(*apiURL, "/"),
+			User:    *user,
 		}
 
-		if err := api.Login(*password_str); err != nil {
+		if err := api.Login(*password); err != nil {
 			util.Bail(err)
 		}
 
@@ -78,7 +78,7 @@ func Login(app *cli.Cmd) {
 			util.Bail(conch.ErrNoSessionData)
 		}
 
-		util.Config.Api = api.BaseURL
+		util.Config.API = api.BaseURL
 		util.Config.User = api.User
 		util.Config.Session = api.Session
 

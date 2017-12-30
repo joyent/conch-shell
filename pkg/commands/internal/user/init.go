@@ -3,12 +3,15 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package user contains command pertaining to the active Conch user
 package user
 
 import (
 	"gopkg.in/jawher/mow.cli.v1"
 )
 
+// Init loads up the user commands
 func Init(app *cli.Cli) {
 	app.Command(
 		"user u",
