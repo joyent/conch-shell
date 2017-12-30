@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
-	pgtime "github.com/joyent/go-conch/pg_time"
+	"github.com/joyent/go-conch/pgtime"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"regexp"
@@ -26,24 +26,24 @@ func getFailures(app *cli.Cmd) {
 	app.Action = func() {
 
 		type minimalReportDevice struct {
-			AssetTag          string                                   `json:"asset_tag"`
-			Created           pgtime.ConchPgTime                       `json:"created, int"`
-			Graduated         pgtime.ConchPgTime                       `json:"graduated"`
-			HardwareProduct   uuid.UUID                                `json:"hardware_product"`
-			Health            string                                   `json:"health"`
-			Id                string                                   `json:"id"`
-			LastSeen          pgtime.ConchPgTime                       `json:"last_seen, int"`
-			Location          conch.ConchDeviceLocation                `json:"location"`
-			Role              string                                   `json:"role"`
-			State             string                                   `json:"state"`
-			SystemUuid        uuid.UUID                                `json:"system_uuid"`
-			Updated           pgtime.ConchPgTime                       `json:"updated, int"`
-			Validated         pgtime.ConchPgTime                       `json:"validated, int"`
-			FailedValidations map[string][]conch.ConchValidationReport `json:"failed_validations"`
+			AssetTag          string                              `json:"asset_tag"`
+			Created           pgtime.PgTime                       `json:"created, int"`
+			Graduated         pgtime.PgTime                       `json:"graduated"`
+			HardwareProduct   uuid.UUID                           `json:"hardware_product"`
+			Health            string                              `json:"health"`
+			Id                string                              `json:"id"`
+			LastSeen          pgtime.PgTime                       `json:"last_seen, int"`
+			Location          conch.DeviceLocation                `json:"location"`
+			Role              string                              `json:"role"`
+			State             string                              `json:"state"`
+			SystemUuid        uuid.UUID                           `json:"system_uuid"`
+			Updated           pgtime.PgTime                       `json:"updated, int"`
+			Validated         pgtime.PgTime                       `json:"validated, int"`
+			FailedValidations map[string][]conch.ValidationReport `json:"failed_validations"`
 		}
 
 		type reportRack struct {
-			Rack          conch.ConchRack       `json:"rack"`
+			Rack          conch.Rack            `json:"rack"`
 			FailedDevices []minimalReportDevice `json:"failed_devices"`
 		}
 
@@ -86,22 +86,22 @@ func getFailures(app *cli.Cmd) {
 				full_d.Graduated,
 				full_d.HardwareProduct,
 				full_d.Health,
-				full_d.Id,
+				full_d.ID,
 				full_d.LastSeen,
 				full_d.Location,
 				full_d.Role,
 				full_d.State,
-				full_d.SystemUuid,
+				full_d.SystemUUID,
 				full_d.Updated,
 				full_d.Validated,
-				make(map[string][]conch.ConchValidationReport),
+				make(map[string][]conch.ValidationReport),
 			}
 
 			datacenter := default_datacenter
 			datacenter_uuid := uuid.UUID{}
 			if full_d.Location.Datacenter.Name != "" {
 				datacenter = full_d.Location.Datacenter.Name
-				datacenter_uuid = full_d.Location.Datacenter.Id
+				datacenter_uuid = full_d.Location.Datacenter.ID
 
 			}
 
@@ -140,7 +140,7 @@ func getFailures(app *cli.Cmd) {
 			)
 
 			for _, report := range full_d.Validations {
-				if report.Status == conch.ConchValidationReportStatusFail {
+				if report.Status == conch.ValidationReportStatusFail {
 					v_type := default_component_type
 					if report.ComponentType != "" {
 						v_type = report.ComponentType
@@ -207,7 +207,7 @@ func getFailures(app *cli.Cmd) {
 			for _, rack_name := range rack_names {
 				rack := full_report[a].Racks[rack_name]
 				if *show_uuids {
-					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.Id)
+					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.ID)
 				} else {
 					fmt.Printf("    %s:\n", rack_name)
 				}

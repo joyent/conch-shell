@@ -21,7 +21,7 @@ func getOne(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		devices := make([]conch.ConchDevice, 0)
+		devices := make([]conch.Device, 0)
 		devices = append(devices, device)
 
 		util.DisplayDevices(devices, *full_output)
@@ -51,9 +51,9 @@ func getLocation(app *cli.Cmd) {
     Unit: %d
 `,
 			DeviceSerial,
-			location.Datacenter.Id,
+			location.Datacenter.ID,
 			location.Datacenter.Name,
-			location.Rack.Id,
+			location.Rack.ID,
 			location.Rack.Name,
 			location.Rack.Role,
 			location.Rack.Unit,

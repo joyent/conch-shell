@@ -25,7 +25,7 @@ func getHealth(app *cli.Cmd) {
 
 	app.Action = func() {
 		type reportRack struct {
-			Rack    conch.ConchRack           `json:"rack"`
+			Rack    conch.Rack                `json:"rack"`
 			Summary map[string]map[string]int `json:"summary"`
 		}
 
@@ -65,7 +65,7 @@ func getHealth(app *cli.Cmd) {
 			datacenter_uuid := uuid.UUID{}
 			if full_d.Location.Datacenter.Name != "" {
 				datacenter = full_d.Location.Datacenter.Name
-				datacenter_uuid = full_d.Location.Datacenter.Id
+				datacenter_uuid = full_d.Location.Datacenter.ID
 
 			}
 
@@ -175,7 +175,7 @@ func getHealth(app *cli.Cmd) {
 			for _, rack_name := range rack_names {
 				rack := full_report[a].Racks[rack_name]
 				if *show_uuids {
-					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.Id)
+					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.ID)
 				} else {
 					fmt.Printf("    %s:\n", rack_name)
 				}

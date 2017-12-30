@@ -84,9 +84,9 @@ func mboPrettyComponentType(ugly string, category string) (pretty string) {
 }
 
 type mboComponentFailReport struct {
-	DeviceId string                      `json:"device_id"`
-	Created  time.Time                   `json:"created"`
-	Result   conch.ConchValidationReport `json:"validation_result"`
+	DeviceId string                 `json:"device_id"`
+	Created  time.Time              `json:"created"`
+	Result   conch.ValidationReport `json:"validation_result"`
 }
 
 type mboComponentFail struct {
@@ -185,7 +185,7 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 	null_uuid := uuid.UUID{}
 	peer_re := regexp.MustCompile("_peer$")
 
-	hardware_products := make(map[uuid.UUID]conch.ConchHardwareProduct)
+	hardware_products := make(map[uuid.UUID]conch.HardwareProduct)
 
 	if util.Pretty {
 		fmt.Println("Fetching hardware products...")
@@ -202,7 +202,7 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 	}
 
 	for _, prod := range prods {
-		hardware_products[prod.Id] = prod
+		hardware_products[prod.ID] = prod
 	}
 
 	report := make(map[string]mboDatacenterReport)
@@ -240,7 +240,7 @@ func (manta_report *mboMantaReport) Process(datacenter_choice string, remediatio
 
 		if device.Location.Datacenter.Name != "" {
 			datacenter = device.Location.Datacenter.Name
-			datacenter_uuid = device.Location.Datacenter.Id
+			datacenter_uuid = device.Location.Datacenter.ID
 		}
 
 		if datacenter_choice != "" {

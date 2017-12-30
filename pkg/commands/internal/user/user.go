@@ -66,7 +66,7 @@ func Login(app *cli.Cmd) {
 
 	app.Action = func() {
 		api := &conch.Conch{
-			BaseUrl: strings.TrimRight(*api_str, "/"),
+			BaseURL: strings.TrimRight(*api_str, "/"),
 			User:    *user_str,
 		}
 
@@ -75,10 +75,10 @@ func Login(app *cli.Cmd) {
 		}
 
 		if api.Session == "" {
-			util.Bail(conch.ConchNoSessionData)
+			util.Bail(conch.ErrNoSessionData)
 		}
 
-		util.Config.Api = api.BaseUrl
+		util.Config.Api = api.BaseURL
 		util.Config.User = api.User
 		util.Config.Session = api.Session
 

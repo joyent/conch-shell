@@ -83,9 +83,9 @@ func PrettyComponentType(ugly string, category string) (pretty string) {
 }
 
 type ComponentFailReport struct {
-	DeviceId string                      `json:"device_id"`
-	Created  time.Time                   `json:"created"`
-	Result   conch.ConchValidationReport `json:"validation_result"`
+	DeviceId string                 `json:"device_id"`
+	Created  time.Time              `json:"created"`
+	Result   conch.ValidationReport `json:"validation_result"`
 }
 
 type ComponentFail struct {
@@ -184,7 +184,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 	null_uuid := uuid.UUID{}
 	peer_re := regexp.MustCompile("_peer$")
 
-	hardware_products := make(map[uuid.UUID]conch.ConchHardwareProduct)
+	hardware_products := make(map[uuid.UUID]conch.HardwareProduct)
 
 	if util.Pretty {
 		fmt.Println("Fetching hardware products...")
@@ -201,7 +201,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 	}
 
 	for _, prod := range prods {
-		hardware_products[prod.Id] = prod
+		hardware_products[prod.ID] = prod
 	}
 
 	report := make(map[string]DatacenterReport)
@@ -239,7 +239,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 
 		if device.Location.Datacenter.Name != "" {
 			datacenter = device.Location.Datacenter.Name
-			datacenter_uuid = device.Location.Datacenter.Id
+			datacenter_uuid = device.Location.Datacenter.ID
 		}
 
 		if datacenter_choice != "" {
