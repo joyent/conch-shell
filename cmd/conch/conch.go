@@ -18,6 +18,7 @@ import (
 	"time"
 )
 
+// These variables are provided by the build environment
 var (
 	Version   string
 	BuildTime string
@@ -46,13 +47,13 @@ func main() {
 	)
 
 	var (
-		use_json    = app.BoolOpt("json", false, "Output JSON")
-		config_file = app.StringOpt("config c", "~/.conch.json", "Path to config file")
-		pretty      = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
+		useJSON    = app.BoolOpt("json", false, "Output JSON")
+		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
+		pretty     = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
 	)
 
 	app.Before = func() {
-		if *use_json {
+		if *useJSON {
 			util.JSON = true
 		} else {
 			util.JSON = false
@@ -64,14 +65,14 @@ func main() {
 			util.Spin.FinalMSG = "Complete.\n"
 		}
 
-		config_file_path, err := homedir.Expand(*config_file)
+		expandedPath, err := homedir.Expand(*configFile)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		cfg, err := config.NewFromJsonFile(config_file_path)
+		cfg, err := config.NewFromJSONFile(expandedPath)
 		if err != nil {
-			cfg.Path = config_file_path
+			cfg.Path = expandedPath
 		}
 		util.Config = cfg
 	}
