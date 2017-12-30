@@ -215,9 +215,7 @@ func (manta_report *MantaReport) Process(datacenter_choice string, remediation_m
 				decor.Percentage(3, decor.DSyncSpace),
 			),
 		)
-	}
-	defer func() { p.Stop() }()
-	if util.Pretty {
+		defer func() { p.Stop() }()
 		fmt.Println("Processing manta report records....")
 	}
 
