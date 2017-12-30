@@ -8,7 +8,7 @@ package workspaces
 
 import (
 	"fmt"
-	"github.com/joyent/conch-shell/util"
+	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/joyent/go-conch"
 	pgtime "github.com/joyent/go-conch/pg_time"
 	"gopkg.in/jawher/mow.cli.v1"
