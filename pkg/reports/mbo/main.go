@@ -284,7 +284,7 @@ func (r *MantaReport) Process(datacenterChoice string, remediationMin int) {
 		timesSubType := make(map[string]map[string]*TypeReport)
 		timesVendor := make(map[string]map[string]*TypeReport)
 
-		zeroDuration, err := time.ParseDuration("0s")
+		zeroDuration, _ := time.ParseDuration("0s")
 		if _, ok := report[datacenter]; !ok {
 			report[datacenter] = DatacenterReport{
 				datacenter,
