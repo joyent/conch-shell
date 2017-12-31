@@ -26,6 +26,7 @@ import (
 	"time"
 )
 
+// VERSION is the application version
 const VERSION = "0.0.0"
 
 func main() {
@@ -33,11 +34,11 @@ func main() {
 	app.Version("version", VERSION)
 
 	var (
-		config_file       = app.StringOpt("config c", "~/.conch.json", "Path to config file")
-		manta_report_path = app.StringOpt("manta-report path", "", "Path to Manta job output file")
-		manta_report_url  = app.StringOpt("manta-report-url url", "", "The url for manta report output")
-		datacenter_choice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
-		remediation_min   = app.IntOpt("remediation-minimum", 90, "For a failure to be considered, its remediation time must be greater than or equal to this number")
+		configFile       = app.StringOpt("config c", "~/.conch.json", "Path to config file")
+		mantaReportPath  = app.StringOpt("manta-report path", "", "Path to Manta job output file")
+		mantaReportURL   = app.StringOpt("manta-report-url url", "", "The url for manta report output")
+		datacenterChoice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
+		remediationMin   = app.IntOpt("remediation-minimum", 90, "For a failure to be considered, its remediation time must be greater than or equal to this number")
 
 		port = app.IntOpt("port", 1337, "Port to listen on")
 	)
@@ -50,17 +51,17 @@ func main() {
 		util.Spin = spinner.New(spinner.CharSets[10], 100*time.Millisecond)
 		util.Spin.FinalMSG = "Complete.\n"
 
-		config_file_path, err := homedir.Expand(*config_file)
+		configFilePath, err := homedir.Expand(*configFile)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		cfg, err = config.NewFromJSONFile(config_file_path)
+		cfg, err = config.NewFromJSONFile(configFilePath)
 		if err != nil {
 			fmt.Println("A login error occurred. Please use 'conch' to login...")
 			util.Bail(err)
 		}
-		cfg.Path = config_file_path
+		cfg.Path = configFilePath
 		util.Config = cfg
 
 		api = &conch.Conch{
@@ -78,16 +79,16 @@ func main() {
 	}
 
 	app.Action = func() {
-		manta_report := &mbo.MantaReport{}
+		mantaReport := &mbo.MantaReport{}
 
-		if *manta_report_path != "" {
-			fmt.Println("Opening file " + *manta_report_path)
-			if err := manta_report.NewFromFile(*manta_report_path); err != nil {
+		if *mantaReportPath != "" {
+			fmt.Println("Opening file " + *mantaReportPath)
+			if err := mantaReport.NewFromFile(*mantaReportPath); err != nil {
 				util.Bail(err)
 			}
 		} else {
-			fmt.Println("Downloading URL " + *manta_report_url)
-			if err := manta_report.NewFromURL(*manta_report_url); err != nil {
+			fmt.Println("Downloading URL " + *mantaReportURL)
+			if err := mantaReport.NewFromURL(*mantaReportURL); err != nil {
 				util.Bail(err)
 			}
 		}
@@ -95,14 +96,14 @@ func main() {
 		fmt.Println("Parsing complete. Processing...")
 		fmt.Println()
 
-		manta_report.Process(*datacenter_choice, *remediation_min)
-		report := manta_report.Processed
+		mantaReport.Process(*datacenterChoice, *remediationMin)
+		report := mantaReport.Processed
 
-		az_names := make([]string, 0)
+		azNames := make([]string, 0)
 		for name := range report {
-			az_names = append(az_names, name)
+			azNames = append(azNames, name)
 		}
-		sort.Strings(az_names)
+		sort.Strings(azNames)
 
 		fmt.Printf("Opening listener on port %d\n", *port)
 
@@ -120,18 +121,18 @@ func main() {
 				struct {
 					AzNames []string
 				}{
-					az_names,
+					azNames,
 				},
 			)
 		})
 		gorilla.HandleFunc("/full", func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("content-type", "text/plain")
-			fmt.Fprintf(w, manta_report.AsText(true, true, true))
+			fmt.Fprintf(w, mantaReport.AsText(true, true, true))
 		})
 
 		gorilla.HandleFunc("/full.csv", func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("content-type", "text/csv")
-			fmt.Fprintf(w, manta_report.AsCsv())
+			fmt.Fprintf(w, mantaReport.AsCsv())
 		})
 
 		gorilla.HandleFunc("/style.css", func(w http.ResponseWriter, req *http.Request) {
@@ -141,17 +142,17 @@ func main() {
 
 		gorilla.HandleFunc("/reports/times/{az}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := params["az"]
-			if len(az_param) == 0 {
+			azParam := params["az"]
+			if len(azParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
-			if _, ok := manta_report.Processed[az_param]; !ok {
-				http.Error(w, "No data found for "+az_param, 404)
+			if _, ok := mantaReport.Processed[azParam]; !ok {
+				http.Error(w, "No data found for "+azParam, 404)
 				return
 			}
-			az_data := manta_report.Processed[az_param]
+			azData := mantaReport.Processed[azParam]
 
 			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsIndex)
 			if err != nil {
@@ -165,36 +166,36 @@ func main() {
 					Name string
 					Data mbo.DatacenterReport
 				}{
-					az_param,
-					az_data,
+					azParam,
+					azData,
 				},
 			)
 		})
 
 		gorilla.HandleFunc("/reports/times/{az}/{component}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := params["az"]
-			if len(az_param) == 0 {
+			azParam := params["az"]
+			if len(azParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
-			component_param := params["component"]
-			if len(component_param) == 0 {
+			componentParam := params["component"]
+			if len(componentParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
-			if _, ok := manta_report.Processed[az_param]; !ok {
-				http.Error(w, "No data found for "+az_param, 404)
+			if _, ok := mantaReport.Processed[azParam]; !ok {
+				http.Error(w, "No data found for "+azParam, 404)
 				return
 			}
-			az_data := manta_report.Processed[az_param]
+			azData := mantaReport.Processed[azParam]
 
-			if _, ok := az_data.TimesBySubType[component_param]; !ok {
-				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", az_param, component_param), 404)
+			if _, ok := azData.TimesBySubType[componentParam]; !ok {
+				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", azParam, componentParam), 404)
 				return
 			}
-			subtype_data := az_data.TimesBySubType[component_param]
+			subtypeData := azData.TimesBySubType[componentParam]
 
 			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsBySubtype)
 			if err != nil {
@@ -209,56 +210,56 @@ func main() {
 					Name string
 					Data map[string]*mbo.TypeReport
 				}{
-					az_param,
-					component_param,
-					subtype_data,
+					azParam,
+					componentParam,
+					subtypeData,
 				},
 			)
 		})
 
 		gorilla.HandleFunc("/reports/times/{az}/{component}/{subtype}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := params["az"]
-			if len(az_param) == 0 {
+			azParam := params["az"]
+			if len(azParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
-			if _, ok := manta_report.Processed[az_param]; !ok {
-				http.Error(w, "No data found for "+az_param, 404)
+			if _, ok := mantaReport.Processed[azParam]; !ok {
+				http.Error(w, "No data found for "+azParam, 404)
 				return
 			}
-			az_data := manta_report.Processed[az_param]
+			azData := mantaReport.Processed[azParam]
 
-			component_param := params["component"]
-			if len(component_param) == 0 {
+			componentParam := params["component"]
+			if len(componentParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
-			if _, ok := az_data.TimesBySubType[component_param]; !ok {
-				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", az_param, component_param), 404)
+			if _, ok := azData.TimesBySubType[componentParam]; !ok {
+				http.Error(w, fmt.Sprintf("No data found for AZ %s, type %s", azParam, componentParam), 404)
 				return
 			}
-			component_data := az_data.TimesBySubType[component_param]
+			componentData := azData.TimesBySubType[componentParam]
 
 			/**/
 
-			subtype_param := params["subtype"]
-			if len(subtype_param) == 0 {
+			subtypeParam := params["subtype"]
+			if len(subtypeParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
-			if _, ok := component_data[subtype_param]; !ok {
+			if _, ok := componentData[subtypeParam]; !ok {
 				http.Error(w, fmt.Sprintf(
 					"No data found for AZ %s, type %s, subtype %s",
-					az_param,
-					component_param,
-					subtype_param,
+					azParam,
+					componentParam,
+					subtypeParam,
 				), 404)
 				return
 			}
-			subtype_data := component_data[subtype_param]
+			subtypeData := componentData[subtypeParam]
 
 			tmpl, err := template.New("index").Parse(c_templates.MboGraphsReportsByComponentAndSubtype)
 			if err != nil {
@@ -274,23 +275,23 @@ func main() {
 					Subtype   string
 					Data      *mbo.TypeReport
 				}{
-					az_param,
-					component_param,
-					subtype_param,
-					subtype_data,
+					azParam,
+					componentParam,
+					subtypeParam,
+					subtypeData,
 				},
 			)
 		})
 
 		gorilla.HandleFunc("/graphics/{az}/by_type.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := params["az"]
-			if len(az_param) == 0 {
+			azParam := params["az"]
+			if len(azParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
-			az, ok := report[az_param]
+			az, ok := report[azParam]
 			if !ok {
 				http.Error(w, "", 404)
 				return
@@ -301,13 +302,13 @@ func main() {
 				return
 			}
 
-			for data_type, data := range az.TimesByType {
+			for dataType, data := range az.TimesByType {
 				values = append(values, chart.Value{
 					Value: float64(data.Count),
-					Label: fmt.Sprintf("%s : %d", data_type, data.Count),
+					Label: fmt.Sprintf("%s : %d", dataType, data.Count),
 				})
 			}
-			bar_chart := chart.BarChart{
+			barChart := chart.BarChart{
 				Height:   512,
 				BarWidth: 60,
 				XAxis: chart.Style{
@@ -322,7 +323,7 @@ func main() {
 			}
 
 			w.Header().Set("Content-Type", "image/png")
-			if err := bar_chart.Render(chart.PNG, w); err != nil {
+			if err := barChart.Render(chart.PNG, w); err != nil {
 				fmt.Printf("Error rendering pie chart: %v\n", err)
 				http.Error(w, err.Error(), 500)
 				return
@@ -331,13 +332,13 @@ func main() {
 
 		gorilla.HandleFunc("/graphics/{az}/by_vendor.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := params["az"]
-			if len(az_param) == 0 {
+			azParam := params["az"]
+			if len(azParam) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
 
-			az, ok := report[az_param]
+			az, ok := report[azParam]
 			if !ok {
 				http.Error(w, "", 404)
 				return
@@ -348,20 +349,20 @@ func main() {
 				return
 			}
 
-			for vendor_name, vendor_data := range az.TimesByVendorAndType {
+			for name, data := range az.TimesByVendorAndType {
 				var count int64
 
-				for _, type_data := range vendor_data {
-					count = count + type_data.Count
+				for _, typeData := range data {
+					count = count + typeData.Count
 				}
 
 				values = append(values, chart.Value{
 					Value: float64(count),
-					Label: fmt.Sprintf("%s : %d", vendor_name, count),
+					Label: fmt.Sprintf("%s : %d", name, count),
 				})
 			}
 
-			bar_chart := chart.BarChart{
+			barChart := chart.BarChart{
 				Height: 512,
 				XAxis: chart.Style{
 					Show: true,
@@ -375,7 +376,7 @@ func main() {
 			}
 
 			w.Header().Set("Content-Type", "image/png")
-			if err := bar_chart.Render(chart.PNG, w); err != nil {
+			if err := barChart.Render(chart.PNG, w); err != nil {
 				fmt.Printf("Error rendering pie chart: %v\n", err)
 				http.Error(w, err.Error(), 500)
 				return
