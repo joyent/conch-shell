@@ -141,7 +141,7 @@ func main() {
 
 		gorilla.HandleFunc("/reports/times/{az}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := string(params["az"])
+			az_param := params["az"]
 			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
@@ -173,12 +173,12 @@ func main() {
 
 		gorilla.HandleFunc("/reports/times/{az}/{component}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := string(params["az"])
+			az_param := params["az"]
 			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
 			}
-			component_param := string(params["component"])
+			component_param := params["component"]
 			if len(component_param) == 0 {
 				http.Error(w, "", 404)
 				return
@@ -218,7 +218,7 @@ func main() {
 
 		gorilla.HandleFunc("/reports/times/{az}/{component}/{subtype}", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := string(params["az"])
+			az_param := params["az"]
 			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
@@ -230,7 +230,7 @@ func main() {
 			}
 			az_data := manta_report.Processed[az_param]
 
-			component_param := string(params["component"])
+			component_param := params["component"]
 			if len(component_param) == 0 {
 				http.Error(w, "", 404)
 				return
@@ -243,7 +243,7 @@ func main() {
 
 			/**/
 
-			subtype_param := string(params["subtype"])
+			subtype_param := params["subtype"]
 			if len(subtype_param) == 0 {
 				http.Error(w, "", 404)
 				return
@@ -284,7 +284,7 @@ func main() {
 
 		gorilla.HandleFunc("/graphics/{az}/by_type.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := string(params["az"])
+			az_param := params["az"]
 			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
@@ -331,7 +331,7 @@ func main() {
 
 		gorilla.HandleFunc("/graphics/{az}/by_vendor.png", func(w http.ResponseWriter, req *http.Request) {
 			params := mux.Vars(req)
-			az_param := string(params["az"])
+			az_param := params["az"]
 			if len(az_param) == 0 {
 				http.Error(w, "", 404)
 				return
