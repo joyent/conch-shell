@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package utils contains common routines used throughout the command base
+// Package util contains common routines used throughout the command base
 package util
 
 import (
@@ -24,13 +24,24 @@ import (
 )
 
 var (
-	JSON   bool
+	// JSON tells us if we should output JSON
+	JSON bool
+
+	// Config is a global Config object
 	Config *config.ConchConfig
-	API    *conch.Conch
+
+	// API is a global Conch API object
+	API *conch.Conch
+
+	// Pretty tells us if we should have pretty output
 	Pretty bool
-	Spin   *spinner.Spinner
+
+	// Spin is a global Spinner object
+	Spin *spinner.Spinner
 )
 
+// MinimalDevice represents a limited subset of Device data, that which we are
+// going to present to the user
 type MinimalDevice struct {
 	ID       string        `json:"id"`
 	AssetTag string        `json:"asset_tag"`
@@ -42,6 +53,8 @@ type MinimalDevice struct {
 	Rack     string        `json:"rack"`
 }
 
+// BuildAPIAndVerifyLogin builds a Conch object using the Config data and calls
+// VerifyLogin
 func BuildAPIAndVerifyLogin() {
 	API = &conch.Conch{
 		BaseURL: Config.API,
@@ -55,6 +68,7 @@ func BuildAPIAndVerifyLogin() {
 	}
 }
 
+// BuildAPI builds a Conch object
 func BuildAPI() {
 	API = &conch.Conch{
 		BaseURL: Config.API,
@@ -63,6 +77,8 @@ func BuildAPI() {
 	}
 }
 
+// GetMarkdownTable returns a tablewriter configured to output markdown
+// compatible text
 func GetMarkdownTable() (table *tablewriter.Table) {
 	table = tablewriter.NewWriter(os.Stdout)
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
@@ -70,6 +86,7 @@ func GetMarkdownTable() (table *tablewriter.Table) {
 	return table
 }
 
+// Bail is a --json aware way of dying
 func Bail(err error) {
 	if JSON {
 		j, _ := json.Marshal(struct {
@@ -87,7 +104,7 @@ func Bail(err error) {
 	cli.Exit(1)
 }
 
-// DisplayDevices() is an abstraction to make sure that the output of
+// DisplayDevices is an abstraction to make sure that the output of
 // Devices is uniform, be it tables, json, or full json
 func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 	minimals := make([]MinimalDevice, 0)
@@ -123,7 +140,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 	return nil
 }
 
-// TableizeMinimalDevices() is an abstraction to make sure that tables of
+// TableizeMinimalDevices is an abstraction to make sure that tables of
 // Devices-turned-MinimalDevices are uniform
 func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tablewriter.Table) *tablewriter.Table {
 	if fullOutput {
@@ -180,7 +197,7 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 	return table
 }
 
-// GenerateDeviceFlags() is an abstraction to make sure that the 'flags' field
+// GenerateDeviceFlags is an abstraction to make sure that the 'flags' field
 // for Devices remains uniform
 func GenerateDeviceFlags(d conch.Device) (flags string) {
 	flags = ""
@@ -199,6 +216,7 @@ func GenerateDeviceFlags(d conch.Device) (flags string) {
 	return flags
 }
 
+// JSONOut marshals an interface to JSON
 func JSONOut(thingy interface{}) {
 	j, err := json.Marshal(thingy)
 
@@ -209,6 +227,10 @@ func JSONOut(thingy interface{}) {
 	fmt.Println(string(j))
 }
 
+// MagicWorkspaceID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. If not, we dig through
+// GetWorkspaces() looking for UUIDs that match up to the first hyphen or where
+// the workspace name matches the string
 func MagicWorkspaceID(wat string) (id uuid.UUID, err error) {
 	id, err = uuid.FromString(wat)
 	if err == nil {
