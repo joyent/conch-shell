@@ -116,7 +116,7 @@ func main() {
 			}
 
 			w.Header().Set("content-type", "text/html")
-			tmpl.Execute(w,
+			_ = tmpl.Execute(w,
 				struct {
 					AzNames []string
 				}{
@@ -160,7 +160,7 @@ func main() {
 			}
 
 			w.Header().Set("content-type", "text/html")
-			tmpl.Execute(w,
+			_ = tmpl.Execute(w,
 				struct {
 					Name string
 					Data mbo.DatacenterReport
@@ -203,7 +203,7 @@ func main() {
 			}
 
 			w.Header().Set("content-type", "text/html")
-			tmpl.Execute(w,
+			_ = tmpl.Execute(w,
 				struct {
 					Az   string
 					Name string
@@ -267,7 +267,7 @@ func main() {
 			}
 
 			w.Header().Set("content-type", "text/html")
-			tmpl.Execute(w,
+			_ = tmpl.Execute(w,
 				struct {
 					Az        string
 					Component string
