@@ -45,7 +45,7 @@ func getAll(app *cli.Cmd) {
 
 func getOne(app *cli.Cmd) {
 	app.Action = func() {
-		workspace, err := util.API.GetWorkspace(WorkspaceUuid)
+		workspace, err := util.API.GetWorkspace(WorkspaceUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -67,7 +67,7 @@ func getOne(app *cli.Cmd) {
 
 func getUsers(app *cli.Cmd) {
 	app.Action = func() {
-		users, err := util.API.GetWorkspaceUsers(WorkspaceUuid)
+		users, err := util.API.GetWorkspaceUsers(WorkspaceUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -91,16 +91,16 @@ func getUsers(app *cli.Cmd) {
 func getDevices(app *cli.Cmd) {
 
 	var (
-		full_output = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
-		ids_only    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
-		graduated   = app.StringOpt("graduated", "", "Filter by the 'graduated' field")
-		health      = app.StringOpt("health", "", "Filter by the 'health' field")
+		fullOutput = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
+		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
+		graduated  = app.StringOpt("graduated", "", "Filter by the 'graduated' field")
+		health     = app.StringOpt("health", "", "Filter by the 'health' field")
 	)
 
 	app.Action = func() {
 		devices, err := util.API.GetWorkspaceDevices(
-			WorkspaceUuid,
-			*ids_only,
+			WorkspaceUUID,
+			*idsOnly,
 			*graduated,
 			*health,
 		)
@@ -108,7 +108,7 @@ func getDevices(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		if *ids_only {
+		if *idsOnly {
 			ids := make([]string, 0)
 			if util.JSON {
 				for _, d := range devices {
@@ -116,27 +116,26 @@ func getDevices(app *cli.Cmd) {
 				}
 				util.JsonOut(ids)
 				return
-			} else {
-				for _, d := range devices {
-					fmt.Println(d.ID)
-				}
-				return
 			}
+			for _, d := range devices {
+				fmt.Println(d.ID)
+			}
+			return
 		}
 
-		if *full_output {
-			filled_in := make([]conch.Device, 0)
+		if *fullOutput {
+			filledIn := make([]conch.Device, 0)
 			for _, d := range devices {
-				full_d, err := util.API.FillInDevice(d)
+				fullDevice, err := util.API.FillInDevice(d)
 				if err != nil {
 					util.Bail(err)
 				}
-				filled_in = append(filled_in, full_d)
+				filledIn = append(filledIn, fullDevice)
 			}
-			devices = filled_in
+			devices = filledIn
 		}
 
-		if err := util.DisplayDevices(devices, *full_output); err != nil {
+		if err := util.DisplayDevices(devices, *fullOutput); err != nil {
 			util.Bail(err)
 		}
 	}
@@ -144,7 +143,7 @@ func getDevices(app *cli.Cmd) {
 
 func getRacks(app *cli.Cmd) {
 	app.Action = func() {
-		racks, err := util.API.GetWorkspaceRacks(WorkspaceUuid)
+		racks, err := util.API.GetWorkspaceRacks(WorkspaceUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -179,18 +178,18 @@ func getRacks(app *cli.Cmd) {
 
 func getRack(app *cli.Cmd) {
 	var (
-		rack_id     = app.StringArg("RACK", "", "Rack UUID")
-		slot_detail = app.BoolOpt("slots", false, "Show details about each rack slot")
+		rackID     = app.StringArg("RACK", "", "Rack UUID")
+		slotDetail = app.BoolOpt("slots", false, "Show details about each rack slot")
 	)
 
 	app.Spec = "RACK [OPTIONS]"
 	app.Action = func() {
-		rack_uuid, err := uuid.FromString(*rack_id)
+		rackUUID, err := uuid.FromString(*rackID)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		rack, err := util.API.GetWorkspaceRack(WorkspaceUuid, rack_uuid)
+		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, rackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -207,21 +206,21 @@ Name: %s
 Role: %s
 Datacenter: %s
 `,
-			WorkspaceUuid.String(),
-			rack_uuid.String(),
+			WorkspaceUUID.String(),
+			rackUUID.String(),
 			rack.Name,
 			rack.Role,
 			rack.Datacenter,
 		)
 
-		if *slot_detail {
+		if *slotDetail {
 			fmt.Println()
 
-			slot_nums := make([]int, 0, len(rack.Slots))
+			slotNums := make([]int, 0, len(rack.Slots))
 			for k := range rack.Slots {
-				slot_nums = append(slot_nums, k)
+				slotNums = append(slotNums, k)
 			}
-			sort.Sort(sort.Reverse(sort.IntSlice(slot_nums)))
+			sort.Sort(sort.Reverse(sort.IntSlice(slotNums)))
 
 			table := util.GetMarkdownTable()
 			table.SetHeader([]string{
@@ -234,17 +233,17 @@ Datacenter: %s
 				"Health",
 			})
 
-			for _, ru := range slot_nums {
+			for _, ru := range slotNums {
 				slot := rack.Slots[ru]
 				occupied := "X"
 
-				occupant_id := ""
-				occupant_health := ""
+				occupantID := ""
+				occupantHealth := ""
 
 				if slot.Occupant.ID != "" {
 					occupied = "+"
-					occupant_id = slot.Occupant.ID
-					occupant_health = slot.Occupant.Health
+					occupantID = slot.Occupant.ID
+					occupantHealth = slot.Occupant.Health
 				}
 
 				table.Append([]string{
@@ -253,8 +252,8 @@ Datacenter: %s
 					slot.Name,
 					slot.Alias,
 					slot.Vendor,
-					occupant_id,
-					occupant_health,
+					occupantID,
+					occupantHealth,
 				})
 
 			}
@@ -265,27 +264,27 @@ Datacenter: %s
 
 func getRelays(app *cli.Cmd) {
 	var (
-		active_only = app.BoolOpt("active-only", false, "Only retrieve active relays")
-		full_output = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
+		activeOnly = app.BoolOpt("active-only", false, "Only retrieve active relays")
+		fullOutput = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
 	)
 
 	app.Action = func() {
-		relays, err := util.API.GetWorkspaceRelays(WorkspaceUuid, *active_only)
+		relays, err := util.API.GetWorkspaceRelays(WorkspaceUUID, *activeOnly)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		if util.JSON && *full_output {
+		if util.JSON && *fullOutput {
 			util.JsonOut(relays)
 			return
 		}
 
 		type resultRow struct {
-			Id         string        `json:"id"`
+			ID         string        `json:"id"`
 			Alias      string        `json:"asset_tag"`
 			Created    pgtime.PgTime `json:"created, int"`
-			IpAddr     string        `json:"ipaddr"`
-			SshPort    int           `json:"ssh_port"`
+			IPAddr     string        `json:"ipaddr"`
+			SSHPort    int           `json:"ssh_port"`
 			Updated    pgtime.PgTime `json:"updated"`
 			Version    string        `json:"version"`
 			NumDevices int           `json:"num_devices"`
@@ -294,7 +293,7 @@ func getRelays(app *cli.Cmd) {
 		results := make([]resultRow, 0)
 
 		for _, r := range relays {
-			num_devices := len(r.Devices)
+			numDevices := len(r.Devices)
 			results = append(results, resultRow{
 				r.ID,
 				r.Alias,
@@ -303,7 +302,7 @@ func getRelays(app *cli.Cmd) {
 				r.SSHPort,
 				r.Updated,
 				r.Version,
-				num_devices,
+				numDevices,
 			})
 		}
 
@@ -331,11 +330,11 @@ func getRelays(app *cli.Cmd) {
 			}
 
 			table.Append([]string{
-				r.Id,
+				r.ID,
 				r.Alias,
 				r.Created.Format(time.UnixDate),
-				r.IpAddr,
-				strconv.Itoa(r.SshPort),
+				r.IPAddr,
+				strconv.Itoa(r.SSHPort),
 				updated,
 				r.Version,
 				strconv.Itoa(r.NumDevices),
@@ -348,7 +347,7 @@ func getRelays(app *cli.Cmd) {
 
 func getRooms(app *cli.Cmd) {
 	app.Action = func() {
-		rooms, err := util.API.GetWorkspaceRooms(WorkspaceUuid)
+		rooms, err := util.API.GetWorkspaceRooms(WorkspaceUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -372,12 +371,12 @@ func getRooms(app *cli.Cmd) {
 
 func getSubs(app *cli.Cmd) {
 	app.Action = func() {
-		workspaces, err := util.API.GetSubWorkspaces(WorkspaceUuid)
+		workspaces, err := util.API.GetSubWorkspaces(WorkspaceUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		if util.JSON == true {
+		if util.JSON {
 			util.JsonOut(workspaces)
 			return
 		}
@@ -394,27 +393,27 @@ func getSubs(app *cli.Cmd) {
 
 func getRelayDevices(app *cli.Cmd) {
 	var (
-		full_output = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
+		fullOutput = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
 	)
 
 	app.Action = func() {
-		relays, err := util.API.GetWorkspaceRelays(WorkspaceUuid, false)
+		relays, err := util.API.GetWorkspaceRelays(WorkspaceUUID, false)
 		if err != nil {
 			util.Bail(err)
 		}
 		var relay conch.Relay
-		found_relay := false
+		foundRelay := false
 		for _, r := range relays {
-			if r.ID == RelayId {
+			if r.ID == RelayID {
 				relay = r
-				found_relay = true
+				foundRelay = true
 			}
 		}
-		if found_relay == false {
+		if !foundRelay {
 			util.Bail(conch.ErrDataNotFound)
 		}
 
-		util.DisplayDevices(relay.Devices, *full_output)
+		_ = util.DisplayDevices(relay.Devices, *fullOutput)
 
 	}
 }

@@ -3,6 +3,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package workspaces
 
 import (
@@ -17,10 +18,10 @@ import (
 
 func getHealth(app *cli.Cmd) {
 	var (
-		full_output       = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
-		show_uuids        = app.BoolOpt("uuids", false, "Show UUIDs where appropriate")
-		platform_name     = app.BoolOpt("platform-name", false, "Use the platform name (like 'Joyent-Foo-Platform-XXXX') instead of the common name (like 'Mantis Shrimp MkIII')")
-		datacenter_choice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
+		fullOutput       = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
+		showUUIDs        = app.BoolOpt("uuids", false, "Show UUIDs where appropriate")
+		platformName     = app.BoolOpt("platform-name", false, "Use the platform name (like 'Joyent-Foo-Platform-XXXX') instead of the common name (like 'Mantis Shrimp MkIII')")
+		datacenterChoice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
 	)
 
 	app.Action = func() {
@@ -31,21 +32,21 @@ func getHealth(app *cli.Cmd) {
 
 		type datacenterReport struct {
 			Name    string                    `json:"datacenter"`
-			Id      uuid.UUID                 `json:"id"`
+			ID      uuid.UUID                 `json:"id"`
 			Summary map[string]map[string]int `json:"summary"`
 			Racks   map[string]*reportRack    `json:"racks"`
 		}
 
 		const (
-			default_hardware_type = "UNKNOWN"
-			default_datacenter    = "UNKNOWN"
-			default_rack          = "UNKNOWN"
+			defaultHardwareType = "UNKNOWN"
+			defaultDatacenter   = "UNKNOWN"
+			defaultRack         = "UNKNOWN"
 		)
 
-		full_report := make(map[string]datacenterReport)
+		fullReport := make(map[string]datacenterReport)
 
-		workspace_devices, err := util.API.GetWorkspaceDevices(
-			WorkspaceUuid,
+		workspaceDevices, err := util.API.GetWorkspaceDevices(
+			WorkspaceUUID,
 			true,
 			"",
 			"",
@@ -55,92 +56,92 @@ func getHealth(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		for _, d := range workspace_devices {
-			full_d, err := util.API.FillInDevice(d)
+		for _, d := range workspaceDevices {
+			fullDevice, err := util.API.FillInDevice(d)
 			if err != nil {
 				util.Bail(err)
 			}
 
-			datacenter := default_datacenter
-			datacenter_uuid := uuid.UUID{}
-			if full_d.Location.Datacenter.Name != "" {
-				datacenter = full_d.Location.Datacenter.Name
-				datacenter_uuid = full_d.Location.Datacenter.ID
+			datacenter := defaultDatacenter
+			datacenterUUID := uuid.UUID{}
+			if fullDevice.Location.Datacenter.Name != "" {
+				datacenter = fullDevice.Location.Datacenter.Name
+				datacenterUUID = fullDevice.Location.Datacenter.ID
 
 			}
 
-			if *datacenter_choice != "" {
-				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenter_choice))
-				if (datacenter_uuid.String() != *datacenter_choice) &&
-					(datacenter != *datacenter_choice) &&
-					!re.MatchString(*datacenter_choice) {
+			if *datacenterChoice != "" {
+				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenterChoice))
+				if (datacenterUUID.String() != *datacenterChoice) &&
+					(datacenter != *datacenterChoice) &&
+					!re.MatchString(*datacenterChoice) {
 					continue
 				}
 			}
 
-			if _, ok := full_report[datacenter]; !ok {
-				full_report[datacenter] = datacenterReport{
+			if _, ok := fullReport[datacenter]; !ok {
+				fullReport[datacenter] = datacenterReport{
 					Name:    datacenter,
-					Id:      datacenter_uuid,
+					ID:      datacenterUUID,
 					Summary: make(map[string]map[string]int),
 					Racks:   make(map[string]*reportRack),
 				}
 			}
 
-			rack := default_rack
-			if full_d.Location.Rack.Name != "" {
-				rack = full_d.Location.Rack.Name
+			rack := defaultRack
+			if fullDevice.Location.Rack.Name != "" {
+				rack = fullDevice.Location.Rack.Name
 			}
-			if _, ok := full_report[datacenter].Racks[rack]; !ok {
-				full_report[datacenter].Racks[rack] = &reportRack{
-					full_d.Location.Rack,
+			if _, ok := fullReport[datacenter].Racks[rack]; !ok {
+				fullReport[datacenter].Racks[rack] = &reportRack{
+					fullDevice.Location.Rack,
 					make(map[string]map[string]int),
 				}
 			}
 
-			hwtype := default_hardware_type
-			if *platform_name {
-				if full_d.Location.TargetHardwareProduct.Name != "" {
-					hwtype = full_d.Location.TargetHardwareProduct.Name
+			hwtype := defaultHardwareType
+			if *platformName {
+				if fullDevice.Location.TargetHardwareProduct.Name != "" {
+					hwtype = fullDevice.Location.TargetHardwareProduct.Name
 				}
 			} else {
-				if full_d.Location.TargetHardwareProduct.Alias != "" {
-					hwtype = full_d.Location.TargetHardwareProduct.Alias
+				if fullDevice.Location.TargetHardwareProduct.Alias != "" {
+					hwtype = fullDevice.Location.TargetHardwareProduct.Alias
 				}
 			}
-			if _, ok := full_report[datacenter].Summary[hwtype]; !ok {
-				full_report[datacenter].Summary[hwtype] = make(map[string]int)
+			if _, ok := fullReport[datacenter].Summary[hwtype]; !ok {
+				fullReport[datacenter].Summary[hwtype] = make(map[string]int)
 			}
-			if _, ok := full_report[datacenter].Racks[rack].Summary[hwtype]; !ok {
-				full_report[datacenter].Racks[rack].Summary[hwtype] = make(map[string]int)
+			if _, ok := fullReport[datacenter].Racks[rack].Summary[hwtype]; !ok {
+				fullReport[datacenter].Racks[rack].Summary[hwtype] = make(map[string]int)
 			}
 
-			full_report[datacenter].Summary[hwtype][full_d.Health]++
-			full_report[datacenter].Racks[rack].Summary[hwtype][full_d.Health]++
+			fullReport[datacenter].Summary[hwtype][fullDevice.Health]++
+			fullReport[datacenter].Racks[rack].Summary[hwtype][fullDevice.Health]++
 
 		}
 
 		if util.JSON {
-			util.JsonOut(full_report)
+			util.JsonOut(fullReport)
 			return
 		}
 
 		az := make([]string, 0)
-		for k := range full_report {
+		for k := range fullReport {
 			az = append(az, k)
 		}
 		sort.Strings(az)
 
 		for _, a := range az {
-			if *show_uuids {
-				fmt.Printf("%s - %s\n", a, full_report[a].Id)
+			if *showUUIDs {
+				fmt.Printf("%s - %s\n", a, fullReport[a].ID)
 			} else {
 				fmt.Println(a)
 			}
 			fmt.Println("  Summary:")
 
 			hwtypes := make([]string, 0)
-			for k := range full_report[a].Summary {
+			for k := range fullReport[a].Summary {
 				hwtypes = append(hwtypes, k)
 			}
 			sort.Strings(hwtypes)
@@ -149,35 +150,35 @@ func getHealth(app *cli.Cmd) {
 				fmt.Printf("    %s:\n", h)
 
 				types := make([]string, 0)
-				for k := range full_report[a].Summary[h] {
+				for k := range fullReport[a].Summary[h] {
 					types = append(types, k)
 				}
 				sort.Strings(types)
 				for _, t := range types {
-					fmt.Printf("      %8s: %d\n", t, full_report[a].Summary[h][t])
+					fmt.Printf("      %8s: %d\n", t, fullReport[a].Summary[h][t])
 				}
 				fmt.Println()
 			}
 
-			if !*full_output {
+			if !*fullOutput {
 				fmt.Println()
 				continue
 			}
 
 			fmt.Println("  Racks:")
 
-			rack_names := make([]string, 0)
-			for k := range full_report[a].Racks {
-				rack_names = append(rack_names, k)
+			rackNames := make([]string, 0)
+			for k := range fullReport[a].Racks {
+				rackNames = append(rackNames, k)
 			}
-			sort.Strings(rack_names)
+			sort.Strings(rackNames)
 
-			for _, rack_name := range rack_names {
-				rack := full_report[a].Racks[rack_name]
-				if *show_uuids {
-					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.ID)
+			for _, rackName := range rackNames {
+				rack := fullReport[a].Racks[rackName]
+				if *showUUIDs {
+					fmt.Printf("    %s - %s:\n", rackName, rack.Rack.ID)
 				} else {
-					fmt.Printf("    %s:\n", rack_name)
+					fmt.Printf("    %s:\n", rackName)
 				}
 
 				hwtypes := make([]string, 0)

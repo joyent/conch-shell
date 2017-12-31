@@ -3,6 +3,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package workspaces
 
 import (
@@ -18,9 +19,9 @@ import (
 
 func getFailures(app *cli.Cmd) {
 	var (
-		full_output       = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
-		show_uuids        = app.BoolOpt("uuids", false, "Show UUIDs where appropriate")
-		datacenter_choice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
+		fullOutput       = app.BoolOpt("full", false, "Instead of just presenting a datacenter summary, break results out by rack as well. Has no effect on --json")
+		showUUIDs        = app.BoolOpt("uuids", false, "Show UUIDs where appropriate")
+		datacenterChoice = app.StringOpt("datacenter az", "", "Limit the output to a particular datacenter by UUID, partial UUID, or string name")
 	)
 
 	app.Action = func() {
@@ -31,12 +32,12 @@ func getFailures(app *cli.Cmd) {
 			Graduated         pgtime.PgTime                       `json:"graduated"`
 			HardwareProduct   uuid.UUID                           `json:"hardware_product"`
 			Health            string                              `json:"health"`
-			Id                string                              `json:"id"`
+			ID                string                              `json:"id"`
 			LastSeen          pgtime.PgTime                       `json:"last_seen, int"`
 			Location          conch.DeviceLocation                `json:"location"`
 			Role              string                              `json:"role"`
 			State             string                              `json:"state"`
-			SystemUuid        uuid.UUID                           `json:"system_uuid"`
+			SystemUUID        uuid.UUID                           `json:"system_uuid"`
 			Updated           pgtime.PgTime                       `json:"updated, int"`
 			Validated         pgtime.PgTime                       `json:"validated, int"`
 			FailedValidations map[string][]conch.ValidationReport `json:"failed_validations"`
@@ -49,22 +50,21 @@ func getFailures(app *cli.Cmd) {
 
 		type datacenterReport struct {
 			Name    string                 `json:"datacenter"`
-			Id      uuid.UUID              `json:"id"`
+			ID      uuid.UUID              `json:"id"`
 			Summary map[string]int         `json:"summary"`
 			Racks   map[string]*reportRack `json:"racks"`
 		}
 
 		const (
-			default_component_type = "UNKNOWN"
-			default_datacenter     = "UNKNOWN"
-			default_rack           = "UNKNOWN"
-			default_rack_unit      = 0
+			defaultComponentType = "UNKNOWN"
+			defaultDatacenter    = "UNKNOWN"
+			defaultRack          = "UNKNOWN"
 		)
 
-		full_report := make(map[string]datacenterReport)
+		fullReport := make(map[string]datacenterReport)
 
-		workspace_devices, err := util.API.GetWorkspaceDevices(
-			WorkspaceUuid,
+		workspaceDevices, err := util.API.GetWorkspaceDevices(
+			WorkspaceUUID,
 			false,
 			"",
 			"fail",
@@ -74,87 +74,87 @@ func getFailures(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		for _, d := range workspace_devices {
-			full_d, err := util.API.FillInDevice(d)
+		for _, d := range workspaceDevices {
+			fullDevice, err := util.API.FillInDevice(d)
 			if err != nil {
 				util.Bail(err)
 			}
 
-			report_device := minimalReportDevice{
-				full_d.AssetTag,
-				full_d.Created,
-				full_d.Graduated,
-				full_d.HardwareProduct,
-				full_d.Health,
-				full_d.ID,
-				full_d.LastSeen,
-				full_d.Location,
-				full_d.Role,
-				full_d.State,
-				full_d.SystemUUID,
-				full_d.Updated,
-				full_d.Validated,
+			reportDevice := minimalReportDevice{
+				fullDevice.AssetTag,
+				fullDevice.Created,
+				fullDevice.Graduated,
+				fullDevice.HardwareProduct,
+				fullDevice.Health,
+				fullDevice.ID,
+				fullDevice.LastSeen,
+				fullDevice.Location,
+				fullDevice.Role,
+				fullDevice.State,
+				fullDevice.SystemUUID,
+				fullDevice.Updated,
+				fullDevice.Validated,
 				make(map[string][]conch.ValidationReport),
 			}
 
-			datacenter := default_datacenter
-			datacenter_uuid := uuid.UUID{}
-			if full_d.Location.Datacenter.Name != "" {
-				datacenter = full_d.Location.Datacenter.Name
-				datacenter_uuid = full_d.Location.Datacenter.ID
+			datacenter := defaultDatacenter
+			datacenterUUID := uuid.UUID{}
+			if fullDevice.Location.Datacenter.Name != "" {
+				datacenter = fullDevice.Location.Datacenter.Name
+				datacenterUUID = fullDevice.Location.Datacenter.ID
 
 			}
 
-			if *datacenter_choice != "" {
-				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenter_choice))
-				if (datacenter_uuid.String() != *datacenter_choice) &&
-					(datacenter != *datacenter_choice) &&
-					!re.MatchString(*datacenter_choice) {
+			if *datacenterChoice != "" {
+				re := regexp.MustCompile(fmt.Sprintf("^%s-", *datacenterChoice))
+				if (datacenterUUID.String() != *datacenterChoice) &&
+					(datacenter != *datacenterChoice) &&
+					!re.MatchString(*datacenterChoice) {
 					continue
 				}
 			}
 
-			if _, ok := full_report[datacenter]; !ok {
-				full_report[datacenter] = datacenterReport{
+			if _, ok := fullReport[datacenter]; !ok {
+				fullReport[datacenter] = datacenterReport{
 					Name:    datacenter,
-					Id:      datacenter_uuid,
+					ID:      datacenterUUID,
 					Summary: make(map[string]int),
 					Racks:   make(map[string]*reportRack),
 				}
 			}
 
-			rack := default_rack
-			if full_d.Location.Rack.Name != "" {
-				rack = full_d.Location.Rack.Name
+			rack := defaultRack
+			if fullDevice.Location.Rack.Name != "" {
+				rack = fullDevice.Location.Rack.Name
 			}
-			if _, ok := full_report[datacenter].Racks[rack]; !ok {
-				full_report[datacenter].Racks[rack] = &reportRack{
-					full_d.Location.Rack,
+			if _, ok := fullReport[datacenter].Racks[rack]; !ok {
+				fullReport[datacenter].Racks[rack] = &reportRack{
+					fullDevice.Location.Rack,
 					make([]minimalReportDevice, 0),
 				}
 			}
 
-			full_report[datacenter].Racks[rack].FailedDevices = append(
-				full_report[datacenter].Racks[rack].FailedDevices,
-				report_device,
+			fullReport[datacenter].Racks[rack].FailedDevices = append(
+				fullReport[datacenter].Racks[rack].FailedDevices,
+				reportDevice,
 			)
 
-			for _, report := range full_d.Validations {
+			for _, report := range fullDevice.Validations {
 				if report.Status == conch.ValidationReportStatusFail {
-					v_type := default_component_type
+					vType := defaultComponentType
 					if report.ComponentType != "" {
-						v_type = report.ComponentType
+						vType = report.ComponentType
 					}
 
-					report_device.FailedValidations[v_type] = append(
-						report_device.FailedValidations[v_type],
+					reportDevice.FailedValidations[vType] = append(
+						reportDevice.FailedValidations[vType],
 						report,
 					)
 
-					if _, ok := full_report[datacenter].Summary[v_type]; ok {
-						full_report[datacenter].Summary[v_type]++
+					if _, ok := fullReport[datacenter].Summary[vType]; ok {
+						fullReport[datacenter].Summary[vType]++
 					} else {
-						full_report[datacenter].Summary[v_type] = 1
+						fullReport[datacenter].Summary[vType] = 1
 					}
 				}
 			}
@@ -162,35 +162,35 @@ func getFailures(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(full_report)
+			util.JsonOut(fullReport)
 			return
 		}
 
 		az := make([]string, 0)
-		for k := range full_report {
+		for k := range fullReport {
 			az = append(az, k)
 		}
 		sort.Strings(az)
 
 		for _, a := range az {
-			if *show_uuids {
-				fmt.Printf("%s - %s\n", a, full_report[a].Id)
+			if *showUUIDs {
+				fmt.Printf("%s - %s\n", a, fullReport[a].ID)
 			} else {
 				fmt.Println(a)
 			}
 			fmt.Println("  Summary:")
 
 			types := make([]string, 0)
-			for k := range full_report[a].Summary {
+			for k := range fullReport[a].Summary {
 				types = append(types, k)
 			}
 			sort.Strings(types)
 
 			for _, t := range types {
-				fmt.Printf("    %8s: %d\n", t, full_report[a].Summary[t])
+				fmt.Printf("    %8s: %d\n", t, fullReport[a].Summary[t])
 			}
 
-			if !*full_output {
+			if !*fullOutput {
 				fmt.Println()
 				continue
 			}
@@ -198,28 +198,28 @@ func getFailures(app *cli.Cmd) {
 			fmt.Println()
 			fmt.Println("  Racks:")
 
-			rack_names := make([]string, 0)
-			for k := range full_report[a].Racks {
-				rack_names = append(rack_names, k)
+			rackNames := make([]string, 0)
+			for k := range fullReport[a].Racks {
+				rackNames = append(rackNames, k)
 			}
-			sort.Strings(rack_names)
+			sort.Strings(rackNames)
 
-			for _, rack_name := range rack_names {
-				rack := full_report[a].Racks[rack_name]
-				if *show_uuids {
-					fmt.Printf("    %s - %s:\n", rack_name, rack.Rack.ID)
+			for _, rackName := range rackNames {
+				rack := fullReport[a].Racks[rackName]
+				if *showUUIDs {
+					fmt.Printf("    %s - %s:\n", rackName, rack.Rack.ID)
 				} else {
-					fmt.Printf("    %s:\n", rack_name)
+					fmt.Printf("    %s:\n", rackName)
 				}
 
 				for _, device := range rack.FailedDevices {
-					if *show_uuids {
+					if *showUUIDs {
 						fmt.Printf("      %s - %s:\n",
-							device.Id,
-							device.SystemUuid,
+							device.ID,
+							device.SystemUUID,
 						)
 					} else {
-						fmt.Printf("      %s:\n", device.Id)
+						fmt.Printf("      %s:\n", device.ID)
 					}
 					for _, t := range types {
 						if _, ok := device.FailedValidations[t]; !ok {

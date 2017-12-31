@@ -3,6 +3,9 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package workspaces contains commands for dealing with objects tied to a
+// workspace
 package workspaces
 
 import (
@@ -11,9 +14,15 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-var WorkspaceUuid uuid.UUID
-var RelayId string
+// WorkspaceUUID is the UUID of the workspace we're looking at, as gathered by
+// the parent command
+var WorkspaceUUID uuid.UUID
 
+// RelayID is the ID of the relay we're looking at , as gathered by the parent
+// command
+var RelayID string
+
+// Init loads up the commands dealing with workspaces
 func Init(app *cli.Cli) {
 	app.Command(
 		"workspaces wss",
@@ -25,7 +34,7 @@ func Init(app *cli.Cli) {
 		"Commands for dealing with a single workspace",
 		func(cmd *cli.Cmd) {
 
-			var workspace_id_str = cmd.StringArg("ID", "", "The UUID or string name of the workspace")
+			var workspaceIDStr = cmd.StringArg("ID", "", "The UUID or string name of the workspace")
 
 			cmd.Spec = "ID"
 
@@ -38,7 +47,7 @@ func Init(app *cli.Cli) {
 				// locally scoped version of WorkspaceUuid. If we declare err
 				// separately and use =, it all works out.
 				var err error
-				WorkspaceUuid, err = util.MagicWorkspaceId(*workspace_id_str)
+				WorkspaceUUID, err = util.MagicWorkspaceId(*workspaceIDStr)
 				if err != nil {
 					util.Bail(err)
 				}
@@ -107,9 +116,9 @@ func Init(app *cli.Cli) {
 				"relay",
 				"Commands for a single relay in a workspace",
 				func(cmd *cli.Cmd) {
-					var relay_id_str = cmd.StringArg("ID", "", "The relay ID")
+					var relayIDStr = cmd.StringArg("ID", "", "The relay ID")
 					cmd.Before = func() {
-						RelayId = *relay_id_str
+						RelayID = *relayIDStr
 					}
 
 					cmd.Spec = "ID"
