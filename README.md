@@ -2,6 +2,8 @@
 
 `conch` is a CLI for accessing the [Conch](https://github.com/joyent/conch) API.
 
+[![GoDoc](https://godoc.org/github.com/joyent/conch-shell?status.png)](https://godoc.org/github.com/joyent/conch-shell) [![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell)
+
 # Copyright / License
 
 Copyright 2017, Joyent Inc
@@ -62,4 +64,6 @@ vars into the app.
 
 Before committing or sending a PR, run `make sane`. This will run `go vet` and
 `gofmt`.
+
+
 
