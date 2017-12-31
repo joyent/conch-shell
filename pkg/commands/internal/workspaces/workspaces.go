@@ -19,7 +19,7 @@ import (
 )
 
 func getAll(app *cli.Cmd) {
-	app.Before = util.BuildApiAndVerifyLogin
+	app.Before = util.BuildAPIAndVerifyLogin
 
 	app.Action = func() {
 		workspaces, err := util.API.GetWorkspaces()
@@ -28,7 +28,7 @@ func getAll(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(workspaces)
+			util.JSONOut(workspaces)
 			return
 		}
 
@@ -51,7 +51,7 @@ func getOne(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(workspace)
+			util.JSONOut(workspace)
 			return
 		}
 
@@ -73,7 +73,7 @@ func getUsers(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(users)
+			util.JSONOut(users)
 			return
 		}
 
@@ -114,7 +114,7 @@ func getDevices(app *cli.Cmd) {
 				for _, d := range devices {
 					ids = append(ids, d.ID)
 				}
-				util.JsonOut(ids)
+				util.JSONOut(ids)
 				return
 			}
 			for _, d := range devices {
@@ -149,7 +149,7 @@ func getRacks(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(racks)
+			util.JSONOut(racks)
 			return
 		}
 
@@ -195,7 +195,7 @@ func getRack(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(rack)
+			util.JSONOut(rack)
 			return
 		}
 
@@ -275,7 +275,7 @@ func getRelays(app *cli.Cmd) {
 		}
 
 		if util.JSON && *fullOutput {
-			util.JsonOut(relays)
+			util.JSONOut(relays)
 			return
 		}
 
@@ -307,7 +307,7 @@ func getRelays(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(results)
+			util.JSONOut(results)
 			return
 		}
 
@@ -353,7 +353,7 @@ func getRooms(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(rooms)
+			util.JSONOut(rooms)
 			return
 		}
 
@@ -377,7 +377,7 @@ func getSubs(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(workspaces)
+			util.JSONOut(workspaces)
 			return
 		}
 

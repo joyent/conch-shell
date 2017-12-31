@@ -162,7 +162,7 @@ func getFailures(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(fullReport)
+			util.JSONOut(fullReport)
 			return
 		}
 

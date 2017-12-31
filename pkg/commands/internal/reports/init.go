@@ -18,7 +18,7 @@ func Init(app *cli.Cli) {
 		"reports rep",
 		"Various read-only reports",
 		func(cmd *cli.Cmd) {
-			cmd.Before = util.BuildApiAndVerifyLogin
+			cmd.Before = util.BuildAPIAndVerifyLogin
 
 			cmd.Command(
 				"mbo_hardware_failures mbo mhf",

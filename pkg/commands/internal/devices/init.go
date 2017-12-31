@@ -28,7 +28,7 @@ func Init(app *cli.Cli) {
 			cmd.Spec = "ID"
 
 			cmd.Before = func() {
-				util.BuildApiAndVerifyLogin()
+				util.BuildAPIAndVerifyLogin()
 
 				DeviceSerial = *deviceSerialStr
 			}

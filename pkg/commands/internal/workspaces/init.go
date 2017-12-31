@@ -39,7 +39,7 @@ func Init(app *cli.Cli) {
 			cmd.Spec = "ID"
 
 			cmd.Before = func() {
-				util.BuildApiAndVerifyLogin()
+				util.BuildAPIAndVerifyLogin()
 
 				// It's a little weird to not use := below. The problem is that
 				// WorkspaceUuid is a global. If we use :=, because go can be a
@@ -47,7 +47,7 @@ func Init(app *cli.Cli) {
 				// locally scoped version of WorkspaceUuid. If we declare err
 				// separately and use =, it all works out.
 				var err error
-				WorkspaceUUID, err = util.MagicWorkspaceId(*workspaceIDStr)
+				WorkspaceUUID, err = util.MagicWorkspaceID(*workspaceIDStr)
 				if err != nil {
 					util.Bail(err)
 				}

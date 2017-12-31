@@ -3,6 +3,8 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package utils contains common routines used throughout the command base
 package util
 
 import (
@@ -30,7 +32,7 @@ var (
 )
 
 type MinimalDevice struct {
-	Id       string        `json:"id"`
+	ID       string        `json:"id"`
 	AssetTag string        `json:"asset_tag"`
 	Created  pgtime.PgTime `json:"created,int"`
 	LastSeen pgtime.PgTime `json:"last_seen,int"`
@@ -40,9 +42,9 @@ type MinimalDevice struct {
 	Rack     string        `json:"rack"`
 }
 
-func BuildApiAndVerifyLogin() {
+func BuildAPIAndVerifyLogin() {
 	API = &conch.Conch{
-		BaseURL: Config.Api,
+		BaseURL: Config.API,
 		User:    Config.User,
 		Session: Config.Session,
 	}
@@ -53,9 +55,9 @@ func BuildApiAndVerifyLogin() {
 	}
 }
 
-func BuildApi() {
+func BuildAPI() {
 	API = &conch.Conch{
-		BaseURL: Config.Api,
+		BaseURL: Config.API,
 		User:    Config.User,
 		Session: Config.Session,
 	}
@@ -87,7 +89,7 @@ func Bail(err error) {
 
 // DisplayDevices() is an abstraction to make sure that the output of
 // Devices is uniform, be it tables, json, or full json
-func DisplayDevices(devices []conch.Device, full_output bool) (err error) {
+func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 	minimals := make([]MinimalDevice, 0)
 	for _, d := range devices {
 		minimals = append(minimals, MinimalDevice{
@@ -104,7 +106,7 @@ func DisplayDevices(devices []conch.Device, full_output bool) (err error) {
 
 	if JSON {
 		var j []byte
-		if full_output {
+		if fullOutput {
 			j, err = json.Marshal(devices)
 		} else {
 			j, err = json.Marshal(minimals)
@@ -116,15 +118,15 @@ func DisplayDevices(devices []conch.Device, full_output bool) (err error) {
 		return nil
 	}
 
-	TableizeMinimalDevices(minimals, full_output, GetMarkdownTable()).Render()
+	TableizeMinimalDevices(minimals, fullOutput, GetMarkdownTable()).Render()
 
 	return nil
 }
 
 // TableizeMinimalDevices() is an abstraction to make sure that tables of
 // Devices-turned-MinimalDevices are uniform
-func TableizeMinimalDevices(devices []MinimalDevice, full_output bool, table *tablewriter.Table) *tablewriter.Table {
-	if full_output {
+func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tablewriter.Table) *tablewriter.Table {
+	if fullOutput {
 		table.SetHeader([]string{
 			"AZ",
 			"Rack",
@@ -147,28 +149,28 @@ func TableizeMinimalDevices(devices []MinimalDevice, full_output bool, table *ta
 	}
 
 	for _, d := range devices {
-		last_seen := ""
+		lastSeen := ""
 		if !d.LastSeen.IsZero() {
-			last_seen = d.LastSeen.Format(time.UnixDate)
+			lastSeen = d.LastSeen.Format(time.UnixDate)
 		}
 
-		if full_output {
+		if fullOutput {
 			table.Append([]string{
 				d.AZ,
 				d.Rack,
-				d.Id,
+				d.ID,
 				d.AssetTag,
 				d.Created.Format(time.UnixDate),
-				last_seen,
+				lastSeen,
 				d.Health,
 				d.Flags,
 			})
 		} else {
 			table.Append([]string{
-				d.Id,
+				d.ID,
 				d.AssetTag,
 				d.Created.Format(time.UnixDate),
-				last_seen,
+				lastSeen,
 				d.Health,
 				d.Flags,
 			})
@@ -197,7 +199,7 @@ func GenerateDeviceFlags(d conch.Device) (flags string) {
 	return flags
 }
 
-func JsonOut(thingy interface{}) {
+func JSONOut(thingy interface{}) {
 	j, err := json.Marshal(thingy)
 
 	if err != nil {
@@ -207,7 +209,7 @@ func JsonOut(thingy interface{}) {
 	fmt.Println(string(j))
 }
 
-func MagicWorkspaceId(wat string) (id uuid.UUID, err error) {
+func MagicWorkspaceID(wat string) (id uuid.UUID, err error) {
 	id, err = uuid.FromString(wat)
 	if err == nil {
 		return id, err

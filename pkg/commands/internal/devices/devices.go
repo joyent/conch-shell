@@ -36,7 +36,7 @@ func getLocation(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(location)
+			util.JSONOut(location)
 			return
 		}
 
@@ -77,7 +77,7 @@ func getSettings(app *cli.Cmd) {
 
 		if *keysOnly {
 			if util.JSON {
-				util.JsonOut(keys)
+				util.JSONOut(keys)
 				return
 			}
 
@@ -88,7 +88,7 @@ func getSettings(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(settings)
+			util.JSONOut(settings)
 			return
 		}
 
@@ -110,7 +110,7 @@ func getSetting(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(map[string]string{*settingStr: setting})
+			util.JSONOut(map[string]string{*settingStr: setting})
 		} else {
 			fmt.Println(setting)
 		}

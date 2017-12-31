@@ -15,7 +15,7 @@ import (
 )
 
 func getSettings(app *cli.Cmd) {
-	app.Before = util.BuildApiAndVerifyLogin
+	app.Before = util.BuildAPIAndVerifyLogin
 	app.Action = func() {
 		settings, err := util.API.GetUserSettings()
 		if err != nil {
@@ -23,7 +23,7 @@ func getSettings(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(settings)
+			util.JSONOut(settings)
 		} else {
 			if len(settings) > 0 {
 				for k, v := range settings {
@@ -35,7 +35,7 @@ func getSettings(app *cli.Cmd) {
 }
 
 func getSetting(app *cli.Cmd) {
-	app.Before = util.BuildApiAndVerifyLogin
+	app.Before = util.BuildAPIAndVerifyLogin
 
 	var settingID = app.StringArg("ID", "", "Setting name")
 	app.Spec = "ID"
@@ -47,7 +47,7 @@ func getSetting(app *cli.Cmd) {
 		}
 
 		if util.JSON {
-			util.JsonOut(setting)
+			util.JSONOut(setting)
 		} else {
 			fmt.Println(setting)
 		}
