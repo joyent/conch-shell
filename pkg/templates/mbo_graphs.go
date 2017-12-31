@@ -3,8 +3,12 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package templates contains text and html templates used primarily by the
+// http interface in conch-mbo
 package templates
 
+// MboGraphsIndex is the template for the MBO report's main index
 const MboGraphsIndex = `
 <html>
 	<head>
@@ -46,6 +50,8 @@ const MboGraphsIndex = `
 </html>
 `
 
+// MboGraphsReportsIndex is the template for the list of MBO data for a
+// particular AZ
 const MboGraphsReportsIndex = `
 <html>
 	<head>
@@ -71,6 +77,8 @@ const MboGraphsReportsIndex = `
 </html>
 `
 
+// MboGraphsReportsBySubtype is the template for the list of hardware failures
+// by AZ and component name
 const MboGraphsReportsBySubtype = `
 <html>
 	<head>
@@ -94,6 +102,8 @@ const MboGraphsReportsBySubtype = `
 </html>
 `
 
+// MboGraphsReportsByComponentAndSubtype is the template for MBO hardware
+// failures by AZ, component type, and component name
 const MboGraphsReportsByComponentAndSubtype = `
 <html>
 	<head>
@@ -133,7 +143,8 @@ const MboGraphsReportsByComponentAndSubtype = `
 
 `
 
-const MboGraphsReportsCss = `
+// MboGraphsReportsCSS is the template for the css for the MBO reports UI
+const MboGraphsReportsCSS = `
 body {
 	font-family: sans-serif;
 }

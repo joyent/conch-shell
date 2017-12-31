@@ -136,7 +136,7 @@ func main() {
 
 		gorilla.HandleFunc("/style.css", func(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set("content-type", "text/css")
-			fmt.Fprintf(w, c_templates.MboGraphsReportsCss)
+			fmt.Fprintf(w, c_templates.MboGraphsReportsCSS)
 		})
 
 		gorilla.HandleFunc("/reports/times/{az}", func(w http.ResponseWriter, req *http.Request) {
