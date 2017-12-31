@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// Package commands is the parent that loads up the full command set
 package commands
 
 import (
@@ -14,6 +15,7 @@ import (
 	"gopkg.in/jawher/mow.cli.v1"
 )
 
+// Init loads up all the commands
 func Init(app *cli.Cli) {
 	workspaces.Init(app)
 	devices.Init(app)
