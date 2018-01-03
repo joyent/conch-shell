@@ -1,10 +1,12 @@
 hash: 8b95dcfbda989e70dc841c4a610db58f3b891bcfde96076b7fc5309d957f7140
-updated: 2017-12-30T15:28:23.774152506-05:00
+updated: 2018-01-03T16:11:01.150757-05:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
 - name: github.com/briandowns/spinner
   version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
+- name: github.com/dghubble/sling
+  version: 80ec33c6152a53edb5545864ca37567b506c4ca5
 - name: github.com/fatih/color
   version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
 - name: github.com/golang/freetype
@@ -12,6 +14,10 @@ imports:
   subpackages:
   - raster
   - truetype
+- name: github.com/google/go-querystring
+  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  subpackages:
+  - query
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
@@ -19,7 +25,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 7f08801859139f86dfafd1c296e2cba9a80d292e
 - name: github.com/joyent/go-conch
-  version: 15c963bd58efbabbfb96d9bd17756241fe952fc3
+  version: c3d90c50cddfed71ce272a19e0fdb7befa23e472
   subpackages:
   - pgtime
 - name: github.com/mattn/go-colorable
