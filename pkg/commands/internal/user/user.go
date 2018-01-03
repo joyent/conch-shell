@@ -67,10 +67,9 @@ func Login(app *cli.Cmd) {
 	app.Action = func() {
 		api := &conch.Conch{
 			BaseURL: strings.TrimRight(*apiURL, "/"),
-			User:    *user,
 		}
 
-		if err := api.Login(*password); err != nil {
+		if err := api.Login(*user, *password); err != nil {
 			util.Bail(err)
 		}
 
@@ -79,7 +78,6 @@ func Login(app *cli.Cmd) {
 		}
 
 		util.Config.API = api.BaseURL
-		util.Config.User = api.User
 		util.Config.Session = api.Session
 
 		if err := util.Config.SerializeToFile(util.Config.Path); err == nil {
