@@ -58,7 +58,6 @@ type MinimalDevice struct {
 func BuildAPIAndVerifyLogin() {
 	API = &conch.Conch{
 		BaseURL: Config.API,
-		User:    Config.User,
 		Session: Config.Session,
 	}
 
@@ -72,7 +71,6 @@ func BuildAPIAndVerifyLogin() {
 func BuildAPI() {
 	API = &conch.Conch{
 		BaseURL: Config.API,
-		User:    Config.User,
 		Session: Config.Session,
 	}
 }
