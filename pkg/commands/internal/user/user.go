@@ -7,6 +7,7 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
@@ -37,19 +38,67 @@ func getSettings(app *cli.Cmd) {
 func getSetting(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
 
-	var settingID = app.StringArg("ID", "", "Setting name")
-	app.Spec = "ID"
-
 	app.Action = func() {
-		setting, err := util.API.GetUserSetting(*settingID)
+		setting, err := util.API.GetUserSetting(SettingName)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		if util.JSON {
-			util.JSONOut(setting)
+		var value interface{}
+
+		v, ok := setting.(map[string]interface{})
+		if ok {
+			value = v[SettingName]
 		} else {
-			fmt.Println(setting)
+			value = setting
+		}
+
+		if util.JSON {
+			util.JSONOut(value)
+		} else {
+			fmt.Println(value)
+		}
+	}
+}
+
+func setSetting(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	var settingValueArg = app.StringArg("VALUE", "", "Setting value as JSON string")
+	app.Spec = "VALUE"
+
+	app.Action = func() {
+		var userData interface{}
+		err := json.Unmarshal([]byte(*settingValueArg), &userData)
+
+		if err != nil {
+			// If the value doesn't parse properly as JSON, we assume it's
+			// literal. This catches the single-value case where we want
+			// { "foo": "bar" } by just letting the user pass in a name of
+			// "foo" and a value of "bar"
+
+			// The perhaps surprising side effect is that crappy JSON will
+			// enter the database as a string.
+			userData = *settingValueArg
+		}
+
+		data := make(map[string]interface{})
+		data[SettingName] = userData
+
+		err = util.API.SetUserSetting(SettingName, data)
+		if err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func deleteSetting(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	app.Action = func() {
+		err := util.API.DeleteUserSetting(SettingName)
+		if err != nil {
+			util.Bail(err)
 		}
 	}
 }

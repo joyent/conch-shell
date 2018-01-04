@@ -1,5 +1,5 @@
 hash: 8b95dcfbda989e70dc841c4a610db58f3b891bcfde96076b7fc5309d957f7140
-updated: 2018-01-04T12:53:34.469531-05:00
+updated: 2018-01-04T15:34:59.323042-05:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
@@ -25,7 +25,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 7f08801859139f86dfafd1c296e2cba9a80d292e
 - name: github.com/joyent/go-conch
-  version: ad3ae7ab259459fa27a044b9e19080746ee1a51b
+  version: f223b711716f63ae85d67cabfc89576061100e0c
   subpackages:
   - pgtime
 - name: github.com/mattn/go-colorable

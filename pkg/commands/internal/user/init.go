@@ -8,7 +8,14 @@
 package user
 
 import (
+	"github.com/joyent/conch-shell/pkg/util"
 	"gopkg.in/jawher/mow.cli.v1"
+)
+
+var (
+	// SettingName is where the 'setting' parent command stores the name of the
+	// setting we're dealing with
+	SettingName string
 )
 
 // Init loads up the user commands
@@ -28,8 +35,36 @@ func Init(app *cli.Cli) {
 
 			cmd.Command(
 				"setting",
-				"Get a setting for the current user",
-				getSetting,
+				"Commands for dealing with a single setting for the current user",
+				func(cmd *cli.Cmd) {
+
+					var settingNameArg = cmd.StringArg("NAME", "", "The string name of a setting")
+
+					cmd.Spec = "NAME"
+
+					cmd.Before = func() {
+						util.BuildAPIAndVerifyLogin()
+						SettingName = *settingNameArg
+					}
+
+					cmd.Command(
+						"get",
+						"Get a setting for the current user",
+						getSetting,
+					)
+
+					cmd.Command(
+						"set",
+						"Set a setting for the current user",
+						setSetting,
+					)
+
+					cmd.Command(
+						"delete",
+						"Delete a setting for the current user",
+						deleteSetting,
+					)
+				},
 			)
 
 			cmd.Command(
