@@ -113,6 +113,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"invite",
+				"Invite a user to this workspace",
+				inviteUser,
+			)
+
+			cmd.Command(
 				"relay",
 				"Commands for a single relay in a workspace",
 				func(cmd *cli.Cmd) {
