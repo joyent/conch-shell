@@ -124,3 +124,11 @@ func graduate(app *cli.Cmd) {
 		}
 	}
 }
+
+func tritonReboot(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.DeviceTritonReboot(DeviceSerial); err != nil {
+			util.Bail(err)
+		}
+	}
+}

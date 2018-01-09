@@ -62,6 +62,12 @@ func Init(app *cli.Cli) {
 				graduate,
 			)
 
+			cmd.Command(
+				"triton_reboot",
+				"Mark a device as rebooted into Triton. WARNING: This is a one-way operation that cannot be undone",
+				tritonReboot,
+			)
+
 		},
 	)
 }
