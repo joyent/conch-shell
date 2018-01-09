@@ -24,6 +24,9 @@ import (
 )
 
 var (
+	// UserAgent will be used as the http user agent when making API calls
+	UserAgent string
+
 	// JSON tells us if we should output JSON
 	JSON bool
 
@@ -75,6 +78,9 @@ func BuildAPI() {
 	API = &conch.Conch{
 		BaseURL: ActiveProfile.BaseURL,
 		Session: ActiveProfile.Session,
+	}
+	if UserAgent != "" {
+		API.UA = UserAgent
 	}
 }
 

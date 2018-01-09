@@ -26,6 +26,7 @@ var (
 )
 
 func main() {
+	util.UserAgent = fmt.Sprintf("conch shell v%s-%s", Version, GitRev)
 	app := cli.App("conch", "Command line interface for Conch")
 	app.Version("version", Version)
 

@@ -119,6 +119,9 @@ func newProfile(app *cli.Cmd) {
 		api := &conch.Conch{
 			BaseURL: p.BaseURL,
 		}
+		if util.UserAgent != "" {
+			api.UA = util.UserAgent
+		}
 
 		err := api.Login(p.User, password)
 		if err != nil {
