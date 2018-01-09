@@ -15,7 +15,6 @@ import (
 	"github.com/joyent/conch-shell/pkg/reports/mbo"
 	c_templates "github.com/joyent/conch-shell/pkg/templates"
 	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
 	homedir "github.com/mitchellh/go-homedir"
 	chart "github.com/wcharczuk/go-chart"
 	"gopkg.in/jawher/mow.cli.v1"
@@ -43,10 +42,8 @@ func main() {
 		port = app.IntOpt("port", 1337, "Port to listen on")
 	)
 
-	cfg := &config.ConchConfig{}
-	api := &conch.Conch{}
-
 	app.Before = func() {
+
 		util.Pretty = true
 		util.Spin = spinner.New(spinner.CharSets[10], 100*time.Millisecond)
 		util.Spin.FinalMSG = "Complete.\n"
@@ -56,7 +53,7 @@ func main() {
 			util.Bail(err)
 		}
 
-		cfg, err = config.NewFromJSONFile(configFilePath)
+		cfg, err := config.NewFromJSONFile(configFilePath)
 		if err != nil {
 			fmt.Println("A login error occurred. Please use 'conch' to login...")
 			util.Bail(err)
@@ -64,13 +61,15 @@ func main() {
 		cfg.Path = configFilePath
 		util.Config = cfg
 
-		api = &conch.Conch{
-			BaseURL: cfg.API,
-			Session: cfg.Session,
+		for _, prof := range cfg.Profiles {
+			if prof.Active {
+				util.ActiveProfile = prof
+				break
+			}
 		}
-		util.API = api
+		util.BuildAPI()
 
-		if err := api.VerifyLogin(); err != nil {
+		if err := util.API.VerifyLogin(); err != nil {
 			fmt.Println("A login error occurred. Please use 'conch' to login...")
 			util.Bail(err)
 		}
