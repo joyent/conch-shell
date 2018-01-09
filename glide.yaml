@@ -24,3 +24,4 @@ import:
   version: ^3.0.3
 - package: github.com/fatih/color
   version: ^1.5.0
+- package: github.com/tcnksm/go-input

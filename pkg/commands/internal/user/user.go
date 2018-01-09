@@ -10,9 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
-	"strings"
 )
 
 func getSettings(app *cli.Cmd) {
@@ -100,39 +98,5 @@ func deleteSetting(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-	}
-}
-
-// Login is exported so that it can be used as a first level command as well
-// as a nested one
-func Login(app *cli.Cmd) {
-	var (
-		apiURL   = app.StringOpt("api", "https://conch.joyent.us", "The url of the API server")
-		user     = app.StringOpt("user u", "", "The user name to log in with")
-		password = app.StringOpt("password p", "", "The user's password")
-	)
-
-	// BUG(sungo): prompt for data if args are empty
-	app.Action = func() {
-		api := &conch.Conch{
-			BaseURL: strings.TrimRight(*apiURL, "/"),
-		}
-
-		if err := api.Login(*user, *password); err != nil {
-			util.Bail(err)
-		}
-
-		if api.Session == "" {
-			util.Bail(conch.ErrNoSessionData)
-		}
-
-		util.Config.API = api.BaseURL
-		util.Config.Session = api.Session
-
-		if err := util.Config.SerializeToFile(util.Config.Path); err == nil {
-
-			fmt.Printf("Success. Config written to %s\n", util.Config.Path)
-		}
-
 	}
 }

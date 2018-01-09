@@ -9,6 +9,7 @@
 package workspaces
 
 import (
+	"errors"
 	"github.com/joyent/conch-shell/pkg/util"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
@@ -36,21 +37,30 @@ func Init(app *cli.Cli) {
 
 			var workspaceIDStr = cmd.StringArg("ID", "", "The UUID or string name of the workspace")
 
-			cmd.Spec = "ID"
+			cmd.Spec = "[ID]"
 
 			cmd.Before = func() {
 				util.BuildAPIAndVerifyLogin()
-
-				// It's a little weird to not use := below. The problem is that
-				// WorkspaceUuid is a global. If we use :=, because go can be a
-				// bit weird about scoping, we get a proper err but also a
-				// locally scoped version of WorkspaceUuid. If we declare err
-				// separately and use =, it all works out.
-				var err error
-				WorkspaceUUID, err = util.MagicWorkspaceID(*workspaceIDStr)
-				if err != nil {
-					util.Bail(err)
+				if !uuid.Equal(util.ActiveProfile.WorkspaceUUID, uuid.UUID{}) {
+					WorkspaceUUID = util.ActiveProfile.WorkspaceUUID
+					return
 				}
+
+				if len(*workspaceIDStr) > 0 {
+					// It's a little weird to not use := below. The problem is
+					// that WorkspaceUuid is a global. If we use :=, because go
+					// can be a bit weird about scoping, we get a proper err
+					// but also a locally scoped version of WorkspaceUuid. If
+					// we declare err separately and use =, it all works out.
+					var err error
+					WorkspaceUUID, err = util.MagicWorkspaceID(*workspaceIDStr)
+					if err != nil {
+						util.Bail(err)
+					}
+				} else {
+					util.Bail(errors.New("No valid workspace could be found in the active profile or on the command line. Please set an active profile or provide a workspace ID in the command"))
+				}
+
 			}
 
 			cmd.Command(

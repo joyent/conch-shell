@@ -30,6 +30,9 @@ var (
 	// Config is a global Config object
 	Config *config.ConchConfig
 
+	// ActiveProfile represents, well, the active profile
+	ActiveProfile *config.ConchProfile
+
 	// API is a global Conch API object
 	API *conch.Conch
 
@@ -56,11 +59,7 @@ type MinimalDevice struct {
 // BuildAPIAndVerifyLogin builds a Conch object using the Config data and calls
 // VerifyLogin
 func BuildAPIAndVerifyLogin() {
-	API = &conch.Conch{
-		BaseURL: Config.API,
-		Session: Config.Session,
-	}
-
+	BuildAPI()
 	if err := API.VerifyLogin(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -69,9 +68,13 @@ func BuildAPIAndVerifyLogin() {
 
 // BuildAPI builds a Conch object
 func BuildAPI() {
+	if ActiveProfile == nil {
+		Bail(errors.New("No active profile. Please use 'conch profile' to create or set an active profile"))
+	}
+
 	API = &conch.Conch{
-		BaseURL: Config.API,
-		Session: Config.Session,
+		BaseURL: ActiveProfile.BaseURL,
+		Session: ActiveProfile.Session,
 	}
 }
 

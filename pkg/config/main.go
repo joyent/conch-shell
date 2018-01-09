@@ -11,6 +11,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	uuid "gopkg.in/satori/go.uuid.v1"
 	"io/ioutil"
 )
 
@@ -18,15 +19,22 @@ import (
 // ConchConfig that lacks a path
 var ErrConfigNoPath = errors.New("No path found in config data")
 
-// ConchConfig represents the configuration information for the shell,
-// including the api server, user auth data, and a key/value store for
-// future-proofing
+// ConchConfig represents the configuration information for the shell, mostly
+// just a profile list
 type ConchConfig struct {
-	Path    string                 `json:"path"`
-	API     string                 `json:"api"`
-	User    string                 `json:"user"`
-	Session string                 `json:"session"`
-	KV      map[string]interface{} `json:"kv"`
+	Path     string                   `json:"path"`
+	Profiles map[string]*ConchProfile `json:"profiles"`
+}
+
+// ConchProfile is an individual environment, consisting of login data, API
+// settings, and an optional default workspace
+type ConchProfile struct {
+	Name          string    `json:"name"`
+	User          string    `json:"user"`
+	Session       string    `json:"session"`
+	WorkspaceUUID uuid.UUID `json:"workspace_id"`
+	BaseURL       string    `json:"api_url"`
+	Active        bool      `json:"active"`
 }
 
 // New provides an initialized struct with default values geared towards a
@@ -34,9 +42,10 @@ type ConchConfig struct {
 // "http://localhost:5001".
 func New() (c *ConchConfig) {
 	c = &ConchConfig{
-		API: "http://localhost:5001",
+		Path:     "~/.conch.json",
+		Profiles: make(map[string]*ConchProfile),
 	}
-	c.KV = make(map[string]interface{})
+
 	return c
 }
 
@@ -46,21 +55,28 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 	c = &ConchConfig{}
 
 	err = json.Unmarshal([]byte(j), c)
-	return c, err
+	if err != nil {
+		return c, err
+	}
+
+	if c.Profiles == nil {
+		c.Profiles = make(map[string]*ConchProfile)
+	}
+
+	return c, nil
 }
 
 // NewFromJSONFile reads a file off disk and unmarshals it into ConchConfig
 // struct. It does *not* fill in any default values
 func NewFromJSONFile(path string) (c *ConchConfig, err error) {
-	c = &ConchConfig{}
+	c = &ConchConfig{Profiles: make(map[string]*ConchProfile)}
 
 	raw, err := ioutil.ReadFile(path)
 	if err != nil {
 		return c, err
 	}
 
-	err = json.Unmarshal(raw, c)
-	return c, err
+	return NewFromJSON(string(raw))
 }
 
 // Serialize marshals a ConchConfig struct into a JSON string

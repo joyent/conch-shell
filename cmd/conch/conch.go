@@ -75,6 +75,13 @@ func main() {
 			cfg.Path = expandedPath
 		}
 		util.Config = cfg
+
+		for _, prof := range cfg.Profiles {
+			if prof.Active {
+				util.ActiveProfile = prof
+				break
+			}
+		}
 	}
 
 	commands.Init(app)

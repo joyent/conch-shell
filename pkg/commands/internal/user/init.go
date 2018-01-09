@@ -66,13 +66,6 @@ func Init(app *cli.Cli) {
 					)
 				},
 			)
-
-			cmd.Command(
-				"login",
-				"Log in",
-				Login,
-			)
-
 		},
 	)
 }
