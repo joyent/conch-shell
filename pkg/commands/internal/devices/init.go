@@ -56,6 +56,12 @@ func Init(app *cli.Cli) {
 				getSetting,
 			)
 
+			cmd.Command(
+				"graduate",
+				"Mark a device as 'graduated'. WARNING: This is a one-way operation that cannot be undone",
+				graduate,
+			)
+
 		},
 	)
 }

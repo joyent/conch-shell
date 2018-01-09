@@ -116,3 +116,11 @@ func getSetting(app *cli.Cmd) {
 		}
 	}
 }
+
+func graduate(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.GraduateDevice(DeviceSerial); err != nil {
+			util.Bail(err)
+		}
+	}
+}
