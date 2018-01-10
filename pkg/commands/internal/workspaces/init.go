@@ -129,6 +129,18 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"create",
+				"Create various items inside the given workspace",
+				func(cmd *cli.Cmd) {
+					cmd.Command(
+						"subworkspace sub",
+						"Create a subworkspace",
+						createSubWorkspace,
+					)
+				},
+			)
+
+			cmd.Command(
 				"relay",
 				"Commands for a single relay in a workspace",
 				func(cmd *cli.Cmd) {
