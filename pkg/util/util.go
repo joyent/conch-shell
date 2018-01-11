@@ -20,7 +20,6 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"os"
 	"regexp"
-	"time"
 )
 
 var (
@@ -49,6 +48,11 @@ var (
 // DateFormat should be used in date formatting calls to ensure uniformity of
 // output
 const DateFormat = "2006-01-02 15:04:05 -0700 MST"
+
+// TimeStr ensures that all PgTimes are formatted using .Local() and DateFormat
+func TimeStr(t pgtime.PgTime) string {
+	return t.Local().Format(DateFormat)
+}
 
 // MinimalDevice represents a limited subset of Device data, that which we are
 // going to present to the user
@@ -179,7 +183,7 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 	for _, d := range devices {
 		lastSeen := ""
 		if !d.LastSeen.IsZero() {
-			lastSeen = d.LastSeen.Format(time.UnixDate)
+			lastSeen = TimeStr(d.LastSeen)
 		}
 
 		if fullOutput {
@@ -188,7 +192,7 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 				d.Rack,
 				d.ID,
 				d.AssetTag,
-				d.Created.Format(time.UnixDate),
+				TimeStr(d.Created),
 				lastSeen,
 				d.Health,
 				d.Flags,
@@ -197,7 +201,7 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 			table.Append([]string{
 				d.ID,
 				d.AssetTag,
-				d.Created.Format(time.UnixDate),
+				TimeStr(d.Created),
 				lastSeen,
 				d.Health,
 				d.Flags,

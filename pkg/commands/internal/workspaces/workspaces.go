@@ -15,7 +15,6 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
 	"strconv"
-	"time"
 )
 
 func getAll(app *cli.Cmd) {
@@ -326,13 +325,13 @@ func getRelays(app *cli.Cmd) {
 		for _, r := range results {
 			updated := ""
 			if !r.Updated.IsZero() {
-				updated = r.Updated.Format(time.UnixDate)
+				updated = util.TimeStr(r.Updated)
 			}
 
 			table.Append([]string{
 				r.ID,
 				r.Alias,
-				r.Created.Format(time.UnixDate),
+				util.TimeStr(r.Created),
 				r.IPAddr,
 				strconv.Itoa(r.SSHPort),
 				updated,
