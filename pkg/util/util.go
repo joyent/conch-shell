@@ -46,6 +46,10 @@ var (
 	Spin *spinner.Spinner
 )
 
+// DateFormat should be used in date formatting calls to ensure uniformity of
+// output
+const DateFormat = "2006-01-02 15:04:05 -0700 MST"
+
 // MinimalDevice represents a limited subset of Device data, that which we are
 // going to present to the user
 type MinimalDevice struct {
