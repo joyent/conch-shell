@@ -68,6 +68,11 @@ func Init(app *cli.Cli) {
 				tritonReboot,
 			)
 
+			cmd.Command(
+				"triton_uuid",
+				"Set the Triton UUID",
+				setTritonUUID,
+			)
 		},
 	)
 }

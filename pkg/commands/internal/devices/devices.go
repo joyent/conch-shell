@@ -256,3 +256,21 @@ func tritonReboot(app *cli.Cmd) {
 		}
 	}
 }
+
+func setTritonUUID(app *cli.Cmd) {
+	var (
+		tritonUUID = app.StringArg("UUID", "", "The Triton UUID")
+	)
+	app.Spec = "UUID"
+
+	app.Action = func() {
+		u, err := uuid.FromString(*tritonUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if err := util.API.SetDeviceTritonUUID(DeviceSerial, u); err != nil {
+			util.Bail(err)
+		}
+	}
+}
