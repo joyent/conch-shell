@@ -99,7 +99,7 @@ func Init(app *cli.Cli) {
 
 					cmd.Before = func() {
 						var err error
-						RackUUID, err = uuid.FromString(*rackIDStr)
+						RackUUID, err = util.MagicRackID(WorkspaceUUID, *rackIDStr)
 						if err != nil {
 							util.Bail(err)
 						}

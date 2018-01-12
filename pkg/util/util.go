@@ -266,3 +266,29 @@ func MagicWorkspaceID(wat string) (id uuid.UUID, err error) {
 
 	return id, errors.New("Could not find workspace " + wat)
 }
+
+// MagicRackID takes a workspace UUID and a string and tries to find a valid
+// rack UUID. If the string is a UUID, it doesn't get checked further. If it's
+// not a UUID, we dig through GetWorkspaceRacks() looking for UUIDs that match
+// up to the first hyphen or where the name matches the string.
+func MagicRackID(workspace fmt.Stringer, wat string) (uuid.UUID, error) {
+	id, err := uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+
+	// So, it's not a UUID. Let's try for a string name or partial UUID
+	racks, err := API.GetWorkspaceRacks(workspace)
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, r := range racks {
+		if (r.Name == wat) || re.MatchString(r.ID.String()) {
+			return r.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find rack " + wat)
+}
