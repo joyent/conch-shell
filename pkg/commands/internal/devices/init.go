@@ -63,21 +63,27 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"triton_reboot",
-				"Mark a device as rebooted into Triton. WARNING: This is a one-way operation that cannot be undone",
-				tritonReboot,
-			)
+				"triton",
+				"Subcommands that deal with various Triton related settings",
+				func(cmd *cli.Cmd) {
+					cmd.Command(
+						"reboot",
+						"Mark a device as rebooted into Triton. WARNING: This is a one-way operation that cannot be undone",
+						tritonReboot,
+					)
 
-			cmd.Command(
-				"triton_uuid",
-				"Set the Triton UUID",
-				setTritonUUID,
-			)
+					cmd.Command(
+						"uuid",
+						"Set the Triton UUID. WARNING: This is a one-way operation that cannot be undone",
+						setTritonUUID,
+					)
 
-			cmd.Command(
-				"triton_setup",
-				"Mark the device as having been setup in Triton. WARNING: This is a one-way operation that cannot be undone",
-				markTritonSetup,
+					cmd.Command(
+						"setup",
+						"Mark the device as having been setup in Triton. WARNING: This is a one-way operation that cannot be undone",
+						markTritonSetup,
+					)
+				},
 			)
 		},
 	)
