@@ -282,3 +282,16 @@ func markTritonSetup(app *cli.Cmd) {
 		}
 	}
 }
+
+func setAssetTag(app *cli.Cmd) {
+	var (
+		assetTagArg = app.StringArg("TAG", "", "The asset tag")
+	)
+	app.Spec = "TAG"
+	app.Action = func() {
+		if err := util.API.SetDeviceAssetTag(DeviceSerial, *assetTagArg); err != nil {
+			util.Bail(err)
+		}
+
+	}
+}

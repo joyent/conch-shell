@@ -63,6 +63,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"asset_tag",
+				"Set a device's asset tag",
+				setAssetTag,
+			)
+
+			cmd.Command(
 				"triton",
 				"Subcommands that deal with various Triton related settings",
 				func(cmd *cli.Cmd) {
