@@ -408,3 +408,11 @@ func getRelayDevices(app *cli.Cmd) {
 
 	}
 }
+
+func addRack(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.AddRackToWorkspace(WorkspaceUUID, RackUUID); err != nil {
+			util.Bail(err)
+		}
+	}
+}

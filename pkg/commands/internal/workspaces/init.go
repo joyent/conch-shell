@@ -112,6 +112,13 @@ func Init(app *cli.Cli) {
 						"Get details about a single rack in a workspace",
 						getRack,
 					)
+
+					cmd.Command(
+						"add",
+						"Add a single rack to a workspace",
+						addRack,
+					)
+
 				},
 			)
 
