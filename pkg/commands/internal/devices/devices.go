@@ -295,3 +295,13 @@ func setAssetTag(app *cli.Cmd) {
 
 	}
 }
+
+func getAssetTag(app *cli.Cmd) {
+	app.Action = func() {
+		d, err := util.API.GetDevice(DeviceSerial)
+		if err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(d.AssetTag)
+	}
+}

@@ -64,8 +64,21 @@ func Init(app *cli.Cli) {
 
 			cmd.Command(
 				"asset_tag",
-				"Set a device's asset tag",
-				setAssetTag,
+				"Subcommands that deal with asset tags",
+				func(cmd *cli.Cmd) {
+
+					cmd.Command(
+						"get",
+						"get a device's asset tag",
+						getAssetTag,
+					)
+
+					cmd.Command(
+						"set",
+						"Set a device's asset tag",
+						setAssetTag,
+					)
+				},
 			)
 
 			cmd.Command(
