@@ -23,6 +23,10 @@ var WorkspaceUUID uuid.UUID
 // command
 var RelayID string
 
+// RackUUID is the UUID of the rack we're working with, as gathered by the
+// parent command
+var RackUUID uuid.UUID
+
 // Init loads up the commands dealing with workspaces
 func Init(app *cli.Cli) {
 	app.Command(
@@ -89,8 +93,26 @@ func Init(app *cli.Cli) {
 
 			cmd.Command(
 				"rack",
-				"Get details about a single rack in a workspace",
-				getRack,
+				"Subcommands that deal with an individual rack",
+				func(cmd *cli.Cmd) {
+					var rackIDStr = cmd.StringArg("ID", "", "The rack ID")
+
+					cmd.Before = func() {
+						var err error
+						RackUUID, err = uuid.FromString(*rackIDStr)
+						if err != nil {
+							util.Bail(err)
+						}
+					}
+
+					cmd.Spec = "ID"
+
+					cmd.Command(
+						"get",
+						"Get details about a single rack in a workspace",
+						getRack,
+					)
+				},
 			)
 
 			cmd.Command(

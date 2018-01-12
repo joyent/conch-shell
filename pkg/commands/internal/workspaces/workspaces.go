@@ -12,7 +12,6 @@ import (
 	"github.com/joyent/go-conch"
 	"github.com/joyent/go-conch/pgtime"
 	"gopkg.in/jawher/mow.cli.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
 	"strconv"
 )
@@ -177,18 +176,11 @@ func getRacks(app *cli.Cmd) {
 
 func getRack(app *cli.Cmd) {
 	var (
-		rackID     = app.StringArg("RACK", "", "Rack UUID")
 		slotDetail = app.BoolOpt("slots", false, "Show details about each rack slot")
 	)
 
-	app.Spec = "RACK [OPTIONS]"
 	app.Action = func() {
-		rackUUID, err := uuid.FromString(*rackID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, rackUUID)
+		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, RackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -206,7 +198,7 @@ Role: %s
 Datacenter: %s
 `,
 			WorkspaceUUID.String(),
-			rackUUID.String(),
+			RackUUID.String(),
 			rack.Name,
 			rack.Role,
 			rack.Datacenter,
