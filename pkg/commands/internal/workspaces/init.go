@@ -119,6 +119,12 @@ func Init(app *cli.Cli) {
 						addRack,
 					)
 
+					cmd.Command(
+						"remove delete rm",
+						"Remove a single rack from a workspace",
+						deleteRack,
+					)
+
 				},
 			)
 

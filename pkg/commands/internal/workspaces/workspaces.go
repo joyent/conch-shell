@@ -416,3 +416,11 @@ func addRack(app *cli.Cmd) {
 		}
 	}
 }
+
+func deleteRack(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.DeleteRackFromWorkspace(WorkspaceUUID, RackUUID); err != nil {
+			util.Bail(err)
+		}
+	}
+}
