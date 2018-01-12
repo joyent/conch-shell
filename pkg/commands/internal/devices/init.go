@@ -73,6 +73,12 @@ func Init(app *cli.Cli) {
 				"Set the Triton UUID",
 				setTritonUUID,
 			)
+
+			cmd.Command(
+				"triton_setup",
+				"Mark the device as having been setup in Triton. WARNING: This is a one-way operation that cannot be undone",
+				markTritonSetup,
+			)
 		},
 	)
 }

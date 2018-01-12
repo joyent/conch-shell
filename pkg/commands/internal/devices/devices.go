@@ -274,3 +274,11 @@ func setTritonUUID(app *cli.Cmd) {
 		}
 	}
 }
+
+func markTritonSetup(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.MarkDeviceTritonSetup(DeviceSerial); err != nil {
+			util.Bail(err)
+		}
+	}
+}
