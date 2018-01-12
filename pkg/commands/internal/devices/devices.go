@@ -35,7 +35,7 @@ Last Seen: {{ .D.LastSeen.Local.Format .DF }}
 
 Graduated: {{ .D.Graduated.Local.Format .DF }}
 {{ if .TritonSetup }}
-Triton Setup: {{ .D.TritonSetup.Local.Format.DF }}
+Triton Setup: {{ .D.TritonSetup.Local.Format .DF }}
 Triton UUID:  {{ .D.TritonUUID }}
 {{ end -}}
 {{ with $r := .D.LatestReport }}
