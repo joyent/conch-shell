@@ -1,6 +1,8 @@
-hash: 19e6ace00c88a5c07312b3a8a0e26c9daaeab2539f0df53e432ec1abe606c178
-updated: 2018-01-09T11:04:16.965419-05:00
+hash: cb68a139ea50b586cb1112a46c0f70a63173f39d7db2a933ee9f093724adcdec
+updated: 2018-01-29T16:30:46.87991-05:00
 imports:
+- name: github.com/blang/semver
+  version: 2ee87856327ba09384cabd113bc6b5d174e9ec0f
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
 - name: github.com/briandowns/spinner
@@ -23,9 +25,9 @@ imports:
 - name: github.com/gorilla/handlers
   version: 90663712d74cb411cbef281bc1e08c19d1a76145
 - name: github.com/gorilla/mux
-  version: 7f08801859139f86dfafd1c296e2cba9a80d292e
+  version: 53c1911da2b537f792e7cafcb446b05ffe33b996
 - name: github.com/joyent/go-conch
-  version: f223b711716f63ae85d67cabfc89576061100e0c
+  version: 496eaf9f2e6a573becb201593a4a688ac4742d2c
   subpackages:
   - pgtime
 - name: github.com/mattn/go-colorable
@@ -51,6 +53,10 @@ imports:
   version: fc2973067ce43455507ea5f9aa9814aabbf8f2ca
   subpackages:
   - drawing
+- name: golang.org/x/crypto
+  version: 1875d0a70c90e57f11972aefd42276df65e895b9
+  subpackages:
+  - ssh/terminal
 - name: golang.org/x/image
   version: 12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7
   subpackages:
@@ -63,10 +69,11 @@ imports:
   repo: https://go.googlesource.com/sys
   subpackages:
   - unix
+  - windows
 - name: gopkg.in/jawher/mow.cli.v1
   version: 0e80ee9f63156ea1954dc2375c33a1c7e752c25c
 - name: gopkg.in/montanaflynn/stats.v0
   version: eeaced052adbcfeea372c749c281099ed7fdaa38
 - name: gopkg.in/satori/go.uuid.v1
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 testImports: []

@@ -35,6 +35,7 @@ type ConchProfile struct {
 	WorkspaceUUID uuid.UUID `json:"workspace_id"`
 	BaseURL       string    `json:"api_url"`
 	Active        bool      `json:"active"`
+	APIVersion    string    `json:"api_version"`
 }
 
 // New provides an initialized struct with default values geared towards a

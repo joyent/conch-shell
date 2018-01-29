@@ -12,6 +12,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
+	"github.com/joyent/go-conch"
 	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/jawher/mow.cli.v1"
 	"os"
@@ -78,6 +79,9 @@ func main() {
 		util.Config = cfg
 
 		for _, prof := range cfg.Profiles {
+			if prof.APIVersion == "" {
+				prof.APIVersion = conch.DefaultAPIVersion
+			}
 			if prof.Active {
 				util.ActiveProfile = prof
 				break

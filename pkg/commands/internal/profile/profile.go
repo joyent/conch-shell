@@ -8,22 +8,25 @@ package profile
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/blang/semver"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	"github.com/tcnksm/go-input"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"strings"
 )
 
 func newProfile(app *cli.Cmd) {
 	var (
-		nameOpt      = app.StringOpt("name", "", "Profile name. Must be unique")
-		userOpt      = app.StringOpt("user", "", "API User name")
-		apiOpt       = app.StringOpt("api url", "", "API URL")
-		passwordOpt  = app.StringOpt("password pass", "", "API Password")
-		workspaceOpt = app.StringOpt("workspace ws", "", "Default workspace")
-		overwriteOpt = app.BoolOpt("overwrite force", false, "Overwrite any profile with a matching name")
+		nameOpt       = app.StringOpt("name", "", "Profile name. Must be unique")
+		userOpt       = app.StringOpt("user", "", "API User name")
+		apiOpt        = app.StringOpt("api url", "", "API URL")
+		apiVersionOpt = app.StringOpt("version api_version", "1.0.0", "API Version")
+		passwordOpt   = app.StringOpt("password pass", "", "API Password")
+		workspaceOpt  = app.StringOpt("workspace ws", "", "Default workspace")
+		overwriteOpt  = app.BoolOpt("overwrite force", false, "Overwrite any profile with a matching name")
 	)
 
 	app.Action = func() {
@@ -116,14 +119,20 @@ func newProfile(app *cli.Cmd) {
 			p.BaseURL = *apiOpt
 		}
 
+		_, err := semver.Make(*apiVersionOpt)
+		if err != nil {
+			util.Bail(err)
+		}
+
 		api := &conch.Conch{
-			BaseURL: p.BaseURL,
+			BaseURL:    p.BaseURL,
+			APIVersion: *apiVersionOpt,
 		}
 		if util.UserAgent != "" {
 			api.UA = util.UserAgent
 		}
 
-		err := api.Login(p.User, password)
+		err = api.Login(p.User, password)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -198,6 +207,7 @@ func listProfiles(app *cli.Cmd) {
 			"User",
 			"Workspace ID",
 			"API URL",
+			"API Version",
 		})
 
 		for _, prof := range util.Config.Profiles {
@@ -215,6 +225,7 @@ func listProfiles(app *cli.Cmd) {
 				prof.User,
 				workspace,
 				prof.BaseURL,
+				prof.APIVersion,
 			})
 		}
 		table.Render()
@@ -266,7 +277,27 @@ func setActive(app *cli.Cmd) {
 		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
 			util.Bail(err)
 		}
+	}
+}
 
+func setAPIVersion(app *cli.Cmd) {
+	var (
+		versionArg = app.StringArg("VERSION", "", "SemVer version string")
+	)
+	app.Spec = "VERSION"
+
+	app.Action = func() {
+
+		apiVer := strings.TrimLeft(*versionArg, "v")
+		_, err := semver.Make(apiVer)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.ActiveProfile.APIVersion = apiVer
+		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
+			util.Bail(err)
+		}
 	}
 
 }

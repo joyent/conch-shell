@@ -25,3 +25,5 @@ import:
 - package: github.com/fatih/color
   version: ^1.5.0
 - package: github.com/tcnksm/go-input
+- package: github.com/blang/semver
+  version: ^3.5.1
