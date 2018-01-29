@@ -263,6 +263,10 @@ func setActive(app *cli.Cmd) {
 				fmt.Errorf("Profile '%s' does not exist", *profileArg),
 			)
 		}
+		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
+			util.Bail(err)
+		}
+
 	}
 
 }
