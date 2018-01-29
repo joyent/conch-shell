@@ -42,7 +42,7 @@ func Init(app *cli.Cli) {
 				"Change profile settings",
 				func(cmd *cli.Cmd) {
 					cmd.Command(
-						"workspace",
+						"workspace ws",
 						"Set the workspace ID for the active profile",
 						setWorkspace,
 					)
