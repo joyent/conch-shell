@@ -45,26 +45,17 @@ func Init(app *cli.Cli) {
 
 			cmd.Before = func() {
 				util.BuildAPIAndVerifyLogin()
+				if len(*workspaceIDStr) > 0 {
+					WorkspaceUUID, _ = util.MagicWorkspaceID(*workspaceIDStr)
+				}
+				if !uuid.Equal(WorkspaceUUID, uuid.UUID{}) {
+					return
+				}
 				if !uuid.Equal(util.ActiveProfile.WorkspaceUUID, uuid.UUID{}) {
 					WorkspaceUUID = util.ActiveProfile.WorkspaceUUID
 					return
 				}
-
-				if len(*workspaceIDStr) > 0 {
-					// It's a little weird to not use := below. The problem is
-					// that WorkspaceUuid is a global. If we use :=, because go
-					// can be a bit weird about scoping, we get a proper err
-					// but also a locally scoped version of WorkspaceUuid. If
-					// we declare err separately and use =, it all works out.
-					var err error
-					WorkspaceUUID, err = util.MagicWorkspaceID(*workspaceIDStr)
-					if err != nil {
-						util.Bail(err)
-					}
-				} else {
-					util.Bail(errors.New("No valid workspace could be found in the active profile or on the command line. Please set an active profile or provide a workspace ID in the command"))
-				}
-
+				util.Bail(errors.New("No valid workspace could be found in the active profile or on the command line. Please set an active profile or provide a workspace ID in the command"))
 			}
 
 			cmd.Command(
