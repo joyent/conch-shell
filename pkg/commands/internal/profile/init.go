@@ -21,7 +21,7 @@ func Init(app *cli.Cli) {
 			// Everyone has to do that on their own if they want.
 
 			cmd.Command(
-				"new create",
+				"new create add",
 				"Create a new login profile",
 				newProfile,
 			)
