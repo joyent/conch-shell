@@ -97,6 +97,7 @@ func BuildAPI() {
 // compatible text
 func GetMarkdownTable() (table *tablewriter.Table) {
 	table = tablewriter.NewWriter(os.Stdout)
+	table.SetAutoWrapText(false)
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 	return table
