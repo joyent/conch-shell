@@ -9,6 +9,7 @@ package commands
 
 import (
 	"github.com/joyent/conch-shell/pkg/commands/internal/devices"
+	"github.com/joyent/conch-shell/pkg/commands/internal/hardware"
 	"github.com/joyent/conch-shell/pkg/commands/internal/profile"
 	"github.com/joyent/conch-shell/pkg/commands/internal/relay"
 	"github.com/joyent/conch-shell/pkg/commands/internal/reports"
@@ -19,10 +20,11 @@ import (
 
 // Init loads up all the commands
 func Init(app *cli.Cli) {
-	profile.Init(app)
-	workspaces.Init(app)
 	devices.Init(app)
-	user.Init(app)
-	reports.Init(app)
+	hardware.Init(app)
+	profile.Init(app)
 	relay.Init(app)
+	reports.Init(app)
+	user.Init(app)
+	workspaces.Init(app)
 }
