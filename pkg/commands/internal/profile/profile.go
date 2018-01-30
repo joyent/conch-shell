@@ -124,6 +124,8 @@ func newProfile(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
+		p.APIVersion = *apiVersionOpt
+
 		api := &conch.Conch{
 			BaseURL:    p.BaseURL,
 			APIVersion: *apiVersionOpt,
