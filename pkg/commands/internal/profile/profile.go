@@ -150,6 +150,13 @@ func newProfile(app *cli.Cmd) {
 			if err != nil {
 				util.Bail(err)
 			}
+
+			ws, err := util.API.GetWorkspace(p.WorkspaceUUID)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			p.WorkspaceName = ws.Name
 		}
 
 		if len(util.Config.Profiles) == 0 {
@@ -208,6 +215,7 @@ func listProfiles(app *cli.Cmd) {
 			"Name",
 			"User",
 			"Workspace ID",
+			"Workspace Name",
 			"API URL",
 			"API Version",
 		})
@@ -217,15 +225,24 @@ func listProfiles(app *cli.Cmd) {
 			if prof.Active {
 				active = "*"
 			}
-			workspace := ""
+			workspaceUUID := ""
+			workspaceName := ""
 			if !uuid.Equal(prof.WorkspaceUUID, uuid.UUID{}) {
-				workspace = prof.WorkspaceUUID.String()
+				workspaceUUID = prof.WorkspaceUUID.String()
+				if len(prof.WorkspaceName) > 0 {
+					workspaceName = prof.WorkspaceName
+				} else {
+					// BUG(sungo): This is a transition point since workspace
+					// names only get set during profile creation.
+					workspaceName = "**UNKNOWN**"
+				}
 			}
 			table.Append([]string{
 				active,
 				prof.Name,
 				prof.User,
-				workspace,
+				workspaceUUID,
+				workspaceName,
 				prof.BaseURL,
 				prof.APIVersion,
 			})
@@ -249,7 +266,14 @@ func setWorkspace(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		util.ActiveProfile.WorkspaceUUID = workspaceUUID
+
+		ws, err := util.API.GetWorkspace(workspaceUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.ActiveProfile.WorkspaceUUID = ws.ID
+		util.ActiveProfile.WorkspaceName = ws.Name
 		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
 			util.Bail(err)
 		}
