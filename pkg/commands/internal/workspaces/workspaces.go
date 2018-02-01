@@ -8,10 +8,12 @@ package workspaces
 
 import (
 	"fmt"
+	gotree "github.com/DiSiqueira/GoTree"
 	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/joyent/go-conch"
 	"github.com/joyent/go-conch/pgtime"
 	"gopkg.in/jawher/mow.cli.v1"
+	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
 	"strconv"
 )
@@ -29,7 +31,6 @@ func getAll(app *cli.Cmd) {
 			util.JSONOut(workspaces)
 			return
 		}
-
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{"Role", "Id", "Name", "Description"})
 
@@ -41,8 +42,58 @@ func getAll(app *cli.Cmd) {
 	}
 }
 
+func buildWSTree(parents map[string][]conch.Workspace, parent uuid.UUID, tree *gotree.GTStructure) {
+
+	for _, ws := range parents[parent.String()] {
+		sub := gotree.GTStructure{}
+		sub.Name = fmt.Sprintf("%s (%s)", ws.Name, ws.ID.String())
+
+		buildWSTree(parents, ws.ID, &sub)
+		tree.Items = append(tree.Items, sub)
+	}
+}
+
 func getOne(app *cli.Cmd) {
+
+	var (
+		treeOutput = app.BoolOpt("tree", false, "Show workspace membership as a tree, based on subworkspace relationships. Specifying a workspace changes the root. Has no affect on --json")
+	)
+
 	app.Action = func() {
+		if *treeOutput {
+			wss, err := util.API.GetWorkspaces()
+			if err != nil {
+				util.Bail(err)
+			}
+
+			workspaces := make(map[string]conch.Workspace)
+			for _, ws := range wss {
+				workspaces[ws.ID.String()] = ws
+			}
+
+			parents := make(map[string][]conch.Workspace)
+
+			for _, ws := range workspaces {
+				if !uuid.Equal(ws.ParentID, uuid.UUID{}) {
+					if _, ok := parents[ws.ParentID.String()]; !ok {
+						parents[ws.ParentID.String()] = make([]conch.Workspace, 0)
+					}
+					parents[ws.ParentID.String()] = append(
+						parents[ws.ParentID.String()],
+						ws,
+					)
+				}
+			}
+
+			tree := gotree.GTStructure{}
+			root := workspaces[WorkspaceUUID.String()]
+			tree.Name = fmt.Sprintf("%s (%s)", root.Name, root.ID.String())
+
+			buildWSTree(parents, WorkspaceUUID, &tree)
+			gotree.PrintTree(tree)
+			return
+		}
+
 		workspace, err := util.API.GetWorkspace(WorkspaceUUID)
 		if err != nil {
 			util.Bail(err)

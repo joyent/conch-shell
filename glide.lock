@@ -1,5 +1,5 @@
-hash: cb68a139ea50b586cb1112a46c0f70a63173f39d7db2a933ee9f093724adcdec
-updated: 2018-01-29T16:30:46.87991-05:00
+hash: fa159114e7bae2345c690374d714b34c90bd36548421c285c5c5e67b07fb09b9
+updated: 2018-02-01T16:02:33.707036-05:00
 imports:
 - name: github.com/blang/semver
   version: 2ee87856327ba09384cabd113bc6b5d174e9ec0f
@@ -9,6 +9,8 @@ imports:
   version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
 - name: github.com/dghubble/sling
   version: 80ec33c6152a53edb5545864ca37567b506c4ca5
+- name: github.com/DiSiqueira/GoTree
+  version: 4c287e3603a85571820a6a8ad100a45002150053
 - name: github.com/fatih/color
   version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
 - name: github.com/golang/freetype
@@ -27,7 +29,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 53c1911da2b537f792e7cafcb446b05ffe33b996
 - name: github.com/joyent/go-conch
-  version: 496eaf9f2e6a573becb201593a4a688ac4742d2c
+  version: c7bd0100e734617bc81a3c24636ca5b6d1422de6
   subpackages:
   - pgtime
 - name: github.com/mattn/go-colorable
@@ -41,7 +43,7 @@ imports:
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/olekukonko/tablewriter
-  version: 96aac992fc8b1a4c83841a6c3e7178d20d989625
+  version: b8a9be070da40449e501c3c4730a889e42d87a9e
 - name: github.com/tcnksm/go-input
   version: bbe13e92fa7dda71a4e012e3f427df11866c7651
 - name: github.com/vbauerster/mpb

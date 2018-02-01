@@ -27,3 +27,5 @@ import:
 - package: github.com/tcnksm/go-input
 - package: github.com/blang/semver
   version: ^3.5.1
+- package: github.com/DiSiqueira/GoTree
+  version: ^0.2.0
