@@ -12,7 +12,6 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands/internal/hardware"
 	"github.com/joyent/conch-shell/pkg/commands/internal/profile"
 	"github.com/joyent/conch-shell/pkg/commands/internal/relay"
-	"github.com/joyent/conch-shell/pkg/commands/internal/reports"
 	"github.com/joyent/conch-shell/pkg/commands/internal/user"
 	"github.com/joyent/conch-shell/pkg/commands/internal/workspaces"
 	"gopkg.in/jawher/mow.cli.v1"
@@ -24,7 +23,6 @@ func Init(app *cli.Cli) {
 	hardware.Init(app)
 	profile.Init(app)
 	relay.Init(app)
-	reports.Init(app)
 	user.Init(app)
 	workspaces.Init(app)
 }
