@@ -1,4 +1,4 @@
-.PHONY: clean deps update_deps docs_server release all
+.PHONY: clean deps update_deps docs_server release all changelog
 
 CONCH_VERSION="0.0.0"
 CONCH_BUILD_TIME=`date +%s`
@@ -40,3 +40,7 @@ release:
 	GOOS=linux GOARCH=arm ${BUILD} -o release/${CONCH_VERSION}/linux-arm/conch cmd/conch/conch.go
 	@mkdir -p release/${CONCH_VERSION}/solaris-amd64
 	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/solaris-amd64/conch cmd/conch/conch.go
+
+# gem install github_changelog_generator
+changelog:
+	github_changelog_generator -u joyent -p conch-shell #--due-tag ${CONCH_VERSION}
