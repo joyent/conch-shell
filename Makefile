@@ -38,3 +38,5 @@ release:
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/linux-amd64/conch cmd/conch/conch.go
 	@mkdir -p release/${CONCH_VERSION}/linux-arm
 	GOOS=linux GOARCH=arm ${BUILD} -o release/${CONCH_VERSION}/linux-arm/conch cmd/conch/conch.go
+	@mkdir -p release/${CONCH_VERSION}/solaris-amd64
+	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/solaris-amd64/conch cmd/conch/conch.go
