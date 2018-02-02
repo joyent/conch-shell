@@ -12,7 +12,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
-	"github.com/tcnksm/go-input"
+	"github.com/sungo/prompt"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"strings"
@@ -34,17 +34,8 @@ func newProfile(app *cli.Cmd) {
 
 		password := *passwordOpt
 
-		ui := input.DefaultUI()
-
 		if *nameOpt == "" {
-			s, err := ui.Ask(
-				"Profile Name",
-				&input.Options{
-					Loop:      true,
-					Required:  true,
-					HideOrder: true,
-				},
-			)
+			s, err := prompt.Basic("Profile Name:", true)
 			if err != nil {
 				util.Bail(err)
 			}
@@ -66,14 +57,7 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		if *userOpt == "" {
-			s, err := ui.Ask(
-				"User Name",
-				&input.Options{
-					Loop:      true,
-					Required:  true,
-					HideOrder: true,
-				},
-			)
+			s, err := prompt.Basic("User Name:", true)
 			if err != nil {
 				util.Bail(err)
 			}
@@ -84,15 +68,7 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		if password == "" {
-			s, err := ui.Ask(
-				"Password",
-				&input.Options{
-					Loop:      true,
-					Required:  true,
-					HideOrder: true,
-					Mask:      true,
-				},
-			)
+			s, err := prompt.Password("Password:")
 			if err != nil {
 				util.Bail(err)
 			}
@@ -101,19 +77,10 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		if *apiOpt == "" {
-			s, err := ui.Ask(
-				"API URL",
-				&input.Options{
-					Default:   "https://conch.joyent.us",
-					Loop:      true,
-					Required:  true,
-					HideOrder: true,
-				},
-			)
+			s, err := prompt.BasicDefault("API URL:", "https://conch.joyent.us")
 			if err != nil {
 				util.Bail(err)
 			}
-
 			p.BaseURL = s
 		} else {
 			p.BaseURL = *apiOpt
