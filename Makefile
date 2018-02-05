@@ -9,10 +9,10 @@ BUILD = go build -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${
 all: bin/conch bin/conch-mbo
 
 bin/conch: pkg/**/*.go cmd/conch/*.go
-	go build -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" -v -o bin/conch cmd/conch/conch.go
+	${BUILD} -o bin/conch cmd/conch/conch.go
 
 bin/conch-mbo: pkg/**/*.go cmd/conch-mbo/*.go
-	go build -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" -v -o bin/conch-mbo cmd/conch-mbo/conch-mbo.go
+	${BUILD} -o bin/conch-mbo cmd/conch-mbo/conch-mbo.go
 
 clean: 
 	rm -f bin/conch bin/conch-mbo
