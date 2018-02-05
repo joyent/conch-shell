@@ -49,7 +49,7 @@ func main() {
 	)
 
 	var (
-		useJSON    = app.BoolOpt("json", false, "Output JSON")
+		useJSON    = app.BoolOpt("json j", false, "Output JSON")
 		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
 		pretty     = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
 	)
