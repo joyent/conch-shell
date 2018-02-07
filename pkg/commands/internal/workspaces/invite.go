@@ -20,7 +20,6 @@ func inviteUser(app *cli.Cmd) {
 			*emailArg,
 			*roleArg,
 		)
-		fmt.Println(err)
 
 		if err != nil {
 			util.Bail(err)
