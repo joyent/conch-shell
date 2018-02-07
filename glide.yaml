@@ -1,6 +1,5 @@
 package: github.com/joyent/conch-shell
 import:
-- package: github.com/joyent/go-conch
 - package: github.com/olekukonko/tablewriter
 - package: gopkg.in/satori/go.uuid.v1
   version: ^1.1.0
@@ -32,3 +31,4 @@ import:
   subpackages:
   - raster
 - package: github.com/sungo/prompt
+- package: github.com/joyent/go-conch

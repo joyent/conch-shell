@@ -9,6 +9,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
+	"strconv"
 )
 
 func register(app *cli.Cmd) {
@@ -33,5 +34,45 @@ func register(app *cli.Cmd) {
 		if err := util.API.RegisterRelay(r); err != nil {
 			util.Bail(err)
 		}
+	}
+}
+
+func getAllRelays(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+	app.Action = func() {
+		relays, err := util.API.GetAllRelays()
+		if err != nil {
+			util.Bail(err)
+		}
+		if util.JSON {
+			util.JSONOut(relays)
+			return
+		}
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"ID",
+			"Alias",
+			"IP Addr",
+			"SSH Port",
+			"Version",
+			"Created",
+			"Updated",
+		})
+
+		for _, r := range relays {
+			table.Append([]string{
+				r.ID,
+				r.Alias,
+				r.IPAddr,
+				strconv.Itoa(r.SSHPort),
+				r.Version,
+				util.TimeStr(r.Created),
+				util.TimeStr(r.Updated),
+			})
+		}
+
+		table.Render()
+
 	}
 }
