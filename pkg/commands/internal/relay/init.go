@@ -40,4 +40,9 @@ func Init(app *cli.Cli) {
 			)
 		},
 	)
+	app.Command(
+		"relays rs",
+		"See a list of all known relays",
+		getAllRelays,
+	)
 }

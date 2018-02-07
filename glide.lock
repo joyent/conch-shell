@@ -1,5 +1,5 @@
-hash: 171e5189d3505597e8317dcf7926f87c0854d1db12ce66397275f1ecf3a88fa4
-updated: 2018-02-02T15:59:03.341538-05:00
+hash: 7b14de4f7c0080ad15b4026c430123269d8d83c54c63914ed19200b49ef18e64
+updated: 2018-02-07T18:17:45.984672-05:00
 imports:
 - name: github.com/blang/semver
   version: 2ee87856327ba09384cabd113bc6b5d174e9ec0f
@@ -29,7 +29,7 @@ imports:
 - name: github.com/gorilla/mux
   version: 53c1911da2b537f792e7cafcb446b05ffe33b996
 - name: github.com/joyent/go-conch
-  version: a1f848ebb7ed05608c1d922f1a40f810cd78f1a1
+  version: 59a36c4305aaecfa384054a78c5ad13ddd794713
   subpackages:
   - pgtime
 - name: github.com/mattn/go-colorable
