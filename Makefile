@@ -4,8 +4,17 @@ CONCH_VERSION="0.0.0"
 CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty`
 
-BUILD = go build -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" 
+BUILD_ARGS = -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" 
 
+RELEASE_TARGET = release/darwin-amd64/conch release/linux-amd64/conch release/linux-arm/conch
+UNAME_S = $(shell uname -s)
+
+ifeq ($(UNAME_S),SunOS)
+RELEASE_TARGET += release/solaris-amd64/conch
+endif
+
+
+BUILD = go build ${BUILD_ARGS} 
 all: bin/conch bin/conch-mbo
 
 bin/conch: pkg/**/*.go cmd/conch/*.go
@@ -29,15 +38,24 @@ update_deps:
 docs_server:
 	godoc -http=:6060 -v -goroot ./
 
+release: release/${CONCH_VERSION} ${RELEASE_TARGET}
 
-release:
+release/${CONCH_VERSION}:
 	@mkdir -p release/${CONCH_VERSION}
+
+release/darwin-amd64/conch:
 	@mkdir -p release/${CONCH_VERSION}/darwin-amd64
 	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/darwin-amd64/conch cmd/conch/conch.go
+
+release/linux-amd64/conch:
 	@mkdir -p release/${CONCH_VERSION}/linux-amd64
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/linux-amd64/conch cmd/conch/conch.go
+
+release/linux-arm/conch:
 	@mkdir -p release/${CONCH_VERSION}/linux-arm
 	GOOS=linux GOARCH=arm ${BUILD} -o release/${CONCH_VERSION}/linux-arm/conch cmd/conch/conch.go
+
+release/solaris-amd64/conch:
 	@mkdir -p release/${CONCH_VERSION}/solaris-amd64
 	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/solaris-amd64/conch cmd/conch/conch.go
 
