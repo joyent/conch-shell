@@ -30,5 +30,10 @@ import:
 - package: github.com/golang/freetype
   subpackages:
   - raster
-- package: github.com/sungo/prompt
 - package: github.com/joyent/go-conch
+- package: github.com/Bowery/prompt
+- package: golang.org/x/sys
+  subpackages:
+  - unix
+- package: github.com/dghubble/sling
+  version: ^1.1.0
