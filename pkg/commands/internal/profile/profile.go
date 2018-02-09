@@ -8,11 +8,11 @@ package profile
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
-	"github.com/sungo/prompt"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"strings"

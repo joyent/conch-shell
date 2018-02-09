@@ -1,14 +1,16 @@
-hash: 7b14de4f7c0080ad15b4026c430123269d8d83c54c63914ed19200b49ef18e64
-updated: 2018-02-07T18:17:45.984672-05:00
+hash: dfde4202a4a865cad0f5f9391a272f1cf6b3c44d39ef4f3a8446e995ae0fb1a3
+updated: 2018-02-09T12:47:23.431424-05:00
 imports:
 - name: github.com/blang/semver
   version: 2ee87856327ba09384cabd113bc6b5d174e9ec0f
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
+- name: github.com/Bowery/prompt
+  version: 94b504f42fdd503acc3b3c79ec2b517d90e0de8a
 - name: github.com/briandowns/spinner
   version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
 - name: github.com/dghubble/sling
-  version: 80ec33c6152a53edb5545864ca37567b506c4ca5
+  version: eb56e89ac5088bebb12eef3cb4b293300f43608b
 - name: github.com/DiSiqueira/GoTree
   version: 4c287e3603a85571820a6a8ad100a45002150053
 - name: github.com/fatih/color
@@ -44,8 +46,6 @@ imports:
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/olekukonko/tablewriter
   version: b8a9be070da40449e501c3c4730a889e42d87a9e
-- name: github.com/sungo/prompt
-  version: 2d55f8dfecfb05f4c925906d9190ad03f70b0ee3
 - name: github.com/vbauerster/mpb
   version: dac08dfacedfef1da943f0491a430e4a8edf5bb0
   subpackages:
@@ -63,7 +63,7 @@ imports:
   - math/f64
   - math/fixed
 - name: golang.org/x/sys
-  version: 37707fdb30a5b38865cfb95e5aab41707daec7fd
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
   subpackages:
   - unix
 - name: gopkg.in/jawher/mow.cli.v1
