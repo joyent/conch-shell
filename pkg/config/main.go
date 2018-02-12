@@ -36,7 +36,6 @@ type ConchProfile struct {
 	WorkspaceName string    `json:"workspace_name"`
 	BaseURL       string    `json:"api_url"`
 	Active        bool      `json:"active"`
-	APIVersion    string    `json:"api_version"`
 }
 
 // New provides an initialized struct with default values geared towards a

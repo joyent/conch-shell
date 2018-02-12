@@ -52,12 +52,6 @@ func Init(app *cli.Cli) {
 						"Change which profile is active",
 						setActive,
 					)
-
-					cmd.Command(
-						"version",
-						"Change the API version",
-						setAPIVersion,
-					)
 				},
 			)
 

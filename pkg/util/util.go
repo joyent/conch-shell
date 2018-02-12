@@ -84,9 +84,8 @@ func BuildAPI() {
 	}
 
 	API = &conch.Conch{
-		BaseURL:    ActiveProfile.BaseURL,
-		Session:    ActiveProfile.Session,
-		APIVersion: ActiveProfile.APIVersion,
+		BaseURL: ActiveProfile.BaseURL,
+		Session: ActiveProfile.Session,
 	}
 	if UserAgent != "" {
 		API.UA = UserAgent
