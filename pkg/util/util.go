@@ -11,7 +11,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/blang/semver"
 	"github.com/briandowns/spinner"
+	"github.com/dghubble/sling"
 	"github.com/joyent/conch-shell/pkg/config"
 	conch "github.com/joyent/go-conch"
 	"github.com/joyent/go-conch/pgtime"
@@ -20,6 +22,7 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"os"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -319,4 +322,45 @@ func MagicProductID(wat string) (uuid.UUID, error) {
 
 	return id, errors.New("Could not find product " + wat)
 
+}
+
+type GithubRelease struct {
+	URL     string         `json:"html_url"`
+	TagName string         `json:"tag_name"`
+	SemVer  semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
+}
+
+// LatestGithubRelease returns some fields from the latest Github Release
+// object for the given owner and repo via
+// "https://api.github.com/repos/:owner/:repo/releases/latest"
+func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
+	url := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/releases/latest",
+		owner,
+		repo,
+	)
+
+	gh := &GithubRelease{}
+
+	_, err := sling.New().
+		Set("User-Agent", UserAgent).
+		Get(url).Receive(&gh, nil)
+
+	if err != nil {
+		return gh, err
+	}
+
+	if gh.TagName == "" {
+		gh.SemVer = semver.MustParse("0.0.0")
+	} else {
+		sem, err := semver.Make(
+			strings.TrimLeft(gh.TagName, "v"),
+		)
+		if err != nil {
+			return gh, err
+		}
+		gh.SemVer = sem
+	}
+
+	return gh, err
 }
