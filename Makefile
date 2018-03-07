@@ -17,23 +17,22 @@ endif
 BUILD = go build ${BUILD_ARGS} 
 all: bin/conch bin/conch-mbo
 
-bin/conch: pkg/**/*.go cmd/conch/*.go
+bin/conch: pkg/**/*.go cmd/conch/*.go vendor
 	${BUILD} -o bin/conch cmd/conch/conch.go
 
-bin/conch-mbo: pkg/**/*.go cmd/conch-mbo/*.go
+bin/conch-mbo: pkg/**/*.go cmd/conch-mbo/*.go vendor
 	${BUILD} -o bin/conch-mbo cmd/conch-mbo/conch-mbo.go
 
 clean: 
 	rm -f bin/conch bin/conch-mbo
 
-deps:
-	glide install
+vendor: deps
 
-vendor: glide.lock
-	glide update
+deps:
+	dep ensure -v -vendor-only
 
 update_deps:
-	glide update
+	dep ensure -update -v
 
 docs_server:
 	godoc -http=:6060 -v -goroot ./
