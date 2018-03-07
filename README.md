@@ -6,7 +6,7 @@
 
 # Copyright / License
 
-Copyright 2017, Joyent Inc
+Copyright Joyent Inc
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -52,7 +52,7 @@ Official releases are available at https://github.com/joyent/conch-shell/release
 
 ## Building
 
-* Install [Glide](https://glide.sh/)
+* Install [dep](https://golang.github.io/dep/docs/installation.html)
 * `cd $GOPATH/src/github.com/joyent/conch-shell`
 * Run `make`
 * Run `./conch`
@@ -61,9 +61,4 @@ Official releases are available at https://github.com/joyent/conch-shell/release
 
 *Always* use the Makefile to build the app. The Makefile passes necessary build
 vars into the app. 
-
-Before committing or sending a PR, run `make sane`. This will run `go vet` and
-`gofmt`.
-
-
 
