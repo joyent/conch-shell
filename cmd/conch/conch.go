@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/blang/semver"
 	"github.com/briandowns/spinner"
 	"github.com/joyent/conch-shell/pkg/commands"
 	"github.com/joyent/conch-shell/pkg/config"
@@ -51,6 +52,7 @@ func main() {
 		useJSON    = app.BoolOpt("json j", false, "Output JSON")
 		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
 		pretty     = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
+		noVersion  = app.BoolOpt("no-version-check", false, "Skip Github version check")
 	)
 
 	app.Before = func() {
@@ -58,6 +60,22 @@ func main() {
 			util.JSON = true
 		} else {
 			util.JSON = false
+		}
+
+		if !*noVersion {
+			gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+			if err != nil {
+				util.Bail(err)
+			}
+			sem := semver.MustParse(Version)
+			if gh.SemVer.GT(sem) {
+				fmt.Printf(
+					"** A new release is available! You have v%s and %s is available.\n",
+					Version,
+					gh.TagName,
+				)
+				fmt.Printf("** Download the new release at %s\n\n", gh.URL)
+			}
 		}
 
 		util.Pretty = *pretty
