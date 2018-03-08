@@ -2,7 +2,18 @@
 
 `conch` is a CLI for accessing the [Conch](https://github.com/joyent/conch) API.
 
-[![GoDoc](https://godoc.org/github.com/joyent/conch-shell?status.png)](https://godoc.org/github.com/joyent/conch-shell) [![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell)
+[![GoDoc](https://godoc.org/github.com/joyent/conch-shell?status.png)](https://godoc.org/github.com/joyent/conch-shell) [![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell) [![Travis-CI](https://travis-ci.org/joyent/conch-shell.svg?branch=master)](https://travis-ci.org/joyent/conch-shell)
+
+# Getting The App
+
+Releases are available over at https://github.com/joyent/conch-shell/releases
+
+At this time, binaries are built out of CI and are only available for macOS. 
+
+The codebase contains a make target to build for alternate platforms should one
+desire.
+
+
 
 # Copyright / License
 
@@ -11,19 +22,6 @@ Copyright Joyent Inc
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-# Getting The App
-
-A dev snapshot, compiled for macOS, is available at
-http://us-east.manta.joyent.com/sungo/public/conch-shell/conch-snap and will be updated
-whenever @sungo decides that's a good idea.
-
-A shell script is available at
-http://us-east.manta.joyent.com/sungo/public/conch-shell/conch-snap.sh which
-downloads the latest snap and runs it. Arguments are the same as the regular
-binary.
-
-Official releases are available at https://github.com/joyent/conch-shell/releases
 
 # Setup and Build
 
@@ -55,7 +53,7 @@ Official releases are available at https://github.com/joyent/conch-shell/release
 * Install [dep](https://golang.github.io/dep/docs/installation.html)
 * `cd $GOPATH/src/github.com/joyent/conch-shell`
 * Run `make`
-* Run `./conch`
+* Run `./bin/conch`
 
 # Notes
 
