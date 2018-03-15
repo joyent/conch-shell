@@ -77,13 +77,13 @@
   version = "v1.6.1"
 
 [[projects]]
-  branch = "master"
   name = "github.com/joyent/go-conch"
   packages = [
     ".",
     "pgtime"
   ]
-  revision = "4a4aa929dc7d17a910cddddad98442ed14aebf2c"
+  revision = "70b9b930a16381e126c5fe2403030cb59738e096"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -172,6 +172,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7085f345caf66207279d96b2bcb22eadc67c74129a071ed1fe8c02a41bfc03ad"
+  inputs-digest = "8271d0869d34720382e2bb3c4e7faf116bfb2947a6c29af5b59d09f2140f11f6"
   solver-name = "gps-cdcl"
   solver-version = 1
