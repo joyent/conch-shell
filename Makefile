@@ -6,14 +6,6 @@ CONCH_GIT_REV=`git describe --always --abbrev --dirty`
 
 BUILD_ARGS = -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" 
 
-RELEASE_TARGET = release/darwin-amd64/conch release/linux-amd64/conch release/linux-arm/conch
-UNAME_S = $(shell uname -s)
-
-ifeq ($(UNAME_S),SunOS)
-RELEASE_TARGET += release/solaris-amd64/conch
-endif
-
-
 BUILD = go build ${BUILD_ARGS} 
 all: bin/conch bin/conch-mbo
 
@@ -37,26 +29,12 @@ update_deps:
 docs_server:
 	godoc -http=:6060 -v -goroot ./
 
-release: release/${CONCH_VERSION} ${RELEASE_TARGET}
-
-release/${CONCH_VERSION}:
-	@mkdir -p release/${CONCH_VERSION}
-
-release/darwin-amd64/conch:
-	@mkdir -p release/${CONCH_VERSION}/darwin-amd64
-	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/darwin-amd64/conch cmd/conch/conch.go
-
-release/linux-amd64/conch:
-	@mkdir -p release/${CONCH_VERSION}/linux-amd64
-	GOOS=linux GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/linux-amd64/conch cmd/conch/conch.go
-
-release/linux-arm/conch:
-	@mkdir -p release/${CONCH_VERSION}/linux-arm
-	GOOS=linux GOARCH=arm ${BUILD} -o release/${CONCH_VERSION}/linux-arm/conch cmd/conch/conch.go
-
-release/solaris-amd64/conch:
-	@mkdir -p release/${CONCH_VERSION}/solaris-amd64
-	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/${CONCH_VERSION}/solaris-amd64/conch cmd/conch/conch.go
+release:
+	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-mbo-darwin-amd64 cmd/conch-mbo/conch-mbo.go
+	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-darwin-amd64 cmd/conch/conch.go
+	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-linux-amd64 cmd/conch/conch.go
+	GOOS=linux GOARCH=arm ${BUILD} -o release/conch-linux-arm cmd/conch/conch.go
+	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/conch-solaris-amd64 cmd/conch/conch.go
 
 # gem install github_changelog_generator
 changelog:
