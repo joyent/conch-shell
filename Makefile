@@ -29,7 +29,7 @@ update_deps:
 docs_server:
 	godoc -http=:6060 -v -goroot ./
 
-release:
+release: vendor
 	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-mbo-darwin-amd64 cmd/conch-mbo/conch-mbo.go
 	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-darwin-amd64 cmd/conch/conch.go
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-linux-amd64 cmd/conch/conch.go
