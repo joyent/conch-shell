@@ -86,5 +86,5 @@
   unused-packages = true
 
 [[constraint]]
-  branch = "master"
   name = "github.com/joyent/go-conch"
+  version = "1.0.0"
