@@ -1,4 +1,4 @@
-os: osx
+os: linux
 sudo: false
 language: go
 go:
