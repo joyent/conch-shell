@@ -2,18 +2,12 @@
 
 `conch` is a CLI for accessing the [Conch](https://github.com/joyent/conch) API.
 
-[![GoDoc](https://godoc.org/github.com/joyent/conch-shell?status.png)](https://godoc.org/github.com/joyent/conch-shell) [![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell) [![Travis-CI](https://travis-ci.org/joyent/conch-shell.svg?branch=master)](https://travis-ci.org/joyent/conch-shell)
+[![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell) [![Travis-CI](https://travis-ci.org/joyent/conch-shell.svg?branch=master)](https://travis-ci.org/joyent/conch-shell)
 
 # Getting The App
 
 Releases are available over at https://github.com/joyent/conch-shell/releases
-
-At this time, binaries are built out of CI and are only available for macOS. 
-
-The codebase contains a make target to build for alternate platforms should one
-desire.
-
-
+for a handful of platforms, including macOS, Linux, and Solaris/SmartOS.
 
 # Copyright / License
 
