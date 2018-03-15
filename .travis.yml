@@ -22,3 +22,9 @@ deploy:
   on:
     tags: true
     repo: joyent/conch-shell
+notifications:
+  recipients:
+  - sungo@joyent.com
+  email:
+    on_success: change
+    on_failure: always
