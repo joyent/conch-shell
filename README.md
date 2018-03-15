@@ -7,13 +7,7 @@
 # Getting The App
 
 Releases are available over at https://github.com/joyent/conch-shell/releases
-
-At this time, binaries are built out of CI and are only available for macOS. 
-
-The codebase contains a make target to build for alternate platforms should one
-desire.
-
-
+for a handful of platforms, including macOS, Linux, and Solaris/SmartOS.
 
 # Copyright / License
 
