@@ -75,8 +75,16 @@ type MinimalDevice struct {
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
 	if err := API.VerifyLogin(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		Bail(err)
+	}
+	ActiveProfile.Session = API.Session
+	WriteConfig()
+}
+
+// WriteConfig serializes the Config struct to disk
+func WriteConfig() {
+	if err := Config.SerializeToFile(Config.Path); err != nil {
+		Bail(err)
 	}
 }
 

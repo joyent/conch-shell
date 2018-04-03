@@ -120,10 +120,7 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		util.Config.Profiles[p.Name] = p
-		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
-			util.Bail(err)
-		}
-
+		util.WriteConfig()
 	}
 }
 
@@ -146,9 +143,8 @@ func deleteProfile(app *cli.Cmd) {
 				break
 			}
 		}
-		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
-			util.Bail(err)
-		}
+
+		util.WriteConfig()
 	}
 
 }
@@ -228,9 +224,8 @@ func setWorkspace(app *cli.Cmd) {
 
 		util.ActiveProfile.WorkspaceUUID = ws.ID
 		util.ActiveProfile.WorkspaceName = ws.Name
-		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
-			util.Bail(err)
-		}
+
+		util.WriteConfig()
 	}
 }
 
@@ -254,8 +249,7 @@ func setActive(app *cli.Cmd) {
 				fmt.Errorf("Profile '%s' does not exist", *profileArg),
 			)
 		}
-		if err := util.Config.SerializeToFile(util.Config.Path); err != nil {
-			util.Bail(err)
-		}
+
+		util.WriteConfig()
 	}
 }

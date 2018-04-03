@@ -82,8 +82,8 @@
     ".",
     "pgtime"
   ]
-  revision = "70b9b930a16381e126c5fe2403030cb59738e096"
-  version = "v1.0.0"
+  revision = "b248d9bb6648521fc1be654db3d7d1fa15b88deb"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -172,6 +172,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8271d0869d34720382e2bb3c4e7faf116bfb2947a6c29af5b59d09f2140f11f6"
+  inputs-digest = "fe345e3878a118e786964a4988bb03cee8431cd594475b4b5dca734f640b1a44"
   solver-name = "gps-cdcl"
   solver-version = 1
