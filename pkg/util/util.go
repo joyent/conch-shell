@@ -75,8 +75,7 @@ type MinimalDevice struct {
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
 	if err := API.VerifyLogin(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		Bail(err)
 	}
 }
 
