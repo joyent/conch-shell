@@ -79,6 +79,13 @@ func BuildAPIAndVerifyLogin() {
 	}
 }
 
+// WriteConfig serializes the Config struct to disk
+func WriteConfig() {
+	if err := Config.SerializeToFile(Config.Path); err != nil {
+		Bail(err)
+	}
+}
+
 // BuildAPI builds a Conch object
 func BuildAPI() {
 	if ActiveProfile == nil {
