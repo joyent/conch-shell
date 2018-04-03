@@ -1,6 +1,6 @@
 .PHONY: clean deps update_deps docs_server release all changelog
 
-CONCH_VERSION="0.1.4"
+CONCH_VERSION="0.2.1"
 CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty`
 
