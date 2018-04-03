@@ -77,6 +77,8 @@ func BuildAPIAndVerifyLogin() {
 	if err := API.VerifyLogin(); err != nil {
 		Bail(err)
 	}
+	ActiveProfile.Session = API.Session
+	WriteConfig()
 }
 
 // WriteConfig serializes the Config struct to disk
