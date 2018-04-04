@@ -28,14 +28,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   * `export GOPATH=$(go env GOPATH); export PATH="$GOPATH/bin:$PATH"`
   * Typically, `$GOPATH` is `~/go` but it doesn't have to be. Mine is
     `~/src/go`. The important part is the layout underneath `$GOPATH`
-* Add the following incantation to `~/.gitconfig` which will cause `go get` to
-  use ssh to access github rather than https. That's necessary for private repos
-  like this one.
-
-```
-[url "git@github.com:"]
-	insteadOf = https://github.com/
-```
 
 ## Check out the code
 
