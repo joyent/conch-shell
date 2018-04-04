@@ -4,10 +4,19 @@ CONCH_VERSION="0.2.1"
 CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty`
 
+UNAME_S=$(shell uname -s)
+
 BUILD_ARGS = -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" 
 
 BUILD = go build ${BUILD_ARGS} 
-all: bin/conch bin/conch-mbo
+
+BINARIES = bin/conch
+
+ifneq ($(UNAME_S), SunOS)
+BINARIES += bin/conch-mbo
+endif
+
+all: ${BINARIES}
 
 bin/conch: pkg/**/*.go cmd/conch/*.go vendor
 	${BUILD} -o bin/conch cmd/conch/conch.go
