@@ -34,6 +34,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 * Run `go get github.com/joyent/conch-shell`
 * The code will end up in `$GOPATH/src/github.com/joyent/conch-shell`
 
+## Install build dependencies
+
+* Run `make first-run`
+* See also `make help`
+
 ## Building
 
 * Install [dep](https://golang.github.io/dep/docs/installation.html)
