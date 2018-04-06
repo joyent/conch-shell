@@ -19,12 +19,15 @@ deploy:
     - "release/conch-linux-amd64"
     - "release/conch-linux-arm"
     - "release/conch-solaris-amd64"
+    - "release/conch-freebsd-amd64"
+    - "release/conch-openbsd-amd64"
   on:
     tags: true
     repo: joyent/conch-shell
 notifications:
-  recipients:
-  - sungo@joyent.com
   email:
     on_success: change
     on_failure: always
+    recipients:
+      - sungo@joyent.com
+
