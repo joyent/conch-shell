@@ -118,4 +118,25 @@ func Init(app *cli.Cli) {
 			)
 		},
 	)
+	app.Command(
+		"validation-states vss",
+		"Commands for validation states",
+		func(cmd *cli.Cmd) {
+
+			cmd.Before = func() {
+				util.BuildAPIAndVerifyLogin()
+			}
+
+			cmd.Command(
+				"device",
+				"Get validation states for a device",
+				getDeviceValidationStates,
+			)
+			cmd.Command(
+				"workspace",
+				"Get validation states for all devices in a workspace",
+				getWorkspaceValidationStates,
+			)
+		},
+	)
 }
