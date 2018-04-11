@@ -332,6 +332,7 @@ func MagicProductID(wat string) (uuid.UUID, error) {
 
 }
 
+// GithubRelease represents a 'release' for a Github project
 type GithubRelease struct {
 	URL     string         `json:"html_url"`
 	TagName string         `json:"tag_name"`
