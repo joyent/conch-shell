@@ -61,6 +61,7 @@ check: ## Ensure that code matchs best practices
 		--enable deadcode \
 		--enable varcheck \
 		--enable ineffassign \
+		--enable golint \
 		--enable gofmt \
 		./...
 #		--enable goimports \
