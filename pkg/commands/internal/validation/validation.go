@@ -8,9 +8,11 @@
 package validation
 
 import (
+	"bufio"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
+	"os"
 	"strconv"
 )
 
@@ -23,6 +25,20 @@ func (vs validations) renderTable() {
 
 	for _, v := range vs {
 		table.Append([]string{v.ID.String(), v.Name, strconv.Itoa(v.Version), v.Description})
+	}
+
+	table.Render()
+}
+
+type validationResults []conch.ValidationResult
+
+func (rs validationResults) renderTable() {
+	table := util.GetMarkdownTable()
+
+	table.SetHeader([]string{"Status", "Category", "Message", "Hint", "Component ID"})
+
+	for _, r := range rs {
+		table.Append([]string{r.Status, r.Category, r.Message, r.Hint, r.ComponentID})
 	}
 
 	table.Render()
@@ -43,5 +59,26 @@ func getValidations(app *cli.Cmd) {
 			return
 		}
 		validations.renderTable()
+	}
+}
+
+func testValidation(app *cli.Cmd) {
+	var deviceSerial = app.StringArg("DEVICE_ID", "", "The Device ID (serial number) to test the validation against")
+
+	app.Spec = "DEVICE_ID"
+
+	app.Action = func() {
+		body := bufio.NewReader(os.Stdin)
+		var validationResults validationResults
+		validationResults, err := util.API.TestDeviceValidation(*deviceSerial, validationUUID, body)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(validationResults)
+			return
+		}
+		validationResults.renderTable()
 	}
 }

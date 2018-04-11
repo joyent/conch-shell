@@ -8,11 +8,13 @@
 package validation
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"os"
 )
 
 type validationPlans []conch.ValidationPlan
@@ -165,5 +167,26 @@ func createValidationPlan(app *cli.Cmd) {
 			fmt.Printf("Validation Plan '%s' created with ID '%s'\n", newPlan.Name, newPlan.ID)
 		}
 
+	}
+}
+
+func testValidationPlan(app *cli.Cmd) {
+	var deviceSerial = app.StringArg("DEVICE_ID", "", "The Device ID (serial number) to test the validation plan against")
+
+	app.Spec = "DEVICE_ID"
+
+	app.Action = func() {
+		body := bufio.NewReader(os.Stdin)
+		var validationResults validationResults
+		validationResults, err := util.API.TestDeviceValidationPlan(*deviceSerial, validationPlanUUID, body)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(validationResults)
+			return
+		}
+		validationResults.renderTable()
 	}
 }

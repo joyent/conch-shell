@@ -13,6 +13,7 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
+var validationUUID uuid.UUID
 var validationPlanUUID uuid.UUID
 
 // Init loads up the commands dealing with validations and validation plans
@@ -21,6 +22,32 @@ func Init(app *cli.Cli) {
 		"validations vs",
 		"List available validations",
 		getValidations,
+	)
+	app.Command(
+		"validation v",
+		"Commands for operating on a validation",
+		func(cmd *cli.Cmd) {
+
+			var validationPlanID = cmd.StringArg("ID", "", "The UUID of the validation plan")
+
+			cmd.Spec = "ID"
+
+			cmd.Before = func() {
+				util.BuildAPIAndVerifyLogin()
+				var err error
+				validationUUID, err = uuid.FromString(*validationPlanID)
+				if err != nil {
+					util.Bail(err)
+				}
+				return
+			}
+
+			cmd.Command(
+				"test",
+				"Test a validation against a given device with input data from STDIN",
+				testValidation,
+			)
+		},
 	)
 	app.Command(
 		"validation-plans vps",
@@ -82,6 +109,12 @@ func Init(app *cli.Cli) {
 				"remove-validation",
 				"Remove an associated validation from a validation plan",
 				removeValidationFromPlan,
+			)
+
+			cmd.Command(
+				"test",
+				"Test a validation plan against a given device with input data from STDIN",
+				testValidationPlan,
 			)
 		},
 	)
