@@ -13,6 +13,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands/internal/profile"
 	"github.com/joyent/conch-shell/pkg/commands/internal/relay"
 	"github.com/joyent/conch-shell/pkg/commands/internal/user"
+	"github.com/joyent/conch-shell/pkg/commands/internal/validation"
 	"github.com/joyent/conch-shell/pkg/commands/internal/workspaces"
 	"gopkg.in/jawher/mow.cli.v1"
 )
@@ -25,4 +26,5 @@ func Init(app *cli.Cli) {
 	relay.Init(app)
 	user.Init(app)
 	workspaces.Init(app)
+	validation.Init(app)
 }
