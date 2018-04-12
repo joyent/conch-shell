@@ -373,3 +373,52 @@ func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
 
 	return gh, err
 }
+
+// MagicDeviceServiceID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. If not, we dig through
+// GetDeviceServices() looking for UUIDs that match up to the first hyphen or
+// where the device service name matches the string
+func MagicDeviceServiceID(wat string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+	// So, it's not a UUID. Let's try for a string name or partial UUID
+	services, err := API.GetDeviceServices()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, s := range services {
+		if (s.Name == wat) || re.MatchString(s.ID.String()) {
+			return s.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find device service " + wat)
+}
+
+// MagicDeviceRoleID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. If not, we dig through
+// GetDeviceRoles() looking for UUIDs that match up to the first hyphen
+func MagicDeviceRoleID(wat string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+	// So, it's not a UUID. Let's try for a partial UUID
+	roles, err := API.GetDeviceRoles()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, r := range roles {
+		if re.MatchString(r.ID.String()) {
+			return r.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find device role " + wat)
+}
