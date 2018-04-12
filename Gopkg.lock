@@ -20,12 +20,6 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/blendlabs/go-exception"
-  packages = ["."]
-  revision = "d7128bc626bd7e77c42734c572e28cf731ae71fc"
-
-[[projects]]
   name = "github.com/briandowns/spinner"
   packages = ["."]
   revision = "48dbb65d7bd5c74ab50d53d04c949f20e3d14944"
@@ -82,8 +76,8 @@
     ".",
     "pgtime"
   ]
-  revision = "b248d9bb6648521fc1be654db3d7d1fa15b88deb"
-  version = "v1.1.0"
+  revision = "b68c47c893ea9d51203703570d253a0f0c80bfc5"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -122,17 +116,21 @@
     "cwriter",
     "decor"
   ]
-  revision = "8e50bd3a77d780e5e4bd9aedb0444e610fd18605"
-  version = "v3.1.0"
+  revision = "e227edc706423683a577a93c78beb0ce9d211b00"
+  version = "v3.1.1"
 
 [[projects]]
   name = "github.com/wcharczuk/go-chart"
   packages = [
     ".",
-    "drawing"
+    "drawing",
+    "matrix",
+    "roboto",
+    "seq",
+    "util"
   ]
-  revision = "fc2973067ce43455507ea5f9aa9814aabbf8f2ca"
-  version = "v2.0"
+  revision = "7c3982fe3d8ab0c9eea9ab5d2aced51e45d447bc"
+  version = "v2.0.1"
 
 [[projects]]
   branch = "master"
@@ -143,13 +141,13 @@
     "math/f64",
     "math/fixed"
   ]
-  revision = "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+  revision = "f315e440302883054d0c2bd85486878cb4f8572c"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
+  revision = "3b87a42e500a6dc65dae1a55d0b641295971163e"
 
 [[projects]]
   name = "gopkg.in/jawher/mow.cli.v1"
@@ -172,6 +170,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fe345e3878a118e786964a4988bb03cee8431cd594475b4b5dca734f640b1a44"
+  inputs-digest = "b7f100b7b1d79aed3f31ab66c0e2a05e4fe7e74108c7a57e5449015b2670c1e4"
   solver-name = "gps-cdcl"
   solver-version = 1
