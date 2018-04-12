@@ -332,6 +332,66 @@ func MagicProductID(wat string) (uuid.UUID, error) {
 
 }
 
+// MagicValidationID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. Otherwise, we use
+// FindShortUUID to see if the string matches an existing Validation ID
+func MagicValidationID(s string) (uuid.UUID, error) {
+	id, err := uuid.FromString(s)
+	if err == nil {
+		return id, err
+	}
+
+	vs, err := API.GetValidations()
+	if err != nil {
+		return id, err
+	}
+	ids := make([]uuid.UUID, len(vs))
+	for i, v := range vs {
+		ids[i] = v.ID
+	}
+	id, err = FindShortUUID(s, ids)
+
+	return id, err
+
+}
+
+// MagicValidationPlanID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. Otherwise, we use
+// FindShortUUID to see if the string matches an existing Validation Plan ID
+func MagicValidationPlanID(s string) (uuid.UUID, error) {
+	id, err := uuid.FromString(s)
+	if err == nil {
+		return id, err
+	}
+
+	vs, err := API.GetValidationPlans()
+	if err != nil {
+		return id, err
+	}
+	ids := make([]uuid.UUID, len(vs))
+	for i, v := range vs {
+		ids[i] = v.ID
+	}
+	id, err = FindShortUUID(s, ids)
+
+	return id, err
+
+}
+
+// FindShortUUID takes a string and tries to find a UUID in a list of UUIDs
+// that match by prefix (first 4 bytes)
+func FindShortUUID(s string, uuids []uuid.UUID) (uuid.UUID, error) {
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", s))
+	for _, uuid := range uuids {
+		if re.MatchString(uuid.String()) {
+			return uuid, nil
+		}
+	}
+	var id uuid.UUID
+	return id, errors.New("Could not find short UUID " + s)
+
+}
+
 // GithubRelease represents a 'release' for a Github project
 type GithubRelease struct {
 	URL     string         `json:"html_url"`

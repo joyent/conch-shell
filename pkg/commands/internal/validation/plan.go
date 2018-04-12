@@ -13,7 +13,6 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"os"
 )
 
@@ -87,7 +86,7 @@ func addValidationToPlan(app *cli.Cmd) {
 	var validationStrID = app.StringArg("VALIDATION_ID", "", "The ID of the validation to associate with the plan")
 
 	app.Action = func() {
-		validationUUID, err := uuid.FromString(*validationStrID)
+		validationUUID, err := util.MagicValidationID(*validationStrID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -117,7 +116,7 @@ func removeValidationFromPlan(app *cli.Cmd) {
 	var validationStrID = app.StringArg("VALIDATION_ID", "", "The ID of the validation to remove from the plan")
 
 	app.Action = func() {
-		validationUUID, err := uuid.FromString(*validationStrID)
+		validationUUID, err := util.MagicValidationID(*validationStrID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -178,7 +177,7 @@ func testValidationPlan(app *cli.Cmd) {
 	app.Action = func() {
 		body := bufio.NewReader(os.Stdin)
 		var validationResults validationResults
-		validationResults, err := util.API.TestDeviceValidationPlan(*deviceSerial, validationPlanUUID, body)
+		validationResults, err := util.API.RunDeviceValidationPlan(*deviceSerial, validationPlanUUID, body)
 		if err != nil {
 			util.Bail(err)
 		}

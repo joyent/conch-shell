@@ -35,7 +35,7 @@ func Init(app *cli.Cli) {
 			cmd.Before = func() {
 				util.BuildAPIAndVerifyLogin()
 				var err error
-				validationUUID, err = uuid.FromString(*validationPlanID)
+				validationUUID, err = util.MagicValidationPlanID(*validationPlanID)
 				if err != nil {
 					util.Bail(err)
 				}
@@ -80,7 +80,7 @@ func Init(app *cli.Cli) {
 			cmd.Before = func() {
 				util.BuildAPIAndVerifyLogin()
 				var err error
-				validationPlanUUID, err = uuid.FromString(*validationPlanID)
+				validationPlanUUID, err = util.MagicValidationPlanID(*validationPlanID)
 				if err != nil {
 
 					util.Bail(err)

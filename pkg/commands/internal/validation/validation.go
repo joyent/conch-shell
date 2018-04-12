@@ -70,7 +70,8 @@ func testValidation(app *cli.Cmd) {
 	app.Action = func() {
 		body := bufio.NewReader(os.Stdin)
 		var validationResults validationResults
-		validationResults, err := util.API.TestDeviceValidation(*deviceSerial, validationUUID, body)
+		validationResults, err :=
+			util.API.RunDeviceValidation(*deviceSerial, validationUUID, body)
 		if err != nil {
 			util.Bail(err)
 		}
