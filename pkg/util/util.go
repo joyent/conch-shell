@@ -482,3 +482,53 @@ func MagicDeviceRoleID(wat string) (id uuid.UUID, err error) {
 
 	return id, errors.New("Could not find device role " + wat)
 }
+
+// MagicOrcWorkflowID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. If not, we dig through
+// GetOrcWorkflows() looking for UUIDs that match up to the first hyphen or
+// where the workflow name matches the string
+func MagicOrcWorkflowID(wat string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+	// So, it's not a UUID. Let's try for a string name or partial UUID
+	workflows, err := API.GetOrcWorkflows()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, w := range workflows {
+		if (w.Name == wat) || re.MatchString(w.ID.String()) {
+			return w.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find workflow " + wat)
+}
+
+// MagicOrcLifecycleID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. If not, we dig through
+// GetOrcLifecycles() looking for UUIDs that match up to the first hyphen or
+// where the lifecycle name matches the string
+func MagicOrcLifecycleID(wat string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+	// So, it's not a UUID. Let's try for a string name or partial UUID
+	workflows, err := API.GetOrcLifecycles()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, w := range workflows {
+		if (w.Name == wat) || re.MatchString(w.ID.String()) {
+			return w.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find lifecycle " + wat)
+}

@@ -107,6 +107,12 @@
   revision = "b8a9be070da40449e501c3c4730a889e42d87a9e"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/vbauerster/mpb"
   packages = [
     ".",
@@ -167,6 +173,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6ae91e032b961b377cb6fc69b2fd581d1d108090b32f28512ad01018a39b1a35"
+  inputs-digest = "5772cb993801b049470ab4f05d7b752552e7ef69ae1541e992167fbebed9e3d3"
   solver-name = "gps-cdcl"
   solver-version = 1
