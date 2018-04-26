@@ -11,11 +11,11 @@ import (
 	gotree "github.com/DiSiqueira/GoTree"
 	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/joyent/go-conch"
-	"github.com/joyent/go-conch/pgtime"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
 	"strconv"
+	"time"
 )
 
 func getAll(app *cli.Cmd) {
@@ -322,14 +322,14 @@ func getRelays(app *cli.Cmd) {
 		}
 
 		type resultRow struct {
-			ID         string        `json:"id"`
-			Alias      string        `json:"asset_tag"`
-			Created    pgtime.PgTime `json:"created, int"`
-			IPAddr     string        `json:"ipaddr"`
-			SSHPort    int           `json:"ssh_port"`
-			Updated    pgtime.PgTime `json:"updated"`
-			Version    string        `json:"version"`
-			NumDevices int           `json:"num_devices"`
+			ID         string    `json:"id"`
+			Alias      string    `json:"asset_tag"`
+			Created    time.Time `json:"created"`
+			IPAddr     string    `json:"ipaddr"`
+			SSHPort    int       `json:"ssh_port"`
+			Updated    time.Time `json:"updated"`
+			Version    string    `json:"version"`
+			NumDevices int       `json:"num_devices"`
 		}
 
 		results := make([]resultRow, 0)
