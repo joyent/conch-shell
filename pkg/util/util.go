@@ -16,13 +16,13 @@ import (
 	"github.com/dghubble/sling"
 	"github.com/joyent/conch-shell/pkg/config"
 	conch "github.com/joyent/go-conch"
-	"github.com/joyent/go-conch/pgtime"
 	"github.com/olekukonko/tablewriter"
 	cli "gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var (
@@ -52,22 +52,22 @@ var (
 // output
 const DateFormat = "2006-01-02 15:04:05 -0700 MST"
 
-// TimeStr ensures that all PgTimes are formatted using .Local() and DateFormat
-func TimeStr(t pgtime.PgTime) string {
+// TimeStr ensures that all Times are formatted using .Local() and DateFormat
+func TimeStr(t time.Time) string {
 	return t.Local().Format(DateFormat)
 }
 
 // MinimalDevice represents a limited subset of Device data, that which we are
 // going to present to the user
 type MinimalDevice struct {
-	ID       string        `json:"id"`
-	AssetTag string        `json:"asset_tag"`
-	Created  pgtime.PgTime `json:"created,int"`
-	LastSeen pgtime.PgTime `json:"last_seen,int"`
-	Health   string        `json:"health"`
-	Flags    string        `json:"flags"`
-	AZ       string        `json:"az"`
-	Rack     string        `json:"rack"`
+	ID       string    `json:"id"`
+	AssetTag string    `json:"asset_tag"`
+	Created  time.Time `json:"created"`
+	LastSeen time.Time `json:"last_seen"`
+	Health   string    `json:"health"`
+	Flags    string    `json:"flags"`
+	AZ       string    `json:"az"`
+	Rack     string    `json:"rack"`
 }
 
 // BuildAPIAndVerifyLogin builds a Conch object using the Config data and calls
