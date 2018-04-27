@@ -228,6 +228,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"report",
+				"Get the latest recorded device report as JSON",
+				getReport,
+			)
+
+			cmd.Command(
 				"triton",
 				"Subcommands that deal with various Triton related settings",
 				func(cmd *cli.Cmd) {
