@@ -12,12 +12,12 @@ import (
 	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"strconv"
+	"strings"
 )
 
 type validationStates []conch.ValidationState
 
-func (vs validationStates) renderTable(validationPlans []conch.ValidationPlan) {
+func (vs validationStates) renderTable(validationPlans []conch.ValidationPlan, validations []conch.Validation) {
 	table := util.GetMarkdownTable()
 
 	planNameMap := make(map[uuid.UUID]string)
@@ -25,35 +25,50 @@ func (vs validationStates) renderTable(validationPlans []conch.ValidationPlan) {
 		planNameMap[vp.ID] = vp.Name
 	}
 
+	validationNameMap := make(map[uuid.UUID]string)
+	for _, v := range validations {
+		validationNameMap[v.ID] = v.Name
+	}
+
 	table.SetHeader([]string{
 		"Device ID",
 		"Status",
 		"Completed",
 		"Validation Plan",
-		"Pass / Fail / Error",
+		"Results",
 	})
 
+	/* group the validations by name. For each name group, output "pass" if all
+	* results pass or create a string with each failing validation results */
 	for _, v := range vs {
-		fails := 0
-		passes := 0
-		errors := 0
+		resultGroup := make(map[string]string)
 		for _, r := range v.Results {
-			if r.Status == "pass" {
-				passes++
+			vName := validationNameMap[r.ValidationID]
+			if r.Status != "pass" {
+				result := resultGroup[vName]
+				var message string
+				if result != "pass" {
+					message = resultGroup[vName] + "\n  "
+				}
+				message = message + r.Status + ": " + r.Message
+				if r.Hint != "" {
+					message = message + " (" + r.Hint + ")"
+				}
+				resultGroup[vName] = message
+			} else {
+				resultGroup[vName] = "pass"
 			}
-			if r.Status == "fail" {
-				fails++
-			}
-			if r.Status == "error" {
-				errors++
-			}
+		}
+		results := make([]string, 0, len(resultGroup))
+		for vName, vResult := range resultGroup {
+			results = append(results, vName+": "+vResult)
 		}
 		table.Append([]string{
 			v.DeviceID,
 			v.Status,
 			v.Completed.String(),
 			planNameMap[v.ValidationPlanID],
-			strconv.Itoa(passes) + " / " + strconv.Itoa(fails) + " / " + strconv.Itoa(errors),
+			strings.Join(results, "\n"),
 		})
 	}
 
@@ -80,7 +95,11 @@ func getDeviceValidationStates(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		validationStates.renderTable(validationPlans)
+		validations, err := util.API.GetValidations()
+		if err != nil {
+			util.Bail(err)
+		}
+		validationStates.renderTable(validationPlans, validations)
 	}
 }
 
@@ -109,6 +128,10 @@ func getWorkspaceValidationStates(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		validationStates.renderTable(validationPlans)
+		validations, err := util.API.GetValidations()
+		if err != nil {
+			util.Bail(err)
+		}
+		validationStates.renderTable(validationPlans, validations)
 	}
 }
