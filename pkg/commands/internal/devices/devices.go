@@ -7,6 +7,8 @@
 package devices
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/joyent/go-conch"
@@ -303,5 +305,23 @@ func getAssetTag(app *cli.Cmd) {
 			util.Bail(err)
 		}
 		fmt.Println(d.AssetTag)
+	}
+}
+
+func getReport(app *cli.Cmd) {
+	app.Action = func() {
+		util.JSON = true
+		d, err := util.API.GetDevice(DeviceSerial)
+		if err != nil {
+			util.Bail(err)
+		}
+		if d.LatestReport.SerialNumber == "" {
+			util.Bail(errors.New("Device has not yet reported"))
+		}
+		j, err := json.MarshalIndent(d.LatestReport, "", "  ")
+		if err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(string(j))
 	}
 }
