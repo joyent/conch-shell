@@ -28,14 +28,14 @@ func Init(app *cli.Cli) {
 		"Commands for operating on a validation",
 		func(cmd *cli.Cmd) {
 
-			var validationPlanID = cmd.StringArg("ID", "", "The UUID of the validation plan")
+			var validationID = cmd.StringArg("ID", "", "The UUID of the validation")
 
 			cmd.Spec = "ID"
 
 			cmd.Before = func() {
 				util.BuildAPIAndVerifyLogin()
 				var err error
-				validationUUID, err = util.MagicValidationPlanID(*validationPlanID)
+				validationUUID, err = util.MagicValidationID(*validationID)
 				if err != nil {
 					util.Bail(err)
 				}
