@@ -73,8 +73,8 @@
 [[projects]]
   name = "github.com/joyent/go-conch"
   packages = ["."]
-  revision = "8dc9833e09e780a6a5a6f2a16c076a32e415a895"
-  version = "v2.0.0"
+  revision = "99a35aa11deb30f80026eb397f64bcaaa8881ffe"
+  version = "v2.1.0"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -173,6 +173,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5772cb993801b049470ab4f05d7b752552e7ef69ae1541e992167fbebed9e3d3"
+  inputs-digest = "9632cce0f4b922879eabbe63b50676c9f03a45363d954ed1ac7f9d521e6c9cff"
   solver-name = "gps-cdcl"
   solver-version = 1
