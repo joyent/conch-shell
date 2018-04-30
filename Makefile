@@ -8,7 +8,7 @@ BUILD_ARGS = -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONC
 
 BUILD = go build ${BUILD_ARGS} 
 
-default: clean check bin/conch ## By default, run 'clean', 'check', 'bin/conch'
+default: clean vendor check bin/conch ## By default, run 'clean', 'check', 'bin/conch'
 
 first-run: tools ## Install all the dependencies needed to build and test
 

@@ -17,34 +17,39 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Setup and Build
+# Building
 
-## Setting up Go
+* `go get github.com/joyent/conch-shell`. This installs the code at
+  `$GOPATH/src/github.com/joyent/conch-shell`
+* In the `conch-shell` checkout:
+	* `make tools` - Install the necessary build tools
+	* `make` - Build the application
 
-* Install [Go](https://golang.org/)
-* If you're using the [standard go workspace
-  layout](https://golang.org/doc/code.html#Workspaces) (and you really should
-  be), make sure that `$GOPATH/bin` is in `$PATH`
-  * `export GOPATH=$(go env GOPATH); export PATH="$GOPATH/bin:$PATH"`
-  * Typically, `$GOPATH` is `~/go` but it doesn't have to be. Mine is
-    `~/src/go`. The important part is the layout underneath `$GOPATH`
+## Variations
 
-## Check out the code
+### Build against go-conch master
 
-* Run `go get github.com/joyent/conch-shell`
-* The code will end up in `$GOPATH/src/github.com/joyent/conch-shell`
-
-## Install build dependencies
-
-* Run `make first-run`
-* See also `make help`
-
-## Building
-
-* Install [dep](https://golang.github.io/dep/docs/installation.html)
-* `cd $GOPATH/src/github.com/joyent/conch-shell`
+* Open `Gopkg.toml`. 
+* Find the constraint block for go-conch
+* Remove the line that begins with `version`
+* Add a new line containing `branch = "master"`
+* Run `dep ensure`
 * Run `make`
-* Run `./bin/conch`
+
+### Build against a local checkout of go-conch
+
+* Checkout out go-conch to `$GOPATH/src/github.com/joyent/conch-shell`
+* Run `go get gopkg.in/saturi/go.uuid.v1`
+* In the `conch-shell` checkout:
+	* Install dependencies with `dep ensure`
+	* Remove the directory `vendor/github.com/joyent`
+	* Remove the directory `vendor/gopkg.in/satori`
+* In the `go-conch` checkout:
+	* If it exists, remove `vendor/gopkg.in/satori` 
+* In the `conch-shell` checkout, run `make`
+* Do *NOT* run `dep` in either checkout as this will re-install the conflicting
+  dependencies
+
 
 # Notes
 
