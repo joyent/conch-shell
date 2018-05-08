@@ -55,6 +55,29 @@ func main() {
 		},
 	)
 
+	app.Command(
+		"updater",
+		"Commands around self-updating",
+		func(cmd *cli.Cmd) {
+			cmd.Command(
+				"status",
+				"Verify that we have the most recent revision",
+				func(cmd *cli.Cmd) {
+					cmd.Action = func() {
+						gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+						if err != nil {
+							util.Bail(err)
+						}
+						fmt.Printf("This is v%s. Current release is %s.\n",
+							Version,
+							gh.TagName,
+						)
+					}
+				},
+			)
+		},
+	)
+
 	var (
 		useJSON    = app.BoolOpt("json j", false, "Output JSON")
 		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
