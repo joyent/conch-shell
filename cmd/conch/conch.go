@@ -16,6 +16,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/jawher/mow.cli.v1"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -35,6 +36,12 @@ func main() {
 		"version",
 		"Get more detailed version info than --version",
 		func(cmd *cli.Cmd) {
+			buildTime := BuildTime
+			t, err := strconv.ParseInt(BuildTime, 10, 64)
+			if err == nil {
+				buildTime = util.TimeStr(time.Unix(t, 0))
+			}
+
 			cmd.Action = func() {
 				fmt.Printf(
 					"Conch Shell v%s\n"+
@@ -42,7 +49,7 @@ func main() {
 						"  Build Time: %s\n",
 					Version,
 					GitRev,
-					BuildTime,
+					buildTime,
 				)
 			}
 		},
