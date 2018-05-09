@@ -20,31 +20,10 @@
   version = "v3.5.1"
 
 [[projects]]
-  name = "github.com/briandowns/spinner"
-  packages = ["."]
-  revision = "48dbb65d7bd5c74ab50d53d04c949f20e3d14944"
-  version = "1.0"
-
-[[projects]]
   name = "github.com/dghubble/sling"
   packages = ["."]
   revision = "eb56e89ac5088bebb12eef3cb4b293300f43608b"
   version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/fatih/color"
-  packages = ["."]
-  revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
-  version = "v1.6.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/golang/freetype"
-  packages = [
-    "raster",
-    "truetype"
-  ]
-  revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
 
 [[projects]]
   branch = "master"
@@ -53,40 +32,10 @@
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
-  name = "github.com/gorilla/context"
-  packages = ["."]
-  revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
-  version = "v1.1"
-
-[[projects]]
-  name = "github.com/gorilla/handlers"
-  packages = ["."]
-  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
-  version = "v1.3.0"
-
-[[projects]]
-  name = "github.com/gorilla/mux"
-  packages = ["."]
-  revision = "53c1911da2b537f792e7cafcb446b05ffe33b996"
-  version = "v1.6.1"
-
-[[projects]]
   name = "github.com/joyent/go-conch"
   packages = ["."]
   revision = "99a35aa11deb30f80026eb397f64bcaaa8881ffe"
   version = "v2.1.0"
-
-[[projects]]
-  name = "github.com/mattn/go-colorable"
-  packages = ["."]
-  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
-  version = "v0.0.9"
-
-[[projects]]
-  name = "github.com/mattn/go-isatty"
-  packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -113,40 +62,6 @@
   version = "v0.8.0"
 
 [[projects]]
-  name = "github.com/vbauerster/mpb"
-  packages = [
-    ".",
-    "cwriter",
-    "decor"
-  ]
-  revision = "e227edc706423683a577a93c78beb0ce9d211b00"
-  version = "v3.1.1"
-
-[[projects]]
-  name = "github.com/wcharczuk/go-chart"
-  packages = [
-    ".",
-    "drawing",
-    "matrix",
-    "roboto",
-    "seq",
-    "util"
-  ]
-  revision = "7c3982fe3d8ab0c9eea9ab5d2aced51e45d447bc"
-  version = "v2.0.1"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/image"
-  packages = [
-    "draw",
-    "font",
-    "math/f64",
-    "math/fixed"
-  ]
-  revision = "f315e440302883054d0c2bd85486878cb4f8572c"
-
-[[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -159,12 +74,6 @@
   version = "v1.0.3"
 
 [[projects]]
-  name = "gopkg.in/montanaflynn/stats.v0"
-  packages = ["."]
-  revision = "eeaced052adbcfeea372c749c281099ed7fdaa38"
-  version = "0.2.0"
-
-[[projects]]
   name = "gopkg.in/satori/go.uuid.v1"
   packages = ["."]
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
@@ -173,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9632cce0f4b922879eabbe63b50676c9f03a45363d954ed1ac7f9d521e6c9cff"
+  inputs-digest = "9a07a7b7db273d2d5354580ba9fb7edc1fced0c82d174fa55715f94109e5c929"
   solver-name = "gps-cdcl"
   solver-version = 1

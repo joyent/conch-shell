@@ -38,20 +38,8 @@
   version = "3.5.1"
 
 [[constraint]]
-  name = "github.com/briandowns/spinner"
-  version = "1.0.0"
-
-[[constraint]]
   name = "github.com/dghubble/sling"
   version = "1.1.0"
-
-[[constraint]]
-  name = "github.com/gorilla/handlers"
-  version = "1.3.0"
-
-[[constraint]]
-  name = "github.com/gorilla/mux"
-  version = "1.6.0"
 
 [[constraint]]
   branch = "master"
@@ -62,28 +50,12 @@
   name = "github.com/olekukonko/tablewriter"
 
 [[constraint]]
-  name = "github.com/vbauerster/mpb"
-  version = "3.0.3"
-
-[[constraint]]
-  name = "github.com/wcharczuk/go-chart"
-  version = "2.0.0"
-
-[[constraint]]
   name = "gopkg.in/jawher/mow.cli.v1"
   version = "1.0.3"
 
 [[constraint]]
-  name = "gopkg.in/montanaflynn/stats.v0"
-  version = "0.2.0"
-
-[[constraint]]
   name = "gopkg.in/satori/go.uuid.v1"
   version = "1.1.0"
-
-[prune]
-  go-tests = true
-  unused-packages = true
 
 [[constraint]]
   name = "github.com/joyent/go-conch"
@@ -92,3 +64,10 @@
 [[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.0"
+
+
+
+[prune]
+  go-tests = true
+  unused-packages = true
+

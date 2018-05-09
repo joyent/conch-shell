@@ -9,7 +9,6 @@ package main
 import (
 	"fmt"
 	"github.com/blang/semver"
-	"github.com/briandowns/spinner"
 	"github.com/joyent/conch-shell/pkg/commands"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
@@ -50,7 +49,6 @@ func main() {
 	var (
 		useJSON    = app.BoolOpt("json j", false, "Output JSON")
 		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
-		pretty     = app.BoolOpt("pretty", false, "Pretty CLI output, including spinners")
 		noVersion  = app.BoolOpt("no-version-check", false, "Skip Github version check")
 	)
 
@@ -78,12 +76,6 @@ func main() {
 				os.Stderr.WriteString(fmt.Sprintln("     * Running 'conch update self', which will attempt to overwrite the current application"))
 				os.Stderr.WriteString(fmt.Sprintf("     * Download the new release at %s and manually install it\n\n", gh.URL))
 			}
-		}
-
-		util.Pretty = *pretty
-		if *pretty {
-			util.Spin = spinner.New(spinner.CharSets[10], 100*time.Millisecond)
-			util.Spin.FinalMSG = "Complete.\n"
 		}
 
 		expandedPath, err := homedir.Expand(*configFile)
