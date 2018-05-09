@@ -13,6 +13,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands/internal/hardware"
 	"github.com/joyent/conch-shell/pkg/commands/internal/profile"
 	"github.com/joyent/conch-shell/pkg/commands/internal/relay"
+	"github.com/joyent/conch-shell/pkg/commands/internal/update"
 	"github.com/joyent/conch-shell/pkg/commands/internal/user"
 	"github.com/joyent/conch-shell/pkg/commands/internal/validation"
 	"github.com/joyent/conch-shell/pkg/commands/internal/workspaces"
@@ -28,6 +29,7 @@ func Init(app *cli.Cli) {
 	user.Init(app)
 	workspaces.Init(app)
 	validation.Init(app)
+	update.Init(app)
 
 	// orc.Init(app)
 }

@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,24 +20,17 @@ import (
 	"time"
 )
 
-// These variables are provided by the build environment
-var (
-	Version   string
-	BuildTime string
-	GitRev    string
-)
-
 func main() {
-	util.UserAgent = fmt.Sprintf("conch shell v%s-%s", Version, GitRev)
+	util.UserAgent = fmt.Sprintf("conch shell v%s-%s", util.Version, util.GitRev)
 	app := cli.App("conch", "Command line interface for Conch")
-	app.Version("version", Version)
+	app.Version("version", util.Version)
 
 	app.Command(
 		"version",
 		"Get more detailed version info than --version",
 		func(cmd *cli.Cmd) {
-			buildTime := BuildTime
-			t, err := strconv.ParseInt(BuildTime, 10, 64)
+			buildTime := util.BuildTime
+			t, err := strconv.ParseInt(util.BuildTime, 10, 64)
 			if err == nil {
 				buildTime = util.TimeStr(time.Unix(t, 0))
 			}
@@ -47,14 +40,13 @@ func main() {
 					"Conch Shell v%s\n"+
 						"  Git Revision: %s\n"+
 						"  Build Time: %s\n",
-					Version,
-					GitRev,
+					util.Version,
+					util.GitRev,
 					buildTime,
 				)
 			}
 		},
 	)
-
 	var (
 		useJSON    = app.BoolOpt("json j", false, "Output JSON")
 		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
@@ -74,14 +66,17 @@ func main() {
 			if err != nil {
 				util.Bail(err)
 			}
-			sem := semver.MustParse(Version)
-			if gh.SemVer.GT(sem) {
-				fmt.Printf(
+
+			if gh.SemVer.GT(semver.MustParse(util.Version)) {
+				os.Stderr.WriteString(fmt.Sprintf(
 					"** A new release is available! You have v%s and %s is available.\n",
-					Version,
+					util.Version,
 					gh.TagName,
-				)
-				fmt.Printf("** Download the new release at %s\n\n", gh.URL)
+				))
+				os.Stderr.WriteString(fmt.Sprintln("   The changelog can be viewed via 'conch update changelog'\n"))
+				os.Stderr.WriteString(fmt.Sprintln("   You can obtain the new release by:"))
+				os.Stderr.WriteString(fmt.Sprintln("     * Running 'conch update self', which will attempt to overwrite the current application"))
+				os.Stderr.WriteString(fmt.Sprintf("     * Download the new release at %s and manually install it\n\n", gh.URL))
 			}
 		}
 
