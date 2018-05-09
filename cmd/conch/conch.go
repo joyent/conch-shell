@@ -16,7 +16,6 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/jawher/mow.cli.v1"
 	"os"
-	"regexp"
 	"strconv"
 	"time"
 )
@@ -48,52 +47,6 @@ func main() {
 			}
 		},
 	)
-
-	app.Command(
-		"updater",
-		"Commands around self-updating",
-		func(cmd *cli.Cmd) {
-			cmd.Command(
-				"status",
-				"Verify that we have the most recent revision",
-				func(cmd *cli.Cmd) {
-					cmd.Action = func() {
-						gh, err := util.LatestGithubRelease("joyent", "conch-shell")
-						if err != nil {
-							util.Bail(err)
-						}
-						fmt.Printf("This is v%s. Current release is %s.\n",
-							Version,
-							gh.TagName,
-						)
-					}
-				},
-			)
-
-			cmd.Command(
-				"changelog",
-				"Display the latest changelog",
-				func(cmd *cli.Cmd) {
-					cmd.Action = func() {
-						gh, err := util.LatestGithubRelease("joyent", "conch-shell")
-						if err != nil {
-							util.Bail(err)
-						}
-
-						// I'm not going to try and fully sanitize the output
-						// for a shell environment but removing the markdown
-						// backticks seems like a no-brainer for safety.
-						re := regexp.MustCompile("`")
-						body := gh.Body
-						re.ReplaceAllLiteralString(body, "'")
-						fmt.Printf("Version %s Changelog:\n\n", gh.TagName)
-						fmt.Println(body)
-					}
-				},
-			)
-		},
-	)
-
 	var (
 		useJSON    = app.BoolOpt("json j", false, "Output JSON")
 		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
