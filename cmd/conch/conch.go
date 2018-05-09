@@ -68,15 +68,15 @@ func main() {
 			}
 
 			if gh.SemVer.GT(semver.MustParse(util.Version)) {
-				fmt.Printf(
+				os.Stderr.WriteString(fmt.Sprintf(
 					"** A new release is available! You have v%s and %s is available.\n",
 					util.Version,
 					gh.TagName,
-				)
-				fmt.Println("   The changelog can be viewed via 'conch update changelog'\n")
-				fmt.Println("   You can obtain the new release by:")
-				fmt.Println("     * Running 'conch update self', which will attempt to overwrite the current application")
-				fmt.Printf("     * Download the new release at %s and manually install it\n\n", gh.URL)
+				))
+				os.Stderr.WriteString(fmt.Sprintln("   The changelog can be viewed via 'conch update changelog'\n"))
+				os.Stderr.WriteString(fmt.Sprintln("   You can obtain the new release by:"))
+				os.Stderr.WriteString(fmt.Sprintln("     * Running 'conch update self', which will attempt to overwrite the current application"))
+				os.Stderr.WriteString(fmt.Sprintf("     * Download the new release at %s and manually install it\n\n", gh.URL))
 			}
 		}
 
