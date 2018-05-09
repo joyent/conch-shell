@@ -401,13 +401,12 @@ func FindShortUUID(s string, uuids []uuid.UUID) (uuid.UUID, error) {
 
 // GithubRelease represents a 'release' for a Github project
 type GithubRelease struct {
-	URL      string         `json:"html_url"`
-	TagName  string         `json:"tag_name"`
-	SemVer   semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
-	Body     string         `json:"body"`
-	Name     string         `json:"name"`
-	Assets   []GithubAsset  `json:"assets"`
-	HumanURL string         `json:"html_url"`
+	URL     string         `json:"html_url"`
+	TagName string         `json:"tag_name"`
+	SemVer  semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
+	Body    string         `json:"body"`
+	Name    string         `json:"name"`
+	Assets  []GithubAsset  `json:"assets"`
 }
 
 // GithubAsset represents a file inside of a github release
