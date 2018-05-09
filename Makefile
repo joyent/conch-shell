@@ -4,7 +4,8 @@ CONCH_GIT_REV=`git describe --always --abbrev --dirty --long`
 
 UNAME_S=$(shell uname -s)
 
-BUILD_ARGS = -ldflags="-X main.Version=${CONCH_VERSION} -X main.BuildTime=${CONCH_BUILD_TIME} -X main.GitRev=${CONCH_GIT_REV}" 
+FLAGS_PATH=github.com/joyent/conch-shell/pkg/util
+BUILD_ARGS = -ldflags="-X ${FLAGS_PATH}.Version=${CONCH_VERSION} -X ${FLAGS_PATH}.BuildTime=${CONCH_BUILD_TIME} -X ${FLAGS_PATH}.GitRev=${CONCH_GIT_REV}"
 
 BUILD = go build ${BUILD_ARGS} 
 

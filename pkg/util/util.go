@@ -48,6 +48,13 @@ var (
 	Spin *spinner.Spinner
 )
 
+// These variables are provided by the build environment
+var (
+	Version   string
+	BuildTime string
+	GitRev    string
+)
+
 // DateFormat should be used in date formatting calls to ensure uniformity of
 // output
 const DateFormat = "2006-01-02 15:04:05 -0700 MST"
