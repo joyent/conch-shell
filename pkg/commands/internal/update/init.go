@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package updater contains commands related to updating conch
-package updater
+// Package update contains commands related to updating conch-shell
+package update
 
 import (
 	"gopkg.in/jawher/mow.cli.v1"
@@ -14,7 +14,7 @@ import (
 // Init loads up the commands dealing with updating
 func Init(app *cli.Cli) {
 	app.Command(
-		"updater",
+		"update",
 		"Commands around self-updating",
 		func(cmd *cli.Cmd) {
 			cmd.Command(
@@ -30,7 +30,7 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"self-update",
+				"self",
 				"Update the running application to the latest release",
 				selfUpdate,
 			)
