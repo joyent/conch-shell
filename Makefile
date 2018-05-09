@@ -18,14 +18,10 @@ bin/conch: pkg/**/*.go cmd/conch/*.go vendor ## Build bin/conch
 	@echo "==> building bin/conch"
 	${BUILD} -o bin/conch cmd/conch/conch.go
 
-.PHONY: bin/conch-mbo
-bin/conch-mbo: pkg/**/*.go cmd/conch-mbo/*.go vendor ## Build bin/conch-mbo
-	@echo "==> building bin/conch-mbo"
-	${BUILD} -o bin/conch-mbo cmd/conch-mbo/conch-mbo.go
 
 clean: ## Remove build products from bin/
 	@echo "==> Removing build products from bin/"
-	rm -f bin/conch bin/conch-mbo
+	rm -f bin/conch
 
 vendor: ## Install dependencies
 	dep ensure -v -vendor-only
@@ -36,7 +32,6 @@ update_deps: ## Update dependencies
 .PHONY: release
 release: vendor check ## Build binaries for all supported platforms
 	@echo "==> Building for all the platforms"
-	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-mbo-darwin-amd64 cmd/conch-mbo/conch-mbo.go
 	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-darwin-amd64 cmd/conch/conch.go
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-linux-amd64 cmd/conch/conch.go
 	GOOS=linux GOARCH=arm ${BUILD} -o release/conch-linux-arm cmd/conch/conch.go

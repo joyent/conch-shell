@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/blang/semver"
-	"github.com/briandowns/spinner"
 	"github.com/dghubble/sling"
 	"github.com/joyent/conch-shell/pkg/config"
 	conch "github.com/joyent/go-conch"
@@ -40,12 +39,6 @@ var (
 
 	// API is a global Conch API object
 	API *conch.Conch
-
-	// Pretty tells us if we should have pretty output
-	Pretty bool
-
-	// Spin is a global Spinner object
-	Spin *spinner.Spinner
 )
 
 // These variables are provided by the build environment
