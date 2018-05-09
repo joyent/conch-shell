@@ -66,14 +66,17 @@ func main() {
 			if err != nil {
 				util.Bail(err)
 			}
-			sem := semver.MustParse(util.Version)
-			if gh.SemVer.GT(sem) {
+
+			if gh.SemVer.GT(semver.MustParse(util.Version)) {
 				fmt.Printf(
 					"** A new release is available! You have v%s and %s is available.\n",
 					util.Version,
 					gh.TagName,
 				)
-				fmt.Printf("** Download the new release at %s\n\n", gh.URL)
+				fmt.Println("   The changelog can be viewed via 'conch update changelog'\n")
+				fmt.Println("   You can obtain the new release by:")
+				fmt.Println("     * Running 'conch update self', which will attempt to overwrite the current application")
+				fmt.Printf("     * Download the new release at %s and manually install it\n\n", gh.URL)
 			}
 		}
 
