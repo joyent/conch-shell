@@ -71,7 +71,7 @@ func main() {
 					util.Version,
 					gh.TagName,
 				))
-				os.Stderr.WriteString(fmt.Sprintln("   The changelog can be viewed via 'conch update changelog'\n"))
+				os.Stderr.WriteString(fmt.Sprintf("   The changelog can be viewed via 'conch update changelog'\n\n"))
 				os.Stderr.WriteString(fmt.Sprintln("   You can obtain the new release by:"))
 				os.Stderr.WriteString(fmt.Sprintln("     * Running 'conch update self', which will attempt to overwrite the current application"))
 				os.Stderr.WriteString(fmt.Sprintf("     * Download the new release at %s and manually install it\n\n", gh.URL))

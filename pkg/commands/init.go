@@ -8,7 +8,6 @@
 package commands
 
 import (
-	// "github.com/joyent/conch-shell/pkg/commands/internal/orc"
 	"github.com/joyent/conch-shell/pkg/commands/internal/devices"
 	"github.com/joyent/conch-shell/pkg/commands/internal/hardware"
 	"github.com/joyent/conch-shell/pkg/commands/internal/profile"
@@ -30,6 +29,4 @@ func Init(app *cli.Cli) {
 	workspaces.Init(app)
 	validation.Init(app)
 	update.Init(app)
-
-	// orc.Init(app)
 }
