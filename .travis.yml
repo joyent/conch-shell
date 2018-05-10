@@ -2,19 +2,18 @@ os: linux
 sudo: false
 language: go
 go:
-  - '1.10'
+- '1.10'
 install:
-  - make tools
+- make tools
 script:
-  - make release
+- make release
 deploy:
   skip_cleanup: true
   provider: releases
   prerelease: true
   api_key:
-    secure: A8vcNPDVPX+dnPWXrs4yT8HehrYa7bWlv7Zb2wvYjYngY+ztbnKUMSisnWbIWIx8N0gr6Xyb3KcV5S7WxLiNE7K2IAC2cF7O1EmvcaJ778TsBKowLuYdqWiew561beMQuuWoMQuL8jMQhl1bV2SMiR3J2aaYjM2c3jeGZQmQSNHpFp8o55KsXLPQNxX5mQ5mnZf1u5F00X8c30ahPj2tlHrXG5Q183HzPwdBktjbuWSyIdgGPGqtm5/0uJewFUOOcRKRODCPDlclXM2s65QvIeCopoqAr4KWGpmot5lt/qAso5XWtCe6aVGIXptyJBs9Rl0fhFOrbjZN0rkT2xenbxGS8OyrMVNfqSypofig9nU4BXK/fL8kdykiefwGVOqn6vbkjAEfphTVIsjlPfjIactPgORMJtAEIH7Tu/bI1F1T1DEce8m7VPtznH1YStUTWIuH7yMEQY81gQh2Ijn38PaDPgrcxlX4he+BwyRYeg1SO3TVbZheIUFQBSCJCATQtbUQZR9bGQS/bz2jC/eXzFUsY0Lhz2GA8zIX2A/+RLshbmua/erVtBocLUGQrBI/DNaIJ3K/RxivEL5keGKozcmxPO7nOBL4PhirCKiCBS1WMCpUd7G7n6+qOyeyWVrkp34PXWb17Ghbglsbpl9kschRKB1wkel+MV7AeQSYDpU=
+    secure: K6IIRIr6Zx1FvTVht9KQmygrBnZ5/k+18pOg1lziTAm+tCxs/9pWtgUp5VCZJXGM6SwM2oIe1mFld/sb/RARyUCCAz+18Yn6gBI368zasL3ARJ4msJ/9ohVIm7sQ2w8oN8TfOEdjbj1nAaGSQ900pLKPW/nKMeslH6iHII5BTJyd6BejsywFBaYSrMG4ciEL/Qf3OuVM7UavMIgXX++sxwyBgO4R5VJpK/FIRlJNrMvkDcSHye3yWp/14LJbSVTprlYVxYMlXmalWrRMgdN9Ug/drz7dayLsQH6LGF7xkUgR9nQzk8MgUHTOwfPsKeiuoSfaSakFkkkh+SmeFvDjGtKuvs77sWVuxYyPADxlv996YIEZlaTn7Up0G9+Ms28yjrQqOZg1URu5IY25vgKxanCSuRNj8LkQhobixgts90TnnXSNgHzMhk+Rp2tr6KmcizLxEdIZE3GYR8yyUZpzH8QGyOlwXixj8LDpZRp4NMdLH1/zGdPjGLdX9A73IKZhQ38KgkSMz6nHF7MV9BQvj79EM/ZGzEupSkfNSzvO6ag+d5VjYjSXie4jRrA6HKo/G7gdVjFRbQCeMIIY5D3l1KlfNY82l7EkM8W9Ni50o5ZhIK+vwAO6Xwin4+37SOIEa5XU+9VEBvj0IUzWxX+pgL9aEPBGhJmzJ4x2k5CnNfs=
   file:
-    - "release/conch-mbo-darwin-amd64"
     - "release/conch-darwin-amd64"
     - "release/conch-linux-amd64"
     - "release/conch-linux-arm"
@@ -29,5 +28,4 @@ notifications:
     on_success: change
     on_failure: always
     recipients:
-      - sungo@joyent.com
-
+    - sungo@joyent.com
