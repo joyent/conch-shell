@@ -31,11 +31,13 @@ type ConchConfig struct {
 type ConchProfile struct {
 	Name          string    `json:"name"`
 	User          string    `json:"user"`
-	Session       string    `json:"session"`
+	Session       string    `json:"session,omitempty"`
 	WorkspaceUUID uuid.UUID `json:"workspace_id"`
 	WorkspaceName string    `json:"workspace_name"`
 	BaseURL       string    `json:"api_url"`
 	Active        bool      `json:"active"`
+	JWToken       string    `json:"jwt,omitempty"`
+	Expires       int       `json:"expires,omitempty"`
 }
 
 // New provides an initialized struct with default values geared towards a
