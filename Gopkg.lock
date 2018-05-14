@@ -34,8 +34,8 @@
 [[projects]]
   name = "github.com/joyent/go-conch"
   packages = ["."]
-  revision = "99a35aa11deb30f80026eb397f64bcaaa8881ffe"
-  version = "v2.1.0"
+  revision = "a3699969ea4785894ec659c67f3f5d9696b96b31"
+  version = "v3.0.0"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -54,12 +54,6 @@
   name = "github.com/olekukonko/tablewriter"
   packages = ["."]
   revision = "b8a9be070da40449e501c3c4730a889e42d87a9e"
-
-[[projects]]
-  name = "github.com/pkg/errors"
-  packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
 
 [[projects]]
   branch = "master"
@@ -82,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9a07a7b7db273d2d5354580ba9fb7edc1fced0c82d174fa55715f94109e5c929"
+  inputs-digest = "7673404095a8148ac0d04308c3aa50afb5184ce0ec28acf6f7b2c47e56f9cd1b"
   solver-name = "gps-cdcl"
   solver-version = 1
