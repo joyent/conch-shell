@@ -7,22 +7,6 @@ install:
 - make tools
 script:
 - make release
-deploy:
-  skip_cleanup: true
-  provider: releases
-  prerelease: true
-  api_key:
-    secure: d9sEVPv05fE+c+jJ+2uQjgj3l7gat339GPUYz+BFyWHhmdyQmDv16ugZ9H5Yn2FqiZCaWUAajlh9cP0Uv3rK75SXVGBUHrIe/QbLYiG7BdqpLm7XUtCuHFAlkzbNwx74wR9Nq9QK1nz7l6xdZx2d5uM9a+CIf7xVOD53exh5ZIplOMvlvW1l0FqYHT8rSjnxwZjCo2qInY5t4z7UbzSmVMa1OUVjph3gG93009HKNO+UYuF0tkXt7zYz3R0ljkr4ZvaYTSUuWhKR6G2vZHw3E67VfEocitahPS3Rdaf0hKXnDmxh6s+AXYUz4ouC8na1AcOBlU6NES7kmBda/HirlwU60EhZ4YovA/mPGbViHmQ5+mJ+2q+XLfulJMfYDW8qpI1hZa2NGV4oj19fqcMU4pfIc+VS+Z7CRQvBBfJ3gPTB5nrCUKG2J+cYGHk9DTWt39hidWJKSnAYuEARoJc+EDzEU49zjXRqWn2WE6xZLwJaoC+FA75ngTP8RH0Nhoa5MW8kpl30gawAuy8Gzlhq1Ns8+qSydTLSLbrBGbf0bCQi8RMalXgcRQe6FuzVCzqqy74NhEm1rQXS2nX2z6uPzax4or338THOh6xFI0aCF99napAtEK6Up3CcLkT7xBW+mBYG8o7zj2vxUGl8v+j6/nmF7B8dwvmZar9QDG3592s=
-  file:
-    - "release/conch-darwin-amd64"
-    - "release/conch-linux-amd64"
-    - "release/conch-linux-arm"
-    - "release/conch-solaris-amd64"
-    - "release/conch-freebsd-amd64"
-    - "release/conch-openbsd-amd64"
-  on:
-    tags: true
-    repo: joyent/conch-shell
 notifications:
   email:
     on_success: change
