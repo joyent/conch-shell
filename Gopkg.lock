@@ -32,6 +32,21 @@
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
+  name = "github.com/jawher/mow.cli"
+  packages = [
+    ".",
+    "internal/container",
+    "internal/flow",
+    "internal/fsm",
+    "internal/lexer",
+    "internal/matcher",
+    "internal/parser",
+    "internal/values"
+  ]
+  revision = "2f22195f169da29d54624afd9eb83ada5c9e4ee9"
+  version = "v1.0.4"
+
+[[projects]]
   name = "github.com/joyent/go-conch"
   packages = ["."]
   revision = "a3699969ea4785894ec659c67f3f5d9696b96b31"
@@ -62,12 +77,6 @@
   revision = "3b87a42e500a6dc65dae1a55d0b641295971163e"
 
 [[projects]]
-  name = "gopkg.in/jawher/mow.cli.v1"
-  packages = ["."]
-  revision = "0e80ee9f63156ea1954dc2375c33a1c7e752c25c"
-  version = "v1.0.3"
-
-[[projects]]
   name = "gopkg.in/satori/go.uuid.v1"
   packages = ["."]
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
@@ -76,6 +85,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7673404095a8148ac0d04308c3aa50afb5184ce0ec28acf6f7b2c47e56f9cd1b"
+  inputs-digest = "3acd12b8e64e3eb2f1aa59a72fd9df3136c87c1a27b638c495da720b2b28806b"
   solver-name = "gps-cdcl"
   solver-version = 1

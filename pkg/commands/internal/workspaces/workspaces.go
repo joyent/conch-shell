@@ -8,14 +8,15 @@ package workspaces
 
 import (
 	"fmt"
-	gotree "github.com/DiSiqueira/GoTree"
-	"github.com/joyent/conch-shell/pkg/util"
-	"github.com/joyent/go-conch"
-	"gopkg.in/jawher/mow.cli.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"sort"
 	"strconv"
 	"time"
+
+	gotree "github.com/DiSiqueira/GoTree"
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
+	"github.com/joyent/go-conch"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 func getAll(app *cli.Cmd) {

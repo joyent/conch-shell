@@ -10,13 +10,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/joyent/conch-shell/pkg/util"
-	"github.com/joyent/go-conch"
-	"gopkg.in/jawher/mow.cli.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"os"
 	"sort"
 	"text/template"
+
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
+	"github.com/joyent/go-conch"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 const singleDeviceTemplate = `

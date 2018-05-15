@@ -50,8 +50,8 @@
   name = "github.com/olekukonko/tablewriter"
 
 [[constraint]]
-  name = "gopkg.in/jawher/mow.cli.v1"
-  version = "1.0.3"
+  name = "github.com/jawher/mow.cli"
+  version = "1.0.4"
 
 [[constraint]]
   name = "gopkg.in/satori/go.uuid.v1"

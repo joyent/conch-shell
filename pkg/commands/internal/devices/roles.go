@@ -8,11 +8,12 @@ package devices
 
 import (
 	"fmt"
+	"strconv"
+
+	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/joyent/go-conch"
-	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"strconv"
 )
 
 func getAllDeviceRoles(app *cli.Cmd) {

@@ -8,7 +8,7 @@
 package profile
 
 import (
-	"gopkg.in/jawher/mow.cli.v1"
+	"github.com/jawher/mow.cli"
 )
 
 // Init loads up the profile commands

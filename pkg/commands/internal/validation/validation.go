@@ -9,11 +9,12 @@ package validation
 
 import (
 	"bufio"
-	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
-	"gopkg.in/jawher/mow.cli.v1"
 	"os"
 	"strconv"
+
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
+	conch "github.com/joyent/go-conch"
 )
 
 type validations []conch.Validation
