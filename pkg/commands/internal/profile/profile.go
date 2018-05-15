@@ -7,6 +7,7 @@ package profile
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Bowery/prompt"
 	"github.com/joyent/conch-shell/pkg/config"
@@ -14,6 +15,7 @@ import (
 	conch "github.com/joyent/go-conch"
 	"gopkg.in/jawher/mow.cli.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"time"
 )
 
 func newProfile(app *cli.Cmd) {
@@ -96,6 +98,7 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		p.Session = api.Session
+		p.JWToken = api.JWToken
 
 		util.API = api
 
@@ -169,6 +172,7 @@ func listProfiles(app *cli.Cmd) {
 			"Workspace ID",
 			"Workspace Name",
 			"API URL",
+			"Expires",
 		})
 
 		for _, prof := range util.Config.Profiles {
@@ -188,6 +192,11 @@ func listProfiles(app *cli.Cmd) {
 					workspaceName = "**UNKNOWN**"
 				}
 			}
+			expires := "Unknown"
+			if prof.Expires > 0 {
+				expires = util.TimeStr(time.Unix(int64(prof.Expires), 0))
+			}
+
 			table.Append([]string{
 				active,
 				prof.Name,
@@ -195,6 +204,7 @@ func listProfiles(app *cli.Cmd) {
 				workspaceUUID,
 				workspaceName,
 				prof.BaseURL,
+				expires,
 			})
 		}
 		table.Render()
@@ -251,5 +261,55 @@ func setActive(app *cli.Cmd) {
 		}
 
 		util.WriteConfig()
+	}
+}
+
+func refreshJWT(app *cli.Cmd) {
+	app.Action = func() {
+		util.BuildAPI()
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("No active profile. Please use 'conch profile' to create or set an active profile"))
+		}
+
+		if err := util.API.VerifyLogin(0, true); err != nil {
+			util.Bail(err)
+		}
+		util.ActiveProfile.Session = util.API.Session
+		util.ActiveProfile.JWToken = util.API.JWToken
+		util.ActiveProfile.Expires = util.API.Expires
+		util.WriteConfig()
+
+		expires := time.Unix(int64(util.API.Expires), 0)
+		if util.JSON {
+			util.JSONOut(struct {
+				Expires time.Time `json:"expires"`
+			}{expires})
+
+			return
+		}
+
+		fmt.Printf(
+			"Auth for profile '%s' now expires at %s\n",
+			util.ActiveProfile.Name,
+			util.TimeStr(expires),
+		)
+	}
+}
+
+func revokeJWT(app *cli.Cmd) {
+	var forceOpt = app.BoolOpt("force", false, "Perform destructive actions")
+	app.Spec = "--force"
+
+	app.Action = func() {
+		if *forceOpt {
+			util.BuildAPIAndVerifyLogin()
+			if err := util.API.RevokeOwnTokens(); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Println("Tokens revoked.")
+			}
+		}
 	}
 }

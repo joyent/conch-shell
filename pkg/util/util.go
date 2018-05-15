@@ -52,6 +52,10 @@ var (
 // output
 const DateFormat = "2006-01-02 15:04:05 -0700 MST"
 
+// RefreshTokenTime represent when a JWT token will be refreshed, based on this
+// many seconds left on the expiry time
+const RefreshTokenTime = 86400
+
 // TimeStr ensures that all Times are formatted using .Local() and DateFormat
 func TimeStr(t time.Time) string {
 	return t.Local().Format(DateFormat)
@@ -74,10 +78,12 @@ type MinimalDevice struct {
 // VerifyLogin
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
-	if err := API.VerifyLogin(); err != nil {
+	if err := API.VerifyLogin(RefreshTokenTime, false); err != nil {
 		Bail(err)
 	}
 	ActiveProfile.Session = API.Session
+	ActiveProfile.JWToken = API.JWToken
+	ActiveProfile.Expires = API.Expires
 	WriteConfig()
 }
 
@@ -97,6 +103,7 @@ func BuildAPI() {
 	API = &conch.Conch{
 		BaseURL: ActiveProfile.BaseURL,
 		Session: ActiveProfile.Session,
+		JWToken: ActiveProfile.JWToken,
 	}
 	if UserAgent != "" {
 		API.UA = UserAgent
