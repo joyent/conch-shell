@@ -8,7 +8,7 @@
 package update
 
 import (
-	"gopkg.in/jawher/mow.cli.v1"
+	"github.com/jawher/mow.cli"
 )
 
 // Init loads up the commands dealing with updating

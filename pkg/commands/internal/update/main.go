@@ -8,15 +8,16 @@ package update
 
 import (
 	"fmt"
-	"github.com/blang/semver"
-	"github.com/joyent/conch-shell/pkg/util"
-	"gopkg.in/jawher/mow.cli.v1"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
+
+	"github.com/blang/semver"
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
 )
 
 func status(cmd *cli.Cmd) {

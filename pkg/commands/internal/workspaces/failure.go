@@ -8,13 +8,14 @@ package workspaces
 
 import (
 	"fmt"
-	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
-	"gopkg.in/jawher/mow.cli.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"regexp"
 	"sort"
 	"time"
+
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
+	conch "github.com/joyent/go-conch"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 func getFailures(app *cli.Cmd) {

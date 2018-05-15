@@ -9,8 +9,9 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
-	"gopkg.in/jawher/mow.cli.v1"
 )
 
 func getSettings(app *cli.Cmd) {

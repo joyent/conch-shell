@@ -8,6 +8,7 @@
 package commands
 
 import (
+	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/commands/internal/admin"
 	"github.com/joyent/conch-shell/pkg/commands/internal/devices"
 	"github.com/joyent/conch-shell/pkg/commands/internal/hardware"
@@ -17,7 +18,6 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands/internal/user"
 	"github.com/joyent/conch-shell/pkg/commands/internal/validation"
 	"github.com/joyent/conch-shell/pkg/commands/internal/workspaces"
-	"gopkg.in/jawher/mow.cli.v1"
 )
 
 // Init loads up all the commands

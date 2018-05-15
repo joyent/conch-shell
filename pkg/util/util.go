@@ -11,17 +11,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/blang/semver"
-	"github.com/dghubble/sling"
-	"github.com/joyent/conch-shell/pkg/config"
-	conch "github.com/joyent/go-conch"
-	"github.com/olekukonko/tablewriter"
-	cli "gopkg.in/jawher/mow.cli.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/blang/semver"
+	"github.com/dghubble/sling"
+	cli "github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/config"
+	conch "github.com/joyent/go-conch"
+	"github.com/olekukonko/tablewriter"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 var (

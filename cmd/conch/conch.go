@@ -8,15 +8,16 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/blang/semver"
+	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/commands"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
-	"gopkg.in/jawher/mow.cli.v1"
-	"os"
-	"strconv"
-	"time"
 )
 
 func main() {

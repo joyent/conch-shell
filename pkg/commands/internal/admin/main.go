@@ -8,8 +8,9 @@ package admin
 
 import (
 	"fmt"
+
+	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
-	"gopkg.in/jawher/mow.cli.v1"
 )
 
 func revokeTokens(app *cli.Cmd) {
