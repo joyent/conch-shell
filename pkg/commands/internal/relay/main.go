@@ -41,7 +41,7 @@ func register(app *cli.Cmd) {
 func getAllRelays(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
 	app.Action = func() {
-		relays, err := util.API.GetAllRelays()
+		relays, err := util.API.GetAllRelaysWithoutDevices()
 		if err != nil {
 			util.Bail(err)
 		}
