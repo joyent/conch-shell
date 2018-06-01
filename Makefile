@@ -39,6 +39,12 @@ release: vendor check ## Build binaries for all supported platforms
 	GOOS=freebsd GOARCH=amd64 ${BUILD} -o release/conch-freebsd-amd64 cmd/conch/conch.go
 	GOOS=openbsd GOARCH=amd64 ${BUILD} -o release/conch-openbsd-amd64 cmd/conch/conch.go
 
+.PHONY: checksums
+checksums: ## Build checksums for all release binaries
+	@echo "==> Building checksums"
+	@rm -f release/*.sha256
+	@cd release && find . -type f -iname conch-\* -print0 | xargs -0 -n 1 -I {} sh -c 'shasum -a 256 {} > "{}.sha256"'
+
 # gem install github_changelog_generator
 changelog:
 	github_changelog_generator -u joyent -p conch-shell #--due-tag ${CONCH_VERSION}
