@@ -1,4 +1,4 @@
-CONCH_VERSION="1.0.0"
+CONCH_VERSION="1.1.0"
 CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty --long`
 
