@@ -47,3 +47,39 @@ func get(cmd *cli.Cmd) {
 		}
 	}
 }
+
+func deleteAPI(cmd *cli.Cmd) {
+	var cmdArg = cmd.StringArg("CMD", "", "The API path to DELETE. Must *not* include the hostname or port")
+	cmd.Spec = "CMD"
+	cmd.Action = func() {
+		util.JSON = true
+		if *cmdArg != "" {
+			res, err := util.API.RawDelete(*cmdArg)
+			if err != nil {
+				util.Bail(err)
+			}
+			if res == nil {
+				util.Bail(errors.New("Empty response"))
+			}
+
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				util.Bail(err)
+			}
+			bodyStr := string(body)
+
+			if res.StatusCode != 200 {
+				if res.StatusCode != 204 {
+					errStr := fmt.Sprintf(
+						"HTTP Error: Status: %s\nBody: %s\n",
+						res.Status,
+						bodyStr,
+					)
+					util.Bail(errors.New(errStr))
+				}
+			}
+			fmt.Println(bodyStr)
+
+		}
+	}
+}
