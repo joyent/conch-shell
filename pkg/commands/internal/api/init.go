@@ -24,6 +24,17 @@ func Init(app *cli.Cli) {
 				"Perform an HTTP get against a provided URL",
 				get,
 			)
+			cmd.Command(
+				"delete",
+				"Perform an HTTP DELETE against a provided URL",
+				deleteAPI,
+			)
+			cmd.Command(
+				"post",
+				"Perform an HTTP POST against a provided URL",
+				postAPI,
+			)
+
 		},
 	)
 
