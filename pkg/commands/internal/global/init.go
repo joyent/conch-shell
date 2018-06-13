@@ -18,6 +18,9 @@ import (
 // GdcUUID is the UUID of the global datacenter provided by the user
 var GdcUUID uuid.UUID
 
+// GRoomUUID is the UUID of the global datacenter provided by the user
+var GRoomUUID uuid.UUID
+
 // Init loads up the commands
 func Init(app *cli.Cli) {
 	app.Command(
@@ -66,7 +69,7 @@ func Init(app *cli.Cli) {
 					)
 
 					dc.Command(
-						"delete",
+						"delete rm",
 						"Delete a datacenter",
 						dcDelete,
 					)
@@ -75,6 +78,65 @@ func Init(app *cli.Cli) {
 						"update",
 						"Update a datacenter",
 						dcUpdate,
+					)
+
+					dc.Command(
+						"rooms",
+						"Get all rooms assigned to a datacenter",
+						dcGetAllRooms,
+					)
+				},
+			)
+			/////////////////////////////////
+			cmd.Command(
+				"rooms rs",
+				"Operate on all rooms",
+				func(rs *cli.Cmd) {
+					rs.Command(
+						"get",
+						"Get all rooms",
+						roomGetAll,
+					)
+
+					rs.Command(
+						"create",
+						"Create a room",
+						roomCreate,
+					)
+				},
+			)
+
+			cmd.Command(
+				"room r",
+				"Operate on individual rooms",
+				func(r *cli.Cmd) {
+					var roomIDStr = r.StringArg("ID", "", "The UUID of the room")
+
+					r.Spec = "ID"
+					r.Before = func() {
+						id, err := uuid.FromString(*roomIDStr)
+						if err != nil {
+							util.Bail(err)
+						}
+						GRoomUUID = id
+					}
+
+					r.Command(
+						"get",
+						"Get a room",
+						roomGet,
+					)
+
+					r.Command(
+						"delete rm",
+						"Delete a room",
+						roomDelete,
+					)
+
+					r.Command(
+						"update",
+						"Update a room",
+						roomUpdate,
 					)
 				},
 			)

@@ -199,3 +199,42 @@ Updated: %s
 	}
 
 }
+
+func dcGetAllRooms(app *cli.Cmd) {
+	app.Action = func() {
+		d, err := util.API.GetGlobalDatacenter(GdcUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		rs, err := util.API.GetGlobalDatacenterRooms(d)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(rs)
+			return
+		}
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"ID",
+			"Datacenter ID",
+			"AZ",
+			"Alias",
+			"Vendor Name",
+		})
+
+		for _, r := range rs {
+			table.Append([]string{
+				r.ID.String(),
+				r.DatacenterID.String(),
+				r.AZ,
+				r.Alias,
+				r.VendorName,
+			})
+		}
+		table.Render()
+	}
+}
