@@ -24,6 +24,9 @@ var GRoomUUID uuid.UUID
 // GRackUUID is the UUID of the global rack provided by the user
 var GRackUUID uuid.UUID
 
+// GRoleUUID is the UUID of the global rack role provided by the user
+var GRoleUUID uuid.UUID
+
 // Init loads up the commands
 func Init(app *cli.Cli) {
 	app.Command(
@@ -201,6 +204,60 @@ func Init(app *cli.Cli) {
 						"update",
 						"Update a rack",
 						rackUpdate,
+					)
+				},
+			)
+
+			/////////////////////////////////
+			cmd.Command(
+				"roles ros",
+				"Operate on all roles",
+				func(rs *cli.Cmd) {
+					rs.Command(
+						"get",
+						"Get all roles",
+						roleGetAll,
+					)
+
+					rs.Command(
+						"create",
+						"Create a role",
+						roleCreate,
+					)
+				},
+			)
+
+			cmd.Command(
+				"role ro",
+				"Operate on individual roles",
+				func(r *cli.Cmd) {
+					var roleIDStr = r.StringArg("ID", "", "The UUID of the role")
+
+					r.Spec = "ID"
+					r.Before = func() {
+						id, err := uuid.FromString(*roleIDStr)
+						if err != nil {
+							util.Bail(err)
+						}
+						GRoleUUID = id
+					}
+
+					r.Command(
+						"get",
+						"Get a role",
+						roleGet,
+					)
+
+					r.Command(
+						"delete rm",
+						"Delete a role",
+						roleDelete,
+					)
+
+					r.Command(
+						"update",
+						"Update a role",
+						roleUpdate,
 					)
 				},
 			)
