@@ -15,6 +15,8 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"sort"
+	"strconv"
 )
 
 func rackGetAll(app *cli.Cmd) {
@@ -201,5 +203,58 @@ func rackDelete(app *cli.Cmd) {
 		if err := util.API.DeleteGlobalRack(GRackUUID); err != nil {
 			util.Bail(err)
 		}
+	}
+}
+
+type byRUStart []conch.GlobalRackLayoutSlot
+
+func (b byRUStart) Len() int {
+	return len(b)
+}
+func (b byRUStart) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
+}
+
+func (b byRUStart) Less(i, j int) bool {
+	return b[i].RUStart < b[j].RUStart
+}
+
+func rackLayout(app *cli.Cmd) {
+	app.Action = func() {
+		r, err := util.API.GetGlobalRack(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		rs, err := util.API.GetGlobalRackLayout(r)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(rs)
+			return
+		}
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"ID",
+			"Rack ID",
+			"Product ID",
+			"RU Start",
+		})
+
+		sort.Sort(byRUStart(rs))
+
+		for _, r := range rs {
+			table.Append([]string{
+				r.ID.String(),
+				r.RackID.String(),
+				r.ProductID.String(),
+				strconv.Itoa(r.RUStart),
+			})
+		}
+
+		table.Render()
 	}
 }

@@ -27,6 +27,9 @@ var GRackUUID uuid.UUID
 // GRoleUUID is the UUID of the global rack role provided by the user
 var GRoleUUID uuid.UUID
 
+// GLayoutUUID is the UUID of the global rack layout provided by the user
+var GLayoutUUID uuid.UUID
+
 // Init loads up the commands
 func Init(app *cli.Cli) {
 	app.Command(
@@ -205,6 +208,12 @@ func Init(app *cli.Cli) {
 						"Update a rack",
 						rackUpdate,
 					)
+
+					r.Command(
+						"layout",
+						"Get the layout for the rack",
+						rackLayout,
+					)
 				},
 			)
 
@@ -262,6 +271,59 @@ func Init(app *cli.Cli) {
 				},
 			)
 
+			/////////////////////////////////
+			cmd.Command(
+				"layouts ls",
+				"Operate on all rack layouts",
+				func(rs *cli.Cmd) {
+					rs.Command(
+						"get",
+						"Get all layouts",
+						layoutGetAll,
+					)
+
+					rs.Command(
+						"create",
+						"Create a layout",
+						layoutCreate,
+					)
+				},
+			)
+
+			cmd.Command(
+				"layout l",
+				"Operate on individual layout entries",
+				func(r *cli.Cmd) {
+					var layoutIDStr = r.StringArg("ID", "", "The UUID of the layout")
+
+					r.Spec = "ID"
+					r.Before = func() {
+						id, err := uuid.FromString(*layoutIDStr)
+						if err != nil {
+							util.Bail(err)
+						}
+						GLayoutUUID = id
+					}
+
+					r.Command(
+						"get",
+						"Get a layout",
+						layoutGet,
+					)
+
+					r.Command(
+						"delete rm",
+						"Delete a layout",
+						layoutDelete,
+					)
+
+					r.Command(
+						"update",
+						"Update a layout",
+						layoutUpdate,
+					)
+				},
+			)
 		},
 	)
 }
