@@ -18,8 +18,11 @@ import (
 // GdcUUID is the UUID of the global datacenter provided by the user
 var GdcUUID uuid.UUID
 
-// GRoomUUID is the UUID of the global datacenter provided by the user
+// GRoomUUID is the UUID of the global datacenter room provided by the user
 var GRoomUUID uuid.UUID
+
+// GRackUUID is the UUID of the global rack provided by the user
+var GRackUUID uuid.UUID
 
 // Init loads up the commands
 func Init(app *cli.Cli) {
@@ -138,8 +141,70 @@ func Init(app *cli.Cli) {
 						"Update a room",
 						roomUpdate,
 					)
+
+					r.Command(
+						"racks",
+						"Get all racks assigned to the room",
+						roomGetAllRacks,
+					)
+
 				},
 			)
+
+			/////////////////////////////////
+			cmd.Command(
+				"racks rks",
+				"Operate on all racks",
+				func(rs *cli.Cmd) {
+					rs.Command(
+						"get",
+						"Get all racks",
+						rackGetAll,
+					)
+
+					rs.Command(
+						"create",
+						"Create a rack",
+						rackCreate,
+					)
+				},
+			)
+
+			cmd.Command(
+				"rack rk",
+				"Operate on individual racks",
+				func(r *cli.Cmd) {
+					var rackIDStr = r.StringArg("ID", "", "The UUID of the rack")
+
+					r.Spec = "ID"
+					r.Before = func() {
+						id, err := uuid.FromString(*rackIDStr)
+						if err != nil {
+							util.Bail(err)
+						}
+						GRackUUID = id
+					}
+
+					r.Command(
+						"get",
+						"Get a rack",
+						rackGet,
+					)
+
+					r.Command(
+						"delete rm",
+						"Delete a rack",
+						rackDelete,
+					)
+
+					r.Command(
+						"update",
+						"Update a rack",
+						rackUpdate,
+					)
+				},
+			)
+
 		},
 	)
 }

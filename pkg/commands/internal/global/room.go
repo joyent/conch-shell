@@ -211,3 +211,41 @@ func roomDelete(app *cli.Cmd) {
 		}
 	}
 }
+
+func roomGetAllRacks(app *cli.Cmd) {
+	app.Action = func() {
+		r, err := util.API.GetGlobalRoom(GRoomUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		rs, err := util.API.GetGlobalRoomRacks(r)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(rs)
+			return
+		}
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"ID",
+			"Datacenter Room ID",
+			"Name",
+			"Role ID",
+		})
+
+		for _, r := range rs {
+			table.Append([]string{
+				r.ID.String(),
+				r.DatacenterRoomID.String(),
+				r.Name,
+				r.RoleID.String(),
+			})
+		}
+
+		table.Render()
+	}
+
+}
