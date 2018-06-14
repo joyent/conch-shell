@@ -12,6 +12,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands/internal/admin"
 	"github.com/joyent/conch-shell/pkg/commands/internal/api"
 	"github.com/joyent/conch-shell/pkg/commands/internal/devices"
+	"github.com/joyent/conch-shell/pkg/commands/internal/global"
 	"github.com/joyent/conch-shell/pkg/commands/internal/hardware"
 	"github.com/joyent/conch-shell/pkg/commands/internal/profile"
 	"github.com/joyent/conch-shell/pkg/commands/internal/relay"
@@ -26,6 +27,7 @@ func Init(app *cli.Cli) {
 	api.Init(app)
 	admin.Init(app)
 	devices.Init(app)
+	global.Init(app)
 	hardware.Init(app)
 	profile.Init(app)
 	relay.Init(app)
