@@ -9,9 +9,11 @@ package global
 import (
 	"fmt"
 
+	gotree "github.com/DiSiqueira/GoTree"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
+	"sort"
 )
 
 func dcGetAll(app *cli.Cmd) {
@@ -236,5 +238,72 @@ func dcGetAllRooms(app *cli.Cmd) {
 			})
 		}
 		table.Render()
+	}
+}
+
+func dcAllTheThingsTree(app *cli.Cmd) {
+	app.Action = func() {
+		hwProds := make(map[string]conch.HardwareProduct)
+
+		d, err := util.API.GetGlobalDatacenter(GdcUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		tree := gotree.GTStructure{}
+		tree.Name = fmt.Sprintf("DC: %s (%s)", d.Region, d.ID)
+
+		rs, err := util.API.GetGlobalDatacenterRooms(d)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		for _, room := range rs {
+			roomTree := gotree.GTStructure{}
+			roomTree.Name = fmt.Sprintf("Room: %s (%s)", room.AZ, room.ID)
+
+			racks, err := util.API.GetGlobalRoomRacks(room)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			for _, rack := range racks {
+				rackTree := gotree.GTStructure{}
+				rackTree.Name = fmt.Sprintf("Rack: %s (%s)", rack.Name, rack.ID)
+
+				ls, err := util.API.GetGlobalRackLayout(rack)
+				if err != nil {
+					util.Bail(err)
+				}
+
+				sort.Sort(byRUStart(ls))
+				for _, layout := range ls {
+					var hw conch.HardwareProduct
+
+					hw, ok := hwProds[layout.ProductID.String()]
+					if !ok {
+						hw, err = util.API.GetHardwareProduct(layout.ProductID)
+						if err != nil {
+							util.Bail(err)
+						}
+						hwProds[layout.ProductID.String()] = hw
+					}
+
+					layoutTree := gotree.GTStructure{}
+					layoutTree.Name = fmt.Sprintf(
+						"RU: %d | Product: %s",
+						layout.RUStart,
+						hw.Name,
+					)
+					rackTree.Items = append(rackTree.Items, layoutTree)
+				}
+
+				roomTree.Items = append(roomTree.Items, rackTree)
+			}
+
+			tree.Items = append(tree.Items, roomTree)
+		}
+
+		gotree.PrintTree(tree)
 	}
 }
