@@ -216,7 +216,7 @@ func (b byRUStart) Swap(i, j int) {
 }
 
 func (b byRUStart) Less(i, j int) bool {
-	return b[i].RUStart < b[j].RUStart
+	return b[i].RUStart > b[j].RUStart
 }
 
 func rackLayout(app *cli.Cmd) {

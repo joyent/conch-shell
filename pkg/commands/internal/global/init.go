@@ -94,6 +94,12 @@ func Init(app *cli.Cli) {
 						"Get all rooms assigned to a datacenter",
 						dcGetAllRooms,
 					)
+
+					dc.Command(
+						"layout-tree",
+						"Get a tree of the datacenter, its rooms, racks, and layouts",
+						dcAllTheThingsTree,
+					)
 				},
 			)
 			/////////////////////////////////
