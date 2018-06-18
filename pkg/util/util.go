@@ -47,6 +47,7 @@ var (
 	Version   string
 	BuildTime string
 	GitRev    string
+	BuildHost string
 )
 
 // DateFormat should be used in date formatting calls to ensure uniformity of

@@ -39,10 +39,12 @@ func main() {
 				fmt.Printf(
 					"Conch Shell v%s\n"+
 						"  Git Revision: %s\n"+
-						"  Build Time: %s\n",
+						"  Build Time: %s\n"+
+						"  Build Host: %s\n",
 					util.Version,
 					util.GitRev,
 					buildTime,
+					util.BuildHost,
 				)
 			}
 		},
