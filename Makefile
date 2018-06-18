@@ -2,10 +2,11 @@ CONCH_VERSION=$(shell cat VERSION)
 CONCH_BUILD_TIME=$(shell date +%s)
 CONCH_GIT_REV=$(shell git describe --always --abbrev --dirty --long)
 
-UNAME_S=$(shell uname -s)
+BUILD_HOST=$(shell hostname -s)
+BUILD_WHO="${USER}@${BUILD_HOST}"
 
 FLAGS_PATH=github.com/joyent/conch-shell/pkg/util
-BUILD_ARGS = -ldflags="-X ${FLAGS_PATH}.Version=${CONCH_VERSION} -X ${FLAGS_PATH}.BuildTime=${CONCH_BUILD_TIME} -X ${FLAGS_PATH}.GitRev=${CONCH_GIT_REV}"
+BUILD_ARGS = -ldflags="-X ${FLAGS_PATH}.BuildHost=${BUILD_WHO} -X ${FLAGS_PATH}.Version=${CONCH_VERSION} -X ${FLAGS_PATH}.BuildTime=${CONCH_BUILD_TIME} -X ${FLAGS_PATH}.GitRev=${CONCH_GIT_REV}"
 
 BUILD = go build ${BUILD_ARGS} 
 
