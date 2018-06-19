@@ -19,9 +19,9 @@ import (
 	"github.com/blang/semver"
 	"github.com/dghubble/sling"
 	cli "github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/config"
-	conch "github.com/joyent/go-conch"
-	"github.com/joyent/go-conch/pgtime"
+	"github.com/joyent/conch-shell/pkg/pgtime"
 	"github.com/olekukonko/tablewriter"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )

@@ -41,32 +41,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	* `make tools` - Install the necessary build tools
 	* `make` - Build the application
 
-## Variations
-
-### Build against go-conch master
-
-* Open `Gopkg.toml`. 
-* Find the constraint block for go-conch
-* Remove the line that begins with `version`
-* Add a new line containing `branch = "master"`
-* Run `dep ensure`
-* Run `make`
-
-### Build against a local checkout of go-conch
-
-* Checkout out go-conch to `$GOPATH/src/github.com/joyent/conch-shell`
-* Run `go get gopkg.in/saturi/go.uuid.v1`
-* In the `conch-shell` checkout:
-	* Install dependencies with `dep ensure`
-	* Remove the directory `vendor/github.com/joyent`
-	* Remove the directory `vendor/gopkg.in/satori`
-* In the `go-conch` checkout:
-	* If it exists, remove `vendor/gopkg.in/satori` 
-* In the `conch-shell` checkout, run `make`
-* Do *NOT* run `dep` in either checkout as this will re-install the conflicting
-  dependencies
-
-
 # Notes
 
 *Always* use the Makefile to build the app. The Makefile passes necessary build

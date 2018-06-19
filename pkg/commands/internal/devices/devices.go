@@ -15,8 +15,8 @@ import (
 	"text/template"
 
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
-	"github.com/joyent/go-conch"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 

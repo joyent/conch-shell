@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
 )
 
 func register(app *cli.Cmd) {
