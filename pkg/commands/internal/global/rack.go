@@ -272,6 +272,38 @@ type importLayoutSlot struct {
 
 type importLayout []importLayoutSlot
 
+func rackExportLayout(cmd *cli.Cmd) {
+	cmd.Action = func() {
+		rack, err := util.API.GetGlobalRack(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		// Get the current state of the world
+		existingLayout, err := util.API.GetGlobalRackLayout(rack)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		var output importLayout
+
+		for _, l := range existingLayout {
+			hw, err := util.API.GetHardwareProduct(l.ProductID)
+			if err != nil {
+				util.Bail(err)
+			}
+			output = append(output, importLayoutSlot{
+				RUStart:      l.RUStart,
+				ProductID:    hw.ID,
+				ProductName:  hw.Name,
+				ProductAlias: hw.Alias,
+			})
+		}
+
+		util.JSONOutIndent(output)
+	}
+}
+
 func rackImportLayout(cmd *cli.Cmd) {
 	var (
 		filePathArg  = cmd.StringArg("FILE", "-", "Path to a JSON file that defines the layout. '-' indicates STDIN")
