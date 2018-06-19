@@ -222,7 +222,6 @@ func dcGetAllRooms(app *cli.Cmd) {
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{
 			"ID",
-			"Datacenter ID",
 			"AZ",
 			"Alias",
 			"Vendor Name",
@@ -231,7 +230,6 @@ func dcGetAllRooms(app *cli.Cmd) {
 		for _, r := range rs {
 			table.Append([]string{
 				r.ID.String(),
-				r.DatacenterID.String(),
 				r.AZ,
 				r.Alias,
 				r.VendorName,

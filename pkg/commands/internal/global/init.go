@@ -64,7 +64,7 @@ func Init(app *cli.Cli) {
 
 					dc.Spec = "ID"
 					dc.Before = func() {
-						id, err := uuid.FromString(*gdcIDStr)
+						id, err := util.MagicGlobalDatacenterID(*gdcIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -129,7 +129,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*roomIDStr)
+						id, err := util.MagicGlobalRoomID(*roomIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -190,7 +190,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*rackIDStr)
+						id, err := util.MagicGlobalRackID(*rackIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -268,7 +268,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*roleIDStr)
+						id, err := util.MagicGlobalRackRoleID(*roleIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -322,7 +322,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*layoutIDStr)
+						id, err := util.MagicGlobalRackLayoutSlotID(*layoutIDStr)
 						if err != nil {
 							util.Bail(err)
 						}

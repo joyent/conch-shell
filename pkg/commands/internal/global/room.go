@@ -231,17 +231,20 @@ func roomGetAllRacks(app *cli.Cmd) {
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{
 			"ID",
-			"Datacenter Room ID",
 			"Name",
-			"Role ID",
+			"Role",
 		})
 
 		for _, r := range rs {
+			role, err := util.API.GetGlobalRackRole(r.RoleID)
+			if err != nil {
+				util.Bail(err)
+			}
+
 			table.Append([]string{
 				r.ID.String(),
-				r.DatacenterRoomID.String(),
 				r.Name,
-				r.RoleID.String(),
+				fmt.Sprintf("%s (%s)", role.Name, r.RoleID.String()),
 			})
 		}
 

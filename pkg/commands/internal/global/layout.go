@@ -14,7 +14,6 @@ import (
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"strconv"
 )
 
@@ -85,19 +84,19 @@ Updated: %s
 
 func layoutCreate(app *cli.Cmd) {
 	var (
-		rackIDOpt    = app.StringOpt("rack-id", "", "UUID of the rack")
-		productIDOpt = app.StringOpt("product-id", "", "UUID of the hardware product")
+		rackIDOpt    = app.StringOpt("rack-id", "", "UUID (full or up to the first hyphen) of the rack")
+		productIDOpt = app.StringOpt("product", "", "UUID, name, or alias of the hardware product")
 		ruStartOpt   = app.IntOpt("ru-start ru", 0, "Rack unit start number")
 	)
 
-	app.Spec = "--rack-id --product-id --ru-start [OPTIONS]"
+	app.Spec = "--rack-id --product --ru-start [OPTIONS]"
 
 	app.Action = func() {
-		rackID, err := uuid.FromString(*rackIDOpt)
+		rackID, err := util.MagicGlobalRackID(*rackIDOpt)
 		if err != nil {
 			util.Bail(err)
 		}
-		productID, err := uuid.FromString(*productIDOpt)
+		productID, err := util.MagicProductID(*productIDOpt)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -139,8 +138,8 @@ Updated: %s
 
 func layoutUpdate(app *cli.Cmd) {
 	var (
-		rackIDOpt    = app.StringOpt("rack-id", "", "UUID of the rack")
-		productIDOpt = app.StringOpt("product-id", "", "UUID of the hardware product")
+		rackIDOpt    = app.StringOpt("rack-id", "", "UUID (full or up to the first hyphen) of the rack")
+		productIDOpt = app.StringOpt("product", "", "UUID, name, or alias of the hardware product")
 		ruStartOpt   = app.IntOpt("ru-start ru", 0, "Rack unit start number")
 	)
 
@@ -151,7 +150,7 @@ func layoutUpdate(app *cli.Cmd) {
 		}
 
 		if *rackIDOpt != "" {
-			rackID, err := uuid.FromString(*rackIDOpt)
+			rackID, err := util.MagicGlobalRackID(*rackIDOpt)
 			if err != nil {
 				util.Bail(err)
 			}
@@ -159,7 +158,7 @@ func layoutUpdate(app *cli.Cmd) {
 		}
 
 		if *productIDOpt != "" {
-			productID, err := uuid.FromString(*productIDOpt)
+			productID, err := util.MagicProductID(*productIDOpt)
 			if err != nil {
 				util.Bail(err)
 			}
