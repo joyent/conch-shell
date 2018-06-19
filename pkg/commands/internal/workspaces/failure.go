@@ -10,11 +10,11 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"time"
 
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
+	"github.com/joyent/go-conch/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -29,18 +29,18 @@ func getFailures(app *cli.Cmd) {
 
 		type minimalReportDevice struct {
 			AssetTag          string                              `json:"asset_tag"`
-			Created           time.Time                           `json:"created"`
-			Graduated         time.Time                           `json:"graduated"`
+			Created           pgtime.PgTime                       `json:"created"`
+			Graduated         pgtime.PgTime                       `json:"graduated"`
 			HardwareProduct   uuid.UUID                           `json:"hardware_product"`
 			Health            string                              `json:"health"`
 			ID                string                              `json:"id"`
-			LastSeen          time.Time                           `json:"last_seen"`
+			LastSeen          pgtime.PgTime                       `json:"last_seen"`
 			Location          conch.DeviceLocation                `json:"location"`
 			Role              uuid.UUID                           `json:"role"`
 			State             string                              `json:"state"`
 			SystemUUID        uuid.UUID                           `json:"system_uuid"`
-			Updated           time.Time                           `json:"updated"`
-			Validated         time.Time                           `json:"validated"`
+			Updated           pgtime.PgTime                       `json:"updated"`
+			Validated         pgtime.PgTime                       `json:"validated"`
 			FailedValidations map[string][]conch.ValidationReport `json:"failed_validations"`
 		}
 
