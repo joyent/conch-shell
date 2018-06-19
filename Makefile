@@ -1,8 +1,8 @@
-CONCH_VERSION=$(shell cat VERSION)
-CONCH_BUILD_TIME=$(shell date +%s)
-CONCH_GIT_REV=$(shell git describe --always --abbrev --dirty --long)
+CONCH_VERSION=`cat VERSION`
+CONCH_BUILD_TIME=`date +%s`
+CONCH_GIT_REV=`git describe --always --abbrev --dirty --long`
 
-BUILD_HOST=$(shell hostname -s)
+BUILD_HOST=`hostname -s`
 BUILD_WHO="${USER}@${BUILD_HOST}"
 
 FLAGS_PATH=github.com/joyent/conch-shell/pkg/util
@@ -33,7 +33,7 @@ update_deps: ## Update dependencies
 .PHONY: release
 release: vendor check ## Build binaries for all supported platforms
 	@echo "==> VERSION check"
-	$(shell build/version_check.sh)
+	build/version_check.sh
 	@echo "==> Building for all the platforms"
 	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-darwin-amd64 cmd/conch/conch.go
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-linux-amd64 cmd/conch/conch.go
