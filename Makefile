@@ -1,4 +1,4 @@
-CONCH_VERSION=`cat VERSION`
+CONCH_VERSION=`git describe --tags --abbrev=0 | sed 's/^v//'`
 CONCH_BUILD_TIME=`date +%s`
 CONCH_GIT_REV=`git describe --always --abbrev --dirty --long`
 
@@ -32,8 +32,6 @@ update_deps: ## Update dependencies
 
 .PHONY: release
 release: vendor check ## Build binaries for all supported platforms
-	@echo "==> VERSION check"
-	build/version_check.sh
 	@echo "==> Building for all the platforms"
 	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-darwin-amd64 cmd/conch/conch.go
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-linux-amd64 cmd/conch/conch.go
@@ -53,7 +51,7 @@ changelog:
 	github_changelog_generator -u joyent -p conch-shell #--due-tag ${CONCH_VERSION}
 
 .PHONY: check
-check: VERSION ## Ensure that code matchs best practices and run tests
+check: ## Ensure that code matchs best practices and run tests
 	@echo "==> Checking for best practices"
 	gometalinter \
 		--deadline 10m \
