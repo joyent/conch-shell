@@ -326,6 +326,33 @@ func MagicRackID(workspace fmt.Stringer, wat string) (uuid.UUID, error) {
 	return id, errors.New("Could not find rack " + wat)
 }
 
+// MagicGlobalRackID takes a string and tries to find a valid global rack UUID.
+// If the string is a UUID, it doesn't get checked further. If it's not a UUID,
+// we dig through GetGlobalRacks() looking for UUIDs that match up to the first
+// hyphen.
+// *NOTE*: This will fail if the user is not a global admin
+func MagicGlobalRackID(wat string) (uuid.UUID, error) {
+	id, err := uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+
+	// So, it's not a UUID. Let's try for a string name or partial UUID
+	racks, err := API.GetGlobalRacks()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, r := range racks {
+		if re.MatchString(r.ID.String()) {
+			return r.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find rack " + wat)
+}
+
 // MagicProductID takes a string and tries to find a valid UUID. If the
 // string is a UUID, it doesn't get checked further. If not, we dig through
 // GetHardwareProducts() looking for UUIDs that match up to the first hyphen or
@@ -350,7 +377,6 @@ func MagicProductID(wat string) (uuid.UUID, error) {
 	}
 
 	return id, errors.New("Could not find product " + wat)
-
 }
 
 // MagicValidationID takes a string and tries to find a valid UUID. If the
@@ -513,4 +539,111 @@ func MagicDeviceRoleID(wat string) (id uuid.UUID, err error) {
 	}
 
 	return id, errors.New("Could not find device role " + wat)
+}
+
+// MagicGlobalDatacenterID takes a string and tries to find a valid global
+// datacenter UUID.  If the string is a UUID, it doesn't get checked further.
+// If it's not a UUID, we dig through GetGlobalDatacenters() looking for UUIDs
+// that match up to the first hyphen.
+// *NOTE*: This will fail if the user is not a global admin
+func MagicGlobalDatacenterID(wat string) (uuid.UUID, error) {
+	id, err := uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+
+	// So, it's not a UUID. Let's try for a partial UUID
+	ds, err := API.GetGlobalDatacenters()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, d := range ds {
+		if re.MatchString(d.ID.String()) {
+			return d.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find datacenter " + wat)
+}
+
+// MagicGlobalRoomID takes a string and tries to find a valid global UUID.  If
+// the string is a UUID, it doesn't get checked further.  If it's not a UUID,
+// we dig through GetGlobalRooms() looking for UUIDs that match up to the first
+// hyphen.
+// *NOTE*: This will fail if the user is not a global admin
+func MagicGlobalRoomID(wat string) (uuid.UUID, error) {
+	id, err := uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+
+	// So, it's not a UUID. Let's try for a partial UUID
+	ds, err := API.GetGlobalRooms()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, d := range ds {
+		if re.MatchString(d.ID.String()) {
+			return d.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find room " + wat)
+}
+
+// MagicGlobalRackRoleID takes a string and tries to find a valid UUID. If the
+// string is a UUID, it doesn't get checked further. If not, we dig through
+// GetGlobalRackRoles() looking for UUIDs that match up to the first hyphen or
+// where the role name matches the string
+// *NOTE*: This will fail if the user is not a global admin
+func MagicGlobalRackRoleID(wat string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+	// So, it's not a UUID. Let's try for a string name or partial UUID
+	ret, err := API.GetGlobalRackRoles()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, r := range ret {
+		if (r.Name == wat) || re.MatchString(r.ID.String()) {
+			return r.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find rack role " + wat)
+}
+
+// MagicGlobalRackLayoutSlotID takes a string and tries to find a valid UUID.
+// If the string is a UUID, it doesn't get checked further.  If it's not a
+// UUID, we dig through GetGlobalRackLayoutSlots() looking for UUIDs that
+// match up to the first hyphen.
+// *NOTE*: This will fail if the user is not a global admin
+func MagicGlobalRackLayoutSlotID(wat string) (uuid.UUID, error) {
+	id, err := uuid.FromString(wat)
+	if err == nil {
+		return id, err
+	}
+
+	// So, it's not a UUID. Let's try for a partial UUID
+	ds, err := API.GetGlobalRackLayoutSlots()
+	if err != nil {
+		return id, err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
+	for _, d := range ds {
+		if re.MatchString(d.ID.String()) {
+			return d.ID, nil
+		}
+	}
+
+	return id, errors.New("Could not find rack layout " + wat)
 }

@@ -243,18 +243,20 @@ func rackLayout(app *cli.Cmd) {
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{
 			"ID",
-			"Rack ID",
-			"Product ID",
+			"Product",
 			"RU Start",
 		})
 
 		sort.Sort(byRUStart(rs))
 
 		for _, r := range rs {
+			prod, err := util.API.GetHardwareProduct(r.ProductID)
+			if err != nil {
+				util.Bail(err)
+			}
 			table.Append([]string{
 				r.ID.String(),
-				r.RackID.String(),
-				r.ProductID.String(),
+				prod.Name,
 				strconv.Itoa(r.RUStart),
 			})
 		}

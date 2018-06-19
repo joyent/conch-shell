@@ -64,7 +64,7 @@ func Init(app *cli.Cli) {
 
 					dc.Spec = "ID"
 					dc.Before = func() {
-						id, err := uuid.FromString(*gdcIDStr)
+						id, err := util.MagicGlobalDatacenterID(*gdcIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -129,7 +129,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*roomIDStr)
+						id, err := util.MagicGlobalRoomID(*roomIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -190,7 +190,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*rackIDStr)
+						id, err := util.MagicGlobalRackID(*rackIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -217,22 +217,27 @@ func Init(app *cli.Cli) {
 
 					r.Command(
 						"layout",
-						"Get the layout for the rack",
-						rackLayout,
-					)
+						"Commands for dealing with the rack's layout",
+						func(l *cli.Cmd) {
+							l.Command(
+								"get",
+								"Get the rack's layout",
+								rackLayout,
+							)
 
-					r.Command(
-						"import-layout",
-						"Import a layout for this rack",
-						rackImportLayout,
-					)
+							l.Command(
+								"import",
+								"Import a layout for this rack",
+								rackImportLayout,
+							)
 
-					r.Command(
-						"export-layout",
-						"Export the layout for this rack",
-						rackExportLayout,
+							l.Command(
+								"export",
+								"Export the layout for this rack",
+								rackExportLayout,
+							)
+						},
 					)
-
 				},
 			)
 
@@ -263,7 +268,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*roleIDStr)
+						id, err := util.MagicGlobalRackRoleID(*roleIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -317,7 +322,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := uuid.FromString(*layoutIDStr)
+						id, err := util.MagicGlobalRackLayoutSlotID(*layoutIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
