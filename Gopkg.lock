@@ -48,9 +48,12 @@
 
 [[projects]]
   name = "github.com/joyent/go-conch"
-  packages = ["."]
-  revision = "722f6614bfa1a9bc3c132c5b29438c638cb030f6"
-  version = "v3.4.0"
+  packages = [
+    ".",
+    "pgtime"
+  ]
+  revision = "3bfceb5ebd775eeedf189131c416591da63449c2"
+  version = "v4.0.0"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
@@ -85,6 +88,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c12cddb07e22803fd062d3056c1b47f10d073489659e81da2c2bb1156b586359"
+  inputs-digest = "0a43e75d1184ace92aa6b5deee66794350a2b3319826bcdd0f471c9f1769ac29"
   solver-name = "gps-cdcl"
   solver-version = 1
