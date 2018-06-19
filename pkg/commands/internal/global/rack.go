@@ -10,11 +10,15 @@
 package global
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
 	conch "github.com/joyent/go-conch"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 )
@@ -256,5 +260,143 @@ func rackLayout(app *cli.Cmd) {
 		}
 
 		table.Render()
+	}
+}
+
+type importLayoutSlot struct {
+	RUStart      int       `json:"ru_start"`
+	ProductID    uuid.UUID `json:"product_id,omitempty"`
+	ProductName  string    `json:"product_name,omitempty"`
+	ProductAlias string    `json:"product_alias,omitempty"`
+}
+
+type importLayout []importLayoutSlot
+
+func rackImportLayout(cmd *cli.Cmd) {
+	var (
+		filePathArg  = cmd.StringArg("FILE", "-", "Path to a JSON file that defines the layout. '-' indicates STDIN")
+		overwriteOpt = cmd.BoolOpt("overwrite", false, "If the rack has an existing layout, *overwrite* it. This is a destructive action")
+	)
+
+	cmd.Spec = "[OPTIONS] [FILE]"
+	cmd.Action = func() {
+		util.JSON = true
+		var b []byte
+		var err error
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+
+		var importedLayout importLayout
+
+		if err := json.Unmarshal(b, &importedLayout); err != nil {
+			util.Bail(err)
+		}
+
+		rack, err := util.API.GetGlobalRack(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		// Get the current state of the world
+		existingLayout, err := util.API.GetGlobalRackLayout(rack)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if len(existingLayout) > 0 {
+			if *overwriteOpt == false {
+				util.Bail(errors.New("Rack already has a layout. Use --overwrite to overwrite"))
+			}
+		}
+
+		// We need to support the use of product names and aliases in the
+		// import so they're readable by humans. We lack a way of doing API
+		// lookups on these properties so we pull them all down and create maps
+		// on our own.
+		productsL, err := util.API.GetHardwareProducts()
+		if err != nil {
+			util.Bail(err)
+		}
+
+		productsAlias := make(map[string]conch.HardwareProduct)
+		productsName := make(map[string]conch.HardwareProduct)
+		productsID := make(map[string]conch.HardwareProduct)
+
+		for _, p := range productsL {
+			productsAlias[p.Alias] = p
+			productsName[p.Name] = p
+			productsID[p.ID.String()] = p
+		}
+
+		var finalLayout []conch.GlobalRackLayoutSlot
+
+		for _, l := range importedLayout {
+			if uuid.Equal(l.ProductID, uuid.UUID{}) {
+				if l.ProductName != "" {
+					p, ok := productsName[l.ProductName]
+					if ok {
+						l.ProductID = p.ID
+					}
+				} else if l.ProductAlias != "" {
+					p, ok := productsAlias[l.ProductAlias]
+					if ok {
+						l.ProductID = p.ID
+					}
+				} else {
+					util.Bail(fmt.Errorf(
+						"ru_start %d entry does not have a product id, name, or alias",
+						l.RUStart,
+					))
+				}
+
+				if uuid.Equal(l.ProductID, uuid.UUID{}) {
+					util.Bail(fmt.Errorf(
+						"ru_start %d entry does not have a product id, name, or alias",
+						l.RUStart,
+					))
+				}
+			} else {
+				_, ok := productsID[l.ProductID.String()]
+				if !ok {
+					util.Bail(errors.New("Product ID " + l.ProductID.String() + " is unknown"))
+				}
+			}
+			s := conch.GlobalRackLayoutSlot{
+				RackID:    GRackUUID,
+				ProductID: l.ProductID,
+				RUStart:   l.RUStart,
+			}
+
+			finalLayout = append(finalLayout, s)
+		}
+
+		// If the rack has a layout, and the user asked us to, nuke the
+		// existing layout
+		if *overwriteOpt == true {
+			for _, s := range existingLayout {
+				err := util.API.DeleteGlobalRackLayoutSlot(s.ID)
+				if err != nil {
+					util.Bail(err)
+				}
+			}
+		}
+
+		// Yes, technically, doing this in two loops is unnecessary. It gets us
+		// a bit of sanity though. First loop verifies the data and the second
+		// loop acts on it. That way, if the first loop runs into problems, we
+		// haven't changed any data yet.
+		for _, s := range finalLayout {
+			err := util.API.SaveGlobalRackLayoutSlot(&s)
+			if err != nil {
+				util.Bail(err)
+			}
+		}
+
 	}
 }
