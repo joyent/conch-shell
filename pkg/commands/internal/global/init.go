@@ -217,22 +217,27 @@ func Init(app *cli.Cli) {
 
 					r.Command(
 						"layout",
-						"Get the layout for the rack",
-						rackLayout,
-					)
+						"Commands for dealing with the rack's layout",
+						func(l *cli.Cmd) {
+							l.Command(
+								"get",
+								"Get the rack's layout",
+								rackLayout,
+							)
 
-					r.Command(
-						"import-layout",
-						"Import a layout for this rack",
-						rackImportLayout,
-					)
+							l.Command(
+								"import",
+								"Import a layout for this rack",
+								rackImportLayout,
+							)
 
-					r.Command(
-						"export-layout",
-						"Export the layout for this rack",
-						rackExportLayout,
+							l.Command(
+								"export",
+								"Export the layout for this rack",
+								rackExportLayout,
+							)
+						},
 					)
-
 				},
 			)
 
