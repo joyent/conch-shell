@@ -220,6 +220,19 @@ func Init(app *cli.Cli) {
 						"Get the layout for the rack",
 						rackLayout,
 					)
+
+					r.Command(
+						"import-layout",
+						"Import a layout for this rack",
+						rackImportLayout,
+					)
+
+					r.Command(
+						"export-layout",
+						"Export the layout for this rack",
+						rackExportLayout,
+					)
+
 				},
 			)
 

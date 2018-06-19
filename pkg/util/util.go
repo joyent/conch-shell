@@ -263,6 +263,17 @@ func JSONOut(thingy interface{}) {
 	fmt.Println(string(j))
 }
 
+// JSONOutIndent marshals an interface to indented JSON
+func JSONOutIndent(thingy interface{}) {
+	j, err := json.MarshalIndent(thingy, "", "     ")
+
+	if err != nil {
+		Bail(err)
+	}
+
+	fmt.Println(string(j))
+}
+
 // MagicWorkspaceID takes a string and tries to find a valid UUID. If the
 // string is a UUID, it doesn't get checked further. If not, we dig through
 // GetWorkspaces() looking for UUIDs that match up to the first hyphen or where
