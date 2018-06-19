@@ -1,0 +1,72 @@
+---
+version: 1
+rwmutex: {}
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Cookie:
+      - conch=REDACTED
+      User-Agent:
+      - go-conch
+    url: https://conch.joyent.us/validation_plan
+    method: GET
+  response:
+    body: '[{"created":"2018-04-12T20:10:17.963Z","description":"Validation plan containing
+      all validations run in Conch v1 on switches","id":"16f0e1f3-2d3c-4f5d-b491-d8c2f597172a","name":"Conch
+      v1 Legacy Plan: Switch"},{"created":"2018-04-12T20:10:18.004Z","description":"Validation
+      plan containing all validations run in Conch v1 on switches","id":"469b8768-b99f-470c-8fc6-840fa9fcc477","name":"Conch
+      v1 Legacy Plan: Server"}]'
+    headers:
+      Access-Control-Allow-Credentials:
+      - "true"
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "417"
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 12 Apr 2018 21:50:33 GMT
+      Server:
+      - nginx/1.13.7
+      Set-Cookie:
+      - conch=REDACTED
+        expires=Sat, 12 May 2018 21:50:33 GMT; path=/; HttpOnly
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Cookie:
+      - conch=REDACTED
+      User-Agent:
+      - go-conch
+    url: https://conch.joyent.us/validation_plan/16f0e1f3-2d3c-4f5d-b491-d8c2f597172a
+    method: GET
+  response:
+    body: '{"created":"2018-04-12T20:10:17.963Z","description":"Validation plan containing
+      all validations run in Conch v1 on switches","id":"16f0e1f3-2d3c-4f5d-b491-d8c2f597172a","name":"Conch
+      v1 Legacy Plan: Switch"}'
+    headers:
+      Access-Control-Allow-Credentials:
+      - "true"
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "207"
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 12 Apr 2018 21:50:33 GMT
+      Server:
+      - nginx/1.13.7
+      Set-Cookie:
+      - conch=REDACTED
+        expires=Sat, 12 May 2018 21:50:33 GMT; path=/; HttpOnly
+    status: 200 OK
+    code: 200
+    duration: ""

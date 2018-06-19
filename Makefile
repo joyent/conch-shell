@@ -53,7 +53,7 @@ changelog:
 	github_changelog_generator -u joyent -p conch-shell #--due-tag ${CONCH_VERSION}
 
 .PHONY: check
-check: VERSION ## Ensure that code matchs best practices
+check: VERSION ## Ensure that code matchs best practices and run tests
 	@echo "==> Checking for best practices"
 	gometalinter \
 		--deadline 10m \
@@ -69,9 +69,8 @@ check: VERSION ## Ensure that code matchs best practices
 		--enable golint \
 		--enable gofmt \
 		./...
-#		--enable goimports \
-#		--enable misspell \
-
+	@echo "==> Tests for pkg/conch"
+	@cd pkg/conch && go test -v 
 
 tools: ## Download and install all dev/code tools
 	@echo "==> Installing dev tools"

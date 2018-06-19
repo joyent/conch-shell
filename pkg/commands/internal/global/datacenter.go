@@ -11,8 +11,8 @@ import (
 
 	gotree "github.com/DiSiqueira/GoTree"
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
 	"sort"
 )
 

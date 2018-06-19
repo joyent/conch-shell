@@ -13,9 +13,9 @@ import (
 
 	"github.com/Bowery/prompt"
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 

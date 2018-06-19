@@ -13,8 +13,8 @@ import (
 	"os"
 
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
-	conch "github.com/joyent/go-conch"
 )
 
 type validationPlans []conch.ValidationPlan
