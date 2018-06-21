@@ -7,6 +7,7 @@
 package conch
 
 import (
+	"fmt"
 	"github.com/blang/semver"
 	"github.com/dghubble/sling"
 	"io"
@@ -50,6 +51,32 @@ func (c *Conch) sling() *sling.Sling {
 		c.HTTPClient = &http.Client{
 			Transport: defaultTransport,
 			Jar:       c.CookieJar,
+
+			// Preserve auth header on redirect
+			// Inspired by: https://github.com/michiwend/gomusicbrainz/pull/4/files?utf8=%E2%9C%93&diff=unified
+			// Under MIT License
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				if len(via) > 30 {
+					return fmt.Errorf("%d > 30 consecutive requests(redirects)", len(via))
+				}
+				if len(via) == 0 {
+					// No redirects
+					return nil
+				}
+
+				// This is a massive hack. In theory, go should already see
+				// that these have the same host and copy the Authorization
+				// header over on its own. Until I can track down why that's not
+				// happening, this will get us back in business.
+				// sungo [ 2018-06-21 ]
+				if req.URL.Host == via[0].URL.Host {
+					h, ok := via[0].Header["Authorization"]
+					if ok {
+						req.Header["Authorization"] = h
+					}
+				}
+				return nil
+			},
 		}
 	}
 
