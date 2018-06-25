@@ -19,6 +19,10 @@ const singleHWPTemplate = `
 ID: {{ .ID }} 
   Name: {{ .Name }}
   Alias: {{ .Alias }}
+  Legacy Product Name: {{ .LegacyProductName }}
+
+  SKU:  {{ .SKU }}
+  Generation Name: {{ .GenerationName }}
   Vendor: {{ .Vendor }}
   Prefix: {{ .Prefix }}
 

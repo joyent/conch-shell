@@ -40,13 +40,13 @@ func Init(app *cli.Cli) {
 				"product p",
 				"Deal with a single hardware product",
 				func(cmd *cli.Cmd) {
-					var productIDStr = cmd.StringArg("ID", "", "The UUID, name, or alias of a hardware product")
+					var productIDStr = cmd.StringArg("ID", "", "The UUID, name, or SKU of a hardware product")
 					cmd.Spec = "ID"
 
 					cmd.Before = func() {
 						ProductUUID, _ = util.MagicProductID(*productIDStr)
 						if uuid.Equal(ProductUUID, uuid.UUID{}) {
-							util.Bail(errors.New("Could not resolve the hardware product ID, name, or alias"))
+							util.Bail(errors.New("Could not resolve the hardware product ID, name, or SKU"))
 						}
 					}
 

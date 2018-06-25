@@ -356,7 +356,7 @@ func MagicGlobalRackID(wat string) (uuid.UUID, error) {
 // MagicProductID takes a string and tries to find a valid UUID. If the
 // string is a UUID, it doesn't get checked further. If not, we dig through
 // GetHardwareProducts() looking for UUIDs that match up to the first hyphen or
-// where the product name or alias matches the string
+// where the product name or SKU matches the string
 func MagicProductID(wat string) (uuid.UUID, error) {
 	id, err := uuid.FromString(wat)
 	if err == nil {
@@ -371,7 +371,7 @@ func MagicProductID(wat string) (uuid.UUID, error) {
 
 	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
 	for _, r := range d {
-		if (r.Name == wat) || (r.Alias == wat) || re.MatchString(r.ID.String()) {
+		if (r.Name == wat) || (r.SKU == wat) || re.MatchString(r.ID.String()) {
 			return r.ID, nil
 		}
 	}

@@ -108,12 +108,16 @@ type HardwareProfile struct {
 
 // HardwareProduct is a type of Device. For instance, "Hallasan C"
 type HardwareProduct struct {
-	ID      uuid.UUID       `json:"id"`
-	Name    string          `json:"name"`
-	Alias   string          `json:"alias"`
-	Prefix  string          `json:"prefix"`
-	Profile HardwareProfile `json:"profile"`
-	Vendor  string          `json:"vendor"`
+	ID                uuid.UUID       `json:"id"`
+	Name              string          `json:"name"`
+	Alias             string          `json:"alias"`
+	Prefix            string          `json:"prefix"`
+	Profile           HardwareProfile `json:"profile"`
+	Vendor            string          `json:"vendor"`
+	Specification     interface{}     `json:"specification"`
+	SKU               string          `json:"sku"`
+	GenerationName    string          `json:"generation_name"`
+	LegacyProductName string          `json:"legacy_product_name"`
 }
 
 // HardwareProductTarget represents the HardwareProduct that a device should
