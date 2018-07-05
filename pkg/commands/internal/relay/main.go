@@ -6,6 +6,7 @@
 package relay
 
 import (
+	"sort"
 	"strconv"
 
 	"github.com/jawher/mow.cli"
@@ -61,6 +62,7 @@ func getAllRelays(app *cli.Cmd) {
 			"Updated",
 		})
 
+		sort.Sort(sortRelaysByUpdated(relays))
 		for _, r := range relays {
 			table.Append([]string{
 				r.ID,
@@ -76,4 +78,18 @@ func getAllRelays(app *cli.Cmd) {
 		table.Render()
 
 	}
+}
+
+type sortRelaysByUpdated []conch.Relay
+
+func (s sortRelaysByUpdated) Len() int {
+	return len(s)
+}
+
+func (s sortRelaysByUpdated) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s sortRelaysByUpdated) Less(i, j int) bool {
+	return s[i].Updated.Before(s[j].Updated)
 }
