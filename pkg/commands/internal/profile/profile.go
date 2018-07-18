@@ -314,3 +314,34 @@ func revokeJWT(app *cli.Cmd) {
 		}
 	}
 }
+
+func relogin(app *cli.Cmd) {
+	var (
+		passwordOpt = app.StringOpt("password pass", "", "API Password")
+	)
+
+	app.Action = func() {
+		util.BuildAPI()
+
+		password := *passwordOpt
+
+		if password == "" {
+			s, err := prompt.Password("Password:")
+			if err != nil {
+				util.Bail(err)
+			}
+
+			password = s
+		}
+
+		err := util.API.Login(util.ActiveProfile.User, password)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.ActiveProfile.Session = util.API.Session
+		util.ActiveProfile.JWToken = util.API.JWToken
+
+		util.WriteConfig()
+	}
+}

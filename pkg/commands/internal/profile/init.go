@@ -44,6 +44,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"relogin",
+				"Log in again, preserving all other profile data",
+				relogin,
+			)
+
+			cmd.Command(
 				"revoke-tokens",
 				"Revoke all auth tokens. User must log in again after this.",
 				revokeJWT,
