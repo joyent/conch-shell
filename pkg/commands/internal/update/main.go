@@ -115,18 +115,24 @@ func selfUpdate(cmd *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		fmt.Printf("===> Detected local binary path: %s\n", fullPath)
+		fmt.Printf("==> Detected local binary path: %s\n", fullPath)
 		existingStat, err := os.Lstat(fullPath)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		fmt.Println("===> Overwriting local binary...")
-		err = ioutil.WriteFile(fullPath, newBinary, existingStat.Mode())
-		if err != nil {
+		newPath := fmt.Sprintf("%s-%s", fullPath, gh.SemVer)
+		fmt.Printf("==> Writing to temp file '%s'...\n", newPath)
+		if err := ioutil.WriteFile(newPath, newBinary, existingStat.Mode()); err != nil {
 			util.Bail(err)
 		}
-		fmt.Println("===> Done.")
+
+		fmt.Printf("==> Renaming '%s' to '%s'\n", newPath, fullPath)
+		if err := os.Rename(newPath, fullPath); err != nil {
+			util.Bail(err)
+		}
+
+		fmt.Println("=> Done.")
 
 	}
 }
