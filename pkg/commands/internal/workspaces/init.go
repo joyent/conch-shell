@@ -150,8 +150,8 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"invite",
-				"Invite a user to this workspace",
+				"invite add",
+				"Add a user to this workspace, creating them if necessary",
 				inviteUser,
 			)
 
