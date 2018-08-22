@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -90,6 +90,45 @@ func (c *Conch) InviteUser(workspaceUUID fmt.Stringer, user string, role string)
 		Post("/workspace/"+workspaceUUID.String()+"/user").
 		BodyJSON(body).
 		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// DeleteUser deletes a user and, optionally, clears their JWT credentials
+func (c *Conch) DeleteUser(emailAddress string, clearTokens bool) error {
+	url := "/user/email=" + emailAddress
+
+	if clearTokens {
+		url = url + "?clear_tokens=1"
+	}
+
+	aerr := &APIError{}
+	res, err := c.sling().New().Delete(url).Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// CreateUser creates a new user. They are *not* added to a workspace.
+// The 'name' argument is optional and will be omitted if set to ""
+// The 'password' argument is optional and will be omitted if set to ""
+func (c *Conch) CreateUser(email string, password string, name string) error {
+	u := struct {
+		Email    string `json:"email"`
+		Password string `json:"password,omitempty"`
+		Name     string `json:"name,omitempty"`
+	}{email, password, name}
+
+	aerr := &APIError{}
+	res, err := c.sling().New().Post("/user").BodyJSON(u).Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// ResetUserPassword resets the password for the provided user, causing an
+// email to be sent
+func (c *Conch) ResetUserPassword(email string) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().Delete("/user/email="+email+"/password").Receive(nil, aerr)
 
 	return c.isHTTPResOk(res, err, aerr)
 }

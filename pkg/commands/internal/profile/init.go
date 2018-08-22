@@ -50,6 +50,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"change-password",
+				"Change the password associated with this profile",
+				changePassword,
+			)
+
+			cmd.Command(
 				"revoke-tokens",
 				"Revoke all auth tokens. User must log in again after this.",
 				revokeJWT,

@@ -87,7 +87,7 @@ func main() {
 		}
 
 		cfg, err := config.NewFromJSONFile(expandedPath)
-		if err != nil {
+		if err == nil {
 			cfg.Path = expandedPath
 		}
 		util.Config = cfg

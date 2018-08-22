@@ -95,7 +95,10 @@ func newProfile(app *cli.Cmd) {
 
 		err := api.Login(p.User, password)
 		if err != nil {
-			util.Bail(err)
+			if util.JSON || err != conch.ErrMustChangePassword {
+				util.Bail(err)
+			}
+			util.InteractiveForcePasswordChange()
 		}
 
 		p.Session = api.Session
@@ -125,6 +128,10 @@ func newProfile(app *cli.Cmd) {
 
 		util.Config.Profiles[p.Name] = p
 		util.WriteConfig()
+		if !util.JSON {
+			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
+		}
+
 	}
 }
 
@@ -149,6 +156,10 @@ func deleteProfile(app *cli.Cmd) {
 		}
 
 		util.WriteConfig()
+		if !util.JSON {
+			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
+		}
+
 	}
 
 }
@@ -237,6 +248,10 @@ func setWorkspace(app *cli.Cmd) {
 		util.ActiveProfile.WorkspaceName = ws.Name
 
 		util.WriteConfig()
+		if !util.JSON {
+			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
+		}
+
 	}
 }
 
@@ -262,6 +277,10 @@ func setActive(app *cli.Cmd) {
 		}
 
 		util.WriteConfig()
+		if !util.JSON {
+			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
+		}
+
 	}
 }
 
@@ -273,11 +292,16 @@ func refreshJWT(app *cli.Cmd) {
 		}
 
 		if err := util.API.VerifyLogin(0, true); err != nil {
-			util.Bail(err)
+			if util.JSON || err != conch.ErrMustChangePassword {
+				util.Bail(err)
+			}
+			util.InteractiveForcePasswordChange()
 		}
+
 		util.ActiveProfile.Session = util.API.Session
 		util.ActiveProfile.JWToken = util.API.JWToken
 		util.ActiveProfile.Expires = util.API.Expires
+
 		util.WriteConfig()
 
 		expires := time.Unix(int64(util.API.Expires), 0)
@@ -336,12 +360,39 @@ func relogin(app *cli.Cmd) {
 
 		err := util.API.Login(util.ActiveProfile.User, password)
 		if err != nil {
-			util.Bail(err)
+			if util.JSON || err != conch.ErrMustChangePassword {
+				util.Bail(err)
+			}
+			util.InteractiveForcePasswordChange()
 		}
 
 		util.ActiveProfile.Session = util.API.Session
 		util.ActiveProfile.JWToken = util.API.JWToken
 
 		util.WriteConfig()
+		if !util.JSON {
+			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
+		}
 	}
+}
+
+func changePassword(app *cli.Cmd) {
+	var (
+		passwordOpt = app.StringOpt("password pass", "", "Account password")
+	)
+
+	app.Action = func() {
+		util.BuildAPI()
+
+		password := *passwordOpt
+
+		if password == "" {
+			util.InteractiveForcePasswordChange()
+		} else {
+			if err := util.API.ChangePassword(password); err != nil {
+				util.Bail(err)
+			}
+		}
+	}
+
 }

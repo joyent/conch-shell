@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,10 +12,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
+	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
 	"github.com/dghubble/sling"
 	cli "github.com/jawher/mow.cli"
@@ -23,7 +23,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	"github.com/olekukonko/tablewriter"
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"unicode/utf8"
 )
 
 var (
@@ -275,196 +275,6 @@ func JSONOutIndent(thingy interface{}) {
 	fmt.Println(string(j))
 }
 
-// MagicWorkspaceID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetWorkspaces() looking for UUIDs that match up to the first hyphen or where
-// the workspace name matches the string
-func MagicWorkspaceID(wat string) (id uuid.UUID, err error) {
-	id, err = uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	workspaces, err := API.GetWorkspaces()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, w := range workspaces {
-		if (w.Name == wat) || re.MatchString(w.ID.String()) {
-			return w.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find workspace " + wat)
-}
-
-// MagicRackID takes a workspace UUID and a string and tries to find a valid
-// rack UUID. If the string is a UUID, it doesn't get checked further. If it's
-// not a UUID, we dig through GetWorkspaceRacks() looking for UUIDs that match
-// up to the first hyphen or where the name matches the string.
-func MagicRackID(workspace fmt.Stringer, wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	racks, err := API.GetWorkspaceRacks(workspace)
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range racks {
-		if (r.Name == wat) || re.MatchString(r.ID.String()) {
-			return r.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find rack " + wat)
-}
-
-// MagicGlobalRackID takes a string and tries to find a valid global rack UUID.
-// If the string is a UUID, it doesn't get checked further. If it's not a UUID,
-// we dig through GetGlobalRacks() looking for UUIDs that match up to the first
-// hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRackID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	racks, err := API.GetGlobalRacks()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range racks {
-		if re.MatchString(r.ID.String()) {
-			return r.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find rack " + wat)
-}
-
-// MagicProductID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetHardwareProducts() looking for UUIDs that match up to the first hyphen or
-// where the product name or SKU matches the string
-func MagicProductID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	d, err := API.GetHardwareProducts()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range d {
-		if (r.Name == wat) || (r.SKU == wat) || re.MatchString(r.ID.String()) {
-			return r.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find product " + wat)
-}
-
-// MagicDBProductID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetHardwareProducts() looking for UUIDs that match up to the first hyphen or
-// where the product name or SKU matches the string
-func MagicDBProductID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	d, err := API.GetDBHardwareProducts()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range d {
-		if (r.Name == wat) || (r.SKU == wat) || re.MatchString(r.ID.String()) {
-			return r.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find product " + wat)
-}
-
-// MagicValidationID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. Otherwise, we use
-// FindShortUUID to see if the string matches an existing Validation ID
-func MagicValidationID(s string) (uuid.UUID, error) {
-	id, err := uuid.FromString(s)
-	if err == nil {
-		return id, err
-	}
-
-	vs, err := API.GetValidations()
-	if err != nil {
-		return id, err
-	}
-	ids := make([]uuid.UUID, len(vs))
-	for i, v := range vs {
-		ids[i] = v.ID
-	}
-	id, err = FindShortUUID(s, ids)
-
-	return id, err
-
-}
-
-// MagicValidationPlanID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. Otherwise, we use
-// FindShortUUID to see if the string matches an existing Validation Plan ID
-func MagicValidationPlanID(s string) (uuid.UUID, error) {
-	id, err := uuid.FromString(s)
-	if err == nil {
-		return id, err
-	}
-
-	vs, err := API.GetValidationPlans()
-	if err != nil {
-		return id, err
-	}
-	ids := make([]uuid.UUID, len(vs))
-	for i, v := range vs {
-		ids[i] = v.ID
-	}
-	id, err = FindShortUUID(s, ids)
-
-	return id, err
-
-}
-
-// FindShortUUID takes a string and tries to find a UUID in a list of UUIDs
-// that match by prefix (first 4 bytes)
-func FindShortUUID(s string, uuids []uuid.UUID) (uuid.UUID, error) {
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", s))
-	for _, uuid := range uuids {
-		if re.MatchString(uuid.String()) {
-			return uuid, nil
-		}
-	}
-	var id uuid.UUID
-	return id, errors.New("Could not find short UUID " + s)
-
-}
-
 // GithubRelease represents a 'release' for a Github project
 type GithubRelease struct {
 	URL     string         `json:"html_url"`
@@ -518,158 +328,53 @@ func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
 	return gh, err
 }
 
-// MagicDeviceServiceID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetDeviceServices() looking for UUIDs that match up to the first hyphen or
-// where the device service name matches the string
-func MagicDeviceServiceID(wat string) (id uuid.UUID, err error) {
-	id, err = uuid.FromString(wat)
-	if err == nil {
-		return id, err
+// IsPasswordSane verifies that the given password follows the current rules
+// and restrictions
+func IsPasswordSane(password string, profile *config.ConchProfile) error {
+	if utf8.RuneCountInString(password) < 12 {
+		return errors.New("Length must be >= 12")
 	}
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	services, err := API.GetDeviceServices()
-	if err != nil {
-		return id, err
+	if strings.EqualFold(password, profile.User) {
+		return errors.New("Password cannot match user name")
 	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, s := range services {
-		if (s.Name == wat) || re.MatchString(s.ID.String()) {
-			return s.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find device service " + wat)
+	return nil
 }
 
-// MagicDeviceRoleID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetDeviceRoles() looking for UUIDs that match up to the first hyphen
-func MagicDeviceRoleID(wat string) (id uuid.UUID, err error) {
-	id, err = uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-	// So, it's not a UUID. Let's try for a partial UUID
-	roles, err := API.GetDeviceRoles()
-	if err != nil {
-		return id, err
-	}
+// InteractiveForcePasswordChange is an abstraction for the process of
+// prompting a user for a new password, validating it, and issuing the API
+// calls to execute the change
+func InteractiveForcePasswordChange() {
+	fmt.Println("You must change your password to continue.")
+	fmt.Println("The new password must:")
+	fmt.Println("  * Be at least 12 characters long")
+	fmt.Println("  * Cannot match the user name or email address on the account")
+	fmt.Println()
 
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range roles {
-		if re.MatchString(r.ID.String()) {
-			return r.ID, nil
+	var password string
+	for {
+		s, err := prompt.Password("New Password:")
+		if err != nil {
+			Bail(err)
 		}
-	}
-
-	return id, errors.New("Could not find device role " + wat)
-}
-
-// MagicGlobalDatacenterID takes a string and tries to find a valid global
-// datacenter UUID.  If the string is a UUID, it doesn't get checked further.
-// If it's not a UUID, we dig through GetGlobalDatacenters() looking for UUIDs
-// that match up to the first hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalDatacenterID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a partial UUID
-	ds, err := API.GetGlobalDatacenters()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, d := range ds {
-		if re.MatchString(d.ID.String()) {
-			return d.ID, nil
+		err = IsPasswordSane(s, ActiveProfile)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			password = s
+			break
 		}
+
+	}
+	if err := API.ChangePassword(password); err != nil {
+		Bail(err)
 	}
 
-	return id, errors.New("Could not find datacenter " + wat)
-}
-
-// MagicGlobalRoomID takes a string and tries to find a valid global UUID.  If
-// the string is a UUID, it doesn't get checked further.  If it's not a UUID,
-// we dig through GetGlobalRooms() looking for UUIDs that match up to the first
-// hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRoomID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
+	if err := API.Login(ActiveProfile.User, password); err != nil {
+		Bail(err)
 	}
 
-	// So, it's not a UUID. Let's try for a partial UUID
-	ds, err := API.GetGlobalRooms()
-	if err != nil {
-		return id, err
-	}
+	ActiveProfile.Session = API.Session
+	ActiveProfile.JWToken = API.JWToken
 
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, d := range ds {
-		if re.MatchString(d.ID.String()) {
-			return d.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find room " + wat)
-}
-
-// MagicGlobalRackRoleID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetGlobalRackRoles() looking for UUIDs that match up to the first hyphen or
-// where the role name matches the string
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRackRoleID(wat string) (id uuid.UUID, err error) {
-	id, err = uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	ret, err := API.GetGlobalRackRoles()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range ret {
-		if (r.Name == wat) || re.MatchString(r.ID.String()) {
-			return r.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find rack role " + wat)
-}
-
-// MagicGlobalRackLayoutSlotID takes a string and tries to find a valid UUID.
-// If the string is a UUID, it doesn't get checked further.  If it's not a
-// UUID, we dig through GetGlobalRackLayoutSlots() looking for UUIDs that
-// match up to the first hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRackLayoutSlotID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a partial UUID
-	ds, err := API.GetGlobalRackLayoutSlots()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, d := range ds {
-		if re.MatchString(d.ID.String()) {
-			return d.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find rack layout " + wat)
+	WriteConfig()
 }

@@ -70,4 +70,23 @@ func TestUserErrors(t *testing.T) {
 		st.Expect(t, err, aerrUnpacked)
 	})
 
+	t.Run("DeleteUser", func(t *testing.T) {
+		gock.New(API.BaseURL).Delete("/user/email=foo@bar.bat").
+			Reply(400).JSON(aerr)
+		err := API.DeleteUser("foo@bar.bat", false)
+		st.Expect(t, err, aerrUnpacked)
+	})
+
+	t.Run("CreateUser", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user").Reply(400).JSON(aerr)
+		err := API.CreateUser("foo@bar.bat", "", "")
+		st.Expect(t, err, aerrUnpacked)
+	})
+
+	t.Run("ResetUserPassword", func(t *testing.T) {
+		gock.New(API.BaseURL).Delete("/user/email=foo@bar.bat").Reply(400).JSON(aerr)
+		err := API.ResetUserPassword("foo@bar.bat")
+		st.Expect(t, err, aerrUnpacked)
+	})
+
 }
