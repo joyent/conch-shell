@@ -95,57 +95,47 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 		}
 	}
 
-	doJWT := forceJWT
-
-	if c.Session != "" {
-		doJWT = true
-	}
-
-	if refreshTime > 0 {
-		now := int(time.Now().Unix())
-		if c.Expires-now < refreshTime {
-			doJWT = true
-		}
-	}
-
-	if doJWT {
-		jwtAuth := struct {
-			Token string `json:"jwt_token,omitempty"`
-		}{}
-
-		aerr := &APIError{}
-		res, err := c.sling().Post("/refresh_token").Receive(&jwtAuth, aerr)
-
-		if err := c.isHTTPResOk(res, err, aerr); err != nil {
-			return err
-		}
-
-		if jwtAuth.Token == "" {
-			return ErrLoginFailed
-		}
-
-		signature := ""
-		for _, cookie := range c.HTTPClient.Jar.Cookies(u) {
-			if cookie.Name == "jwt_sig" {
-				signature = cookie.Value
+	if !forceJWT {
+		if refreshTime > 0 {
+			now := int(time.Now().Unix())
+			if c.Expires-now > refreshTime {
+				return nil
 			}
 		}
-		if signature == "" {
-			return ErrLoginFailed
-		}
-
-		c.JWToken = jwtAuth.Token + "." + signature
-		if err := c.recordJWTExpiry(); err != nil {
-			return ErrLoginFailed
-		}
-
-		c.Session = ""
-		return nil
 	}
 
+	jwtAuth := struct {
+		Token string `json:"jwt_token,omitempty"`
+	}{}
+
 	aerr := &APIError{}
-	res, err := c.sling().Get("/login").Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	res, err := c.sling().Post("/refresh_token").Receive(&jwtAuth, aerr)
+
+	if err := c.isHTTPResOk(res, err, aerr); err != nil {
+		return err
+	}
+
+	if jwtAuth.Token == "" {
+		return ErrLoginFailed
+	}
+
+	signature := ""
+	for _, cookie := range c.HTTPClient.Jar.Cookies(u) {
+		if cookie.Name == "jwt_sig" {
+			signature = cookie.Value
+		}
+	}
+	if signature == "" {
+		return ErrLoginFailed
+	}
+
+	c.JWToken = jwtAuth.Token + "." + signature
+	if err := c.recordJWTExpiry(); err != nil {
+		return ErrLoginFailed
+	}
+
+	c.Session = ""
+	return nil
 }
 
 // Login uses the User, as listed in the Conch struct, and the provided
@@ -167,7 +157,6 @@ func (c *Conch) Login(user string, password string) error {
 
 	aerr := &APIError{}
 	res, err := c.sling().Post("/login").BodyJSON(payload).Receive(&jwtAuth, aerr)
-
 	if rerr := c.isHTTPResOk(res, err, aerr); rerr != nil {
 		return rerr
 	}
