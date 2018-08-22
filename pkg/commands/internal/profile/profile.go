@@ -95,7 +95,10 @@ func newProfile(app *cli.Cmd) {
 
 		err := api.Login(p.User, password)
 		if err != nil {
-			util.Bail(err)
+			if util.JSON || err != conch.ErrMustChangePassword {
+				util.Bail(err)
+			}
+			util.InteractiveForcePasswordChange()
 		}
 
 		p.Session = api.Session
@@ -289,11 +292,16 @@ func refreshJWT(app *cli.Cmd) {
 		}
 
 		if err := util.API.VerifyLogin(0, true); err != nil {
-			util.Bail(err)
+			if util.JSON || err != conch.ErrMustChangePassword {
+				util.Bail(err)
+			}
+			util.InteractiveForcePasswordChange()
 		}
+
 		util.ActiveProfile.Session = util.API.Session
 		util.ActiveProfile.JWToken = util.API.JWToken
 		util.ActiveProfile.Expires = util.API.Expires
+
 		util.WriteConfig()
 
 		expires := time.Unix(int64(util.API.Expires), 0)
@@ -352,7 +360,10 @@ func relogin(app *cli.Cmd) {
 
 		err := util.API.Login(util.ActiveProfile.User, password)
 		if err != nil {
-			util.Bail(err)
+			if util.JSON || err != conch.ErrMustChangePassword {
+				util.Bail(err)
+			}
+			util.InteractiveForcePasswordChange()
 		}
 
 		util.ActiveProfile.Session = util.API.Session

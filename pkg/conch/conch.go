@@ -192,7 +192,31 @@ func (c *Conch) Login(user string, password string) error {
 		}
 	}
 
+	location, err := res.Location()
+
+	if err != nil {
+		if err != http.ErrNoLocation {
+			return err
+		}
+	}
+
+	if location != nil {
+		return ErrMustChangePassword
+	}
+
 	return nil
+}
+
+// ChangePassword changes the password for the currently active profile
+func (c *Conch) ChangePassword(password string) error {
+	b := struct {
+		Password string `json:"password"`
+	}{password}
+
+	aerr := &APIError{}
+	res, err := c.sling().Post("/user/me/password").BodyJSON(b).Receive(nil, aerr)
+	return c.isHTTPResOk(res, err, aerr)
+
 }
 
 func (c *Conch) recordJWTExpiry() error {

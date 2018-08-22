@@ -56,6 +56,11 @@ var (
 
 	// ErrNotAuthorized indicates that the API server returned a 403
 	ErrNotAuthorized = errors.New("Not authorized for this endpoint")
+
+	// ErrMustChangePassword is used to signal that the user must change their
+	// password before proceeding. Typically, the existing auth credentials
+	// will continue to work for a few minutes.
+	ErrMustChangePassword = errors.New("Password must be changed")
 )
 
 // isHTTPResOk is a convenience function to abstract out all the code to see

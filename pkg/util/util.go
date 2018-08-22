@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
 	"github.com/dghubble/sling"
 	cli "github.com/jawher/mow.cli"
@@ -22,6 +23,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	"github.com/olekukonko/tablewriter"
+	"unicode/utf8"
 )
 
 var (
@@ -324,4 +326,55 @@ func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
 	}
 
 	return gh, err
+}
+
+// IsPasswordSane verifies that the given password follows the current rules
+// and restrictions
+func IsPasswordSane(password string, profile *config.ConchProfile) error {
+	if utf8.RuneCountInString(password) < 12 {
+		return errors.New("Length must be >= 12")
+	}
+	if strings.EqualFold(password, profile.User) {
+		return errors.New("Password cannot match user name")
+	}
+	return nil
+}
+
+// InteractiveForcePasswordChange is an abstraction for the process of
+// prompting a user for a new password, validating it, and issuing the API
+// calls to execute the change
+func InteractiveForcePasswordChange() {
+	fmt.Println("You must change your password to continue.")
+	fmt.Println("The new password must:")
+	fmt.Println("  * Be at least 12 characters long")
+	fmt.Println("  * Cannot match the user name or email address on the account")
+	fmt.Println()
+
+	var password string
+	for {
+		s, err := prompt.Password("New Password:")
+		if err != nil {
+			Bail(err)
+		}
+		err = IsPasswordSane(s, ActiveProfile)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			password = s
+			break
+		}
+
+	}
+	if err := API.ChangePassword(password); err != nil {
+		Bail(err)
+	}
+
+	if err := API.Login(ActiveProfile.User, password); err != nil {
+		Bail(err)
+	}
+
+	ActiveProfile.Session = API.Session
+	ActiveProfile.JWToken = API.JWToken
+
+	WriteConfig()
 }
