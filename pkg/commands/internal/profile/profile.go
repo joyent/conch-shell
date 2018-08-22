@@ -375,3 +375,24 @@ func relogin(app *cli.Cmd) {
 		}
 	}
 }
+
+func changePassword(app *cli.Cmd) {
+	var (
+		passwordOpt = app.StringOpt("password pass", "", "Account password")
+	)
+
+	app.Action = func() {
+		util.BuildAPI()
+
+		password := *passwordOpt
+
+		if password == "" {
+			util.InteractiveForcePasswordChange()
+		} else {
+			if err := util.API.ChangePassword(password); err != nil {
+				util.Bail(err)
+			}
+		}
+	}
+
+}
