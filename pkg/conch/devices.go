@@ -309,8 +309,9 @@ func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
 // GetWorkspaceRacks fetchest the list of racks for a workspace, via
 // /workspace/:uuid/rack
 //
-// NOTE: The API currently returns the AZ name. This routine throws that out
-// and only returns the list of racks.
+// NOTE: The API currently returns a hash of arrays where teh key is the
+// datacenter/az. This routine copies that key into the Datacenter field in the
+// Rack struct.
 func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 	racks := make([]Rack, 0)
 	j := make(map[string][]Rack)
@@ -320,8 +321,11 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 		Get("/workspace/"+workspaceUUID.String()+"/rack").
 		Receive(&j, aerr)
 
-	for _, loc := range j {
-		racks = append(racks, loc...)
+	for az, loc := range j {
+		for _, rack := range loc {
+			rack.Datacenter = az
+			racks = append(racks, rack)
+		}
 	}
 
 	return racks, c.isHTTPResOk(res, err, aerr)
