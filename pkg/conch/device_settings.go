@@ -87,3 +87,22 @@ func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) erro
 
 	return c.isHTTPResOk(res, err, aerr)
 }
+
+// DeleteDeviceSetting deletes a single setting for a device via
+// /device/:deviceID/settings/:key
+// Settings that begin with "tag." cannot be processed by this routine and will
+// always return ErrDataNotFound
+func (c *Conch) DeleteDeviceSetting(deviceID string, key string) error {
+	// Settings that start with 'tag.' are special cased and only available
+	// in the device tag interface
+	re := regexp.MustCompile("^tag\\.")
+	if re.MatchString(key) {
+		return ErrDataNotFound
+	}
+
+	aerr := &APIError{}
+	res, err := c.sling().New().Delete("/device/"+deviceID+"/settings/"+key).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}

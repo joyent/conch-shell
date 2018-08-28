@@ -56,4 +56,15 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		st.Expect(t, err, aerrUnpacked)
 	})
 
+	t.Run("DeleteDeviceSetting", func(t *testing.T) {
+		serial := "test"
+		key := "key"
+
+		gock.New(API.BaseURL).Delete("/device/" + serial + "/settings/" + key).
+			Reply(400).JSON(aerr)
+
+		err := API.DeleteDeviceSetting(serial, key)
+		st.Expect(t, err, aerrUnpacked)
+	})
+
 }

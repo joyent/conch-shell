@@ -227,6 +227,11 @@ func Init(app *cli.Cli) {
 						setSetting,
 					)
 
+					cmd.Command(
+						"delete rm",
+						"Delete a particular device setting",
+						deleteSetting,
+					)
 				},
 			)
 

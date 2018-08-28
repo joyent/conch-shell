@@ -251,6 +251,14 @@ func setSetting(app *cli.Cmd) {
 	}
 }
 
+func deleteSetting(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.DeleteDeviceSetting(DeviceSerial, DeviceSettingName); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
 func graduate(app *cli.Cmd) {
 	app.Action = func() {
 		if err := util.API.GraduateDevice(DeviceSerial); err != nil {
