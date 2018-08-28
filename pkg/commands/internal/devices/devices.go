@@ -245,7 +245,12 @@ func setSetting(app *cli.Cmd) {
 	var settingValueArg = app.StringArg("VALUE", "", "Value of the setting")
 	app.Spec = "VALUE"
 	app.Action = func() {
-		if err := util.API.SetDeviceSetting(DeviceSerial, DeviceSettingName, *settingValueArg); err != nil {
+		err := util.API.SetDeviceSetting(
+			DeviceSerial,
+			DeviceSettingName,
+			*settingValueArg,
+		)
+		if err != nil {
 			util.Bail(err)
 		}
 	}
@@ -253,7 +258,11 @@ func setSetting(app *cli.Cmd) {
 
 func deleteSetting(app *cli.Cmd) {
 	app.Action = func() {
-		if err := util.API.DeleteDeviceSetting(DeviceSerial, DeviceSettingName); err != nil {
+		err := util.API.DeleteDeviceSetting(
+			DeviceSerial,
+			DeviceSettingName,
+		)
+		if err != nil {
 			util.Bail(err)
 		}
 	}
