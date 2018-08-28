@@ -334,8 +334,10 @@ func IsPasswordSane(password string, profile *config.ConchProfile) error {
 	if utf8.RuneCountInString(password) < 12 {
 		return errors.New("Length must be >= 12")
 	}
-	if strings.EqualFold(password, profile.User) {
-		return errors.New("Password cannot match user name")
+	if profile != nil {
+		if strings.EqualFold(password, profile.User) {
+			return errors.New("Password cannot match user name")
+		}
 	}
 	return nil
 }
