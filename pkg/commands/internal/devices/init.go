@@ -193,7 +193,7 @@ func Init(app *cli.Cli) {
 
 			cmd.Command(
 				"settings",
-				"Get the seettings for a single device",
+				"Get the settings for a single device",
 				getSettings,
 			)
 			cmd.Command(
