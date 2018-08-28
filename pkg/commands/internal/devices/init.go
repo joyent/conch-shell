@@ -25,6 +25,9 @@ var DeviceServiceUUID uuid.UUID
 // relevant command tree
 var DeviceRoleUUID uuid.UUID
 
+// DeviceSettingName is the name of the device setting being active upon
+var DeviceSettingName string
+
 // Init loads up all the device related commands
 func Init(app *cli.Cli) {
 	app.Command(
@@ -193,13 +196,43 @@ func Init(app *cli.Cli) {
 
 			cmd.Command(
 				"settings",
-				"Get the seettings for a single device",
+				"Get the settings for a single device",
 				getSettings,
 			)
+
 			cmd.Command(
 				"setting",
 				"Get the value of a single setting for a single device",
-				getSetting,
+				func(cmd *cli.Cmd) {
+					var settingNameArg = cmd.StringArg(
+						"NAME",
+						"",
+						"The name of the setting",
+					)
+					cmd.Spec = "NAME"
+
+					cmd.Before = func() {
+						DeviceSettingName = *settingNameArg
+					}
+
+					cmd.Command(
+						"get",
+						"Get a particular device setting",
+						getSetting,
+					)
+
+					cmd.Command(
+						"set",
+						"Set a particular device setting",
+						setSetting,
+					)
+
+					cmd.Command(
+						"delete rm",
+						"Delete a particular device setting",
+						deleteSetting,
+					)
+				},
 			)
 
 			cmd.Command(

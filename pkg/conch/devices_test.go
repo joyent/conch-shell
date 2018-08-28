@@ -61,30 +61,6 @@ func TestDevicesErrors(t *testing.T) {
 		st.Expect(t, ret, d)
 	})
 
-	t.Run("GetDeviceSettings", func(t *testing.T) {
-		serial := "test"
-
-		gock.New(API.BaseURL).Get("/device/" + serial + "/settings").
-			Reply(400).JSON(aerr)
-
-		ret, err := API.GetDeviceSettings(serial)
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, make(map[string]string))
-	})
-
-	t.Run("GetDeviceSetting", func(t *testing.T) {
-		serial := "test"
-		key := "key"
-
-		gock.New(API.BaseURL).Get("/device/" + serial + "/settings/" + key).
-			Reply(400).JSON(aerr)
-
-		ret, err := API.GetDeviceSetting(serial, key)
-		st.Expect(t, err, aerrUnpacked)
-		var setting string
-		st.Expect(t, ret, setting)
-	})
-
 	t.Run("GetDeviceLocation", func(t *testing.T) {
 		serial := "test"
 

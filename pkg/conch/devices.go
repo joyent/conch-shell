@@ -260,39 +260,6 @@ func (c *Conch) FillInDevice(d Device) (Device, error) {
 	return d, c.isHTTPResOk(res, err, aerr)
 }
 
-// GetDeviceSettings fetches settings for a device, via
-// /device/:serial/settings
-func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
-	settings := make(map[string]string)
-
-	aerr := &APIError{}
-
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/settings").
-		Receive(&settings, aerr)
-
-	return settings, c.isHTTPResOk(res, err, aerr)
-}
-
-// GetDeviceSetting fetches a single setting for a device, via
-// /device/:serial/settings/:key
-func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
-
-	var setting string
-	j := make(map[string]string)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/settings/"+key).
-		Receive(&j, aerr)
-
-	if _, ok := j[key]; ok {
-		setting = j[key]
-	}
-
-	return setting, c.isHTTPResOk(res, err, aerr)
-}
-
 // GetDeviceLocation fetches the location for a device, via
 // /device/:serial/location
 func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
