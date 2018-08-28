@@ -76,6 +76,24 @@ func Init(app *cli.Cli) {
 						"Change which profile is active",
 						setActive,
 					)
+
+					cmd.Command(
+						"version-check vc",
+						"Enable/disable version checking",
+						func(cmd *cli.Cmd) {
+							cmd.Command(
+								"enable",
+								"Enable version checking",
+								enableVersionCheck,
+							)
+
+							cmd.Command(
+								"disable",
+								"Disable version checking",
+								disableVersionCheck,
+							)
+						},
+					)
 				},
 			)
 
