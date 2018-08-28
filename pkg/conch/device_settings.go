@@ -12,6 +12,7 @@ import (
 
 // GetDeviceSettings fetches settings for a device, via
 // /device/:serial/settings
+// Device settings that begin with 'tag.' are filtered out.
 func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 	settings := make(map[string]string)
 
@@ -41,6 +42,7 @@ func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 
 // GetDeviceSetting fetches a single setting for a device, via
 // /device/:serial/settings/:key
+// Device settings that begin with 'tag.' are filtered out.
 func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
 
 	// Settings that start with 'tag.' are special cased and only available

@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -226,18 +226,15 @@ func getSettings(app *cli.Cmd) {
 }
 
 func getSetting(app *cli.Cmd) {
-	var settingStr = app.StringArg("SETTING", "", "The name of the setting to retrieve")
-	app.Spec = "SETTING"
-
 	app.Action = func() {
 
-		setting, err := util.API.GetDeviceSetting(DeviceSerial, *settingStr)
+		setting, err := util.API.GetDeviceSetting(DeviceSerial, DeviceSettingName)
 		if err != nil {
 			util.Bail(err)
 		}
 
 		if util.JSON {
-			util.JSONOut(map[string]string{*settingStr: setting})
+			util.JSONOut(map[string]string{DeviceSettingName: setting})
 		} else {
 			fmt.Println(setting)
 		}
