@@ -183,10 +183,10 @@ func listProfiles(app *cli.Cmd) {
 			"Active",
 			"Name",
 			"User",
-			"Workspace ID",
 			"Workspace Name",
 			"API URL",
 			"Expires",
+			"Version Check",
 		})
 
 		for _, prof := range util.Config.Profiles {
@@ -194,31 +194,29 @@ func listProfiles(app *cli.Cmd) {
 			if prof.Active {
 				active = "*"
 			}
-			workspaceUUID := ""
 			workspaceName := ""
 			if !uuid.Equal(prof.WorkspaceUUID, uuid.UUID{}) {
-				workspaceUUID = prof.WorkspaceUUID.String()
 				if len(prof.WorkspaceName) > 0 {
 					workspaceName = prof.WorkspaceName
-				} else {
-					// BUG(sungo): This is a transition point since workspace
-					// names only get set during profile creation.
-					workspaceName = "**UNKNOWN**"
 				}
 			}
 			expires := "Unknown"
 			if prof.Expires > 0 {
 				expires = util.TimeStr(time.Unix(int64(prof.Expires), 0))
 			}
+			versionCheck := "Y"
+			if prof.SkipVersionCheck {
+				versionCheck = "N"
+			}
 
 			table.Append([]string{
 				active,
 				prof.Name,
 				prof.User,
-				workspaceUUID,
 				workspaceName,
 				prof.BaseURL,
 				expires,
+				versionCheck,
 			})
 		}
 		table.Render()
@@ -396,5 +394,18 @@ func changePassword(app *cli.Cmd) {
 			}
 		}
 	}
+}
 
+func enableVersionCheck(app *cli.Cmd) {
+	app.Action = func() {
+		util.ActiveProfile.SkipVersionCheck = false
+		util.WriteConfig()
+	}
+}
+
+func disableVersionCheck(app *cli.Cmd) {
+	app.Action = func() {
+		util.ActiveProfile.SkipVersionCheck = true
+		util.WriteConfig()
+	}
 }

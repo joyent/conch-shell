@@ -29,15 +29,16 @@ type ConchConfig struct {
 // ConchProfile is an individual environment, consisting of login data, API
 // settings, and an optional default workspace
 type ConchProfile struct {
-	Name          string    `json:"name"`
-	User          string    `json:"user"`
-	Session       string    `json:"session,omitempty"`
-	WorkspaceUUID uuid.UUID `json:"workspace_id"`
-	WorkspaceName string    `json:"workspace_name"`
-	BaseURL       string    `json:"api_url"`
-	Active        bool      `json:"active"`
-	JWToken       string    `json:"jwt,omitempty"`
-	Expires       int       `json:"expires,omitempty"`
+	Name             string    `json:"name"`
+	User             string    `json:"user"`
+	Session          string    `json:"session,omitempty"`
+	WorkspaceUUID    uuid.UUID `json:"workspace_id"`
+	WorkspaceName    string    `json:"workspace_name"`
+	BaseURL          string    `json:"api_url"`
+	Active           bool      `json:"active"`
+	JWToken          string    `json:"jwt,omitempty"`
+	Expires          int       `json:"expires,omitempty"`
+	SkipVersionCheck bool      `json:"skip_version_check"`
 }
 
 // New provides an initialized struct with default values geared towards a

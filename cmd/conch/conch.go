@@ -61,8 +61,32 @@ func main() {
 		} else {
 			util.JSON = false
 		}
+		expandedPath, err := homedir.Expand(*configFile)
+		if err != nil {
+			util.Bail(err)
+		}
 
-		if !*noVersion {
+		cfg, err := config.NewFromJSONFile(expandedPath)
+		if err == nil {
+			cfg.Path = expandedPath
+		}
+		util.Config = cfg
+
+		for _, prof := range cfg.Profiles {
+			if prof.Active {
+				util.ActiveProfile = prof
+				break
+			}
+		}
+		checkVersion := true
+		if *noVersion {
+			checkVersion = false
+		}
+		if util.ActiveProfile.SkipVersionCheck {
+			checkVersion = false
+		}
+
+		if checkVersion {
 			gh, err := util.LatestGithubRelease("joyent", "conch-shell")
 			if err != nil {
 				util.Bail(err)
@@ -81,23 +105,6 @@ func main() {
 			}
 		}
 
-		expandedPath, err := homedir.Expand(*configFile)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		cfg, err := config.NewFromJSONFile(expandedPath)
-		if err == nil {
-			cfg.Path = expandedPath
-		}
-		util.Config = cfg
-
-		for _, prof := range cfg.Profiles {
-			if prof.Active {
-				util.ActiveProfile = prof
-				break
-			}
-		}
 	}
 
 	commands.Init(app)
