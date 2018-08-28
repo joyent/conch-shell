@@ -241,6 +241,16 @@ func getSetting(app *cli.Cmd) {
 	}
 }
 
+func setSetting(app *cli.Cmd) {
+	var settingValueArg = app.StringArg("VALUE", "", "Value of the setting")
+	app.Spec = "VALUE"
+	app.Action = func() {
+		if err := util.API.SetDeviceSetting(DeviceSerial, DeviceSettingName, *settingValueArg); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
 func graduate(app *cli.Cmd) {
 	app.Action = func() {
 		if err := util.API.GraduateDevice(DeviceSerial); err != nil {

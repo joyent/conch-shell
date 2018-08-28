@@ -1,0 +1,59 @@
+// Copyright Joyent, Inc.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+package conch_test
+
+import (
+	"errors"
+	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/nbio/st"
+	"gopkg.in/h2non/gock.v1"
+	"testing"
+)
+
+func TestDeviceSettingsErrors(t *testing.T) {
+	BuildAPI()
+	gock.Flush()
+
+	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	aerrUnpacked := errors.New(aerr.ErrorMsg)
+
+	t.Run("GetDeviceSettings", func(t *testing.T) {
+		serial := "test"
+
+		gock.New(API.BaseURL).Get("/device/" + serial + "/settings").
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetDeviceSettings(serial)
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, make(map[string]string))
+	})
+
+	t.Run("GetDeviceSetting", func(t *testing.T) {
+		serial := "test"
+		key := "key"
+
+		gock.New(API.BaseURL).Get("/device/" + serial + "/settings/" + key).
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetDeviceSetting(serial, key)
+		st.Expect(t, err, aerrUnpacked)
+		var setting string
+		st.Expect(t, ret, setting)
+	})
+
+	t.Run("SetDeviceSetting", func(t *testing.T) {
+		serial := "test"
+		key := "key"
+
+		gock.New(API.BaseURL).Post("/device/" + serial + "/settings/" + key).
+			Reply(400).JSON(aerr)
+
+		err := API.SetDeviceSetting(serial, key, "val")
+		st.Expect(t, err, aerrUnpacked)
+	})
+
+}

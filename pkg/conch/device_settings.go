@@ -66,3 +66,24 @@ func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
 
 	return setting, c.isHTTPResOk(res, err, aerr)
 }
+
+// SetDeviceSetting sets a single setting for a device via /device/:deviceID/settings/:key
+// Settings that begin with "tag." cannot be processed by this routine and will
+// always return ErrDataNotFound
+func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) error {
+	// Settings that start with 'tag.' are special cased and only available
+	// in the device tag interface
+	re := regexp.MustCompile("^tag\\.")
+	if re.MatchString(key) {
+		return ErrDataNotFound
+	}
+
+	j := make(map[string]string)
+	j[key] = value
+
+	aerr := &APIError{}
+	res, err := c.sling().New().Post("/device/"+deviceID+"/settings/"+key).
+		BodyJSON(j).Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}

@@ -220,6 +220,13 @@ func Init(app *cli.Cli) {
 						"Get a particular device setting",
 						getSetting,
 					)
+
+					cmd.Command(
+						"set",
+						"Set a particular device setting",
+						setSetting,
+					)
+
 				},
 			)
 
