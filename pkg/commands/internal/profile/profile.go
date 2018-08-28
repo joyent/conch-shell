@@ -86,25 +86,27 @@ func newProfile(app *cli.Cmd) {
 			p.BaseURL = *apiOpt
 		}
 
-		api := &conch.Conch{
+		util.API = &conch.Conch{
 			BaseURL: p.BaseURL,
 		}
+
 		if util.UserAgent != "" {
-			api.UA = util.UserAgent
+			util.API.UA = util.UserAgent
 		}
 
-		err := api.Login(p.User, password)
+		err := util.API.Login(p.User, password)
+
 		if err != nil {
 			if util.JSON || err != conch.ErrMustChangePassword {
 				util.Bail(err)
 			}
+			util.ActiveProfile = p
 			util.InteractiveForcePasswordChange()
 		}
 
-		p.Session = api.Session
-		p.JWToken = api.JWToken
-
-		util.API = api
+		p.Session = util.API.Session
+		p.JWToken = util.API.JWToken
+		p.Expires = util.API.Expires
 
 		if *workspaceOpt == "" {
 			p.WorkspaceUUID = uuid.UUID{}
