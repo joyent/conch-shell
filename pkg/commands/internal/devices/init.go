@@ -25,8 +25,11 @@ var DeviceServiceUUID uuid.UUID
 // relevant command tree
 var DeviceRoleUUID uuid.UUID
 
-// DeviceSettingName is the name of the device setting being active upon
+// DeviceSettingName is the name of the device setting being acted upon
 var DeviceSettingName string
+
+// DeviceTagName is the name of the device tag being acted upon
+var DeviceTagName string
 
 // Init loads up all the device related commands
 func Init(app *cli.Cli) {
@@ -286,6 +289,48 @@ func Init(app *cli.Cli) {
 						"setup",
 						"Mark the device as having been setup in Triton. WARNING: This is a one-way operation that cannot be undone",
 						markTritonSetup,
+					)
+				},
+			)
+
+			// TAGS
+			cmd.Command(
+				"tags",
+				"Get the tags for a single device",
+				getTags,
+			)
+
+			cmd.Command(
+				"tag",
+				"Get the value of a single tag for a single device",
+				func(cmd *cli.Cmd) {
+					var tagNameArg = cmd.StringArg(
+						"NAME",
+						"",
+						"The name of the tag",
+					)
+					cmd.Spec = "NAME"
+
+					cmd.Before = func() {
+						DeviceTagName = *tagNameArg
+					}
+
+					cmd.Command(
+						"get",
+						"Get a particular device tag",
+						getTag,
+					)
+
+					cmd.Command(
+						"set",
+						"Set a particular device tag",
+						setTag,
+					)
+
+					cmd.Command(
+						"delete rm",
+						"Delete a particular device tag",
+						deleteTag,
 					)
 				},
 			)

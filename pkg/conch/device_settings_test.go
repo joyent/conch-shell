@@ -67,4 +67,50 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		st.Expect(t, err, aerrUnpacked)
 	})
 
+	t.Run("GetDeviceTags", func(t *testing.T) {
+		serial := "test"
+
+		gock.New(API.BaseURL).Get("/device/" + serial + "/settings").
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetDeviceTags(serial)
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, make(map[string]string))
+	})
+
+	t.Run("GetDeviceTag", func(t *testing.T) {
+		serial := "test"
+		key := "key"
+
+		gock.New(API.BaseURL).Get("/device/" + serial + "/settings/tag." + key).
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetDeviceTag(serial, key)
+		st.Expect(t, err, aerrUnpacked)
+		var setting string
+		st.Expect(t, ret, setting)
+	})
+
+	t.Run("SetDeviceTag", func(t *testing.T) {
+		serial := "test"
+		key := "key"
+
+		gock.New(API.BaseURL).Post("/device/" + serial + "/settings/tag." + key).
+			Reply(400).JSON(aerr)
+
+		err := API.SetDeviceTag(serial, key, "val")
+		st.Expect(t, err, aerrUnpacked)
+	})
+
+	t.Run("DeleteDeviceTag", func(t *testing.T) {
+		serial := "test"
+		key := "key"
+
+		gock.New(API.BaseURL).Delete("/device/" + serial + "/settings/tag." + key).
+			Reply(400).JSON(aerr)
+
+		err := API.DeleteDeviceTag(serial, key)
+		st.Expect(t, err, aerrUnpacked)
+	})
+
 }
