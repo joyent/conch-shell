@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/jawher/mow.cli"
@@ -348,5 +349,87 @@ func getReport(app *cli.Cmd) {
 			util.Bail(err)
 		}
 		fmt.Println(string(j))
+	}
+}
+
+func getTags(app *cli.Cmd) {
+	var keysOnly = app.BoolOpt("keys-only", false, "Only display the tag keys/names")
+	app.Action = func() {
+		settings, err := util.API.GetDeviceTags(DeviceSerial)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		keys := make([]string, 0, len(settings))
+		for k := range settings {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		if *keysOnly {
+			if util.JSON {
+				util.JSONOut(keys)
+				return
+			}
+
+			for _, k := range keys {
+				fmt.Println(k)
+			}
+			return
+		}
+
+		if util.JSON {
+			util.JSONOut(settings)
+			return
+		}
+
+		for _, k := range keys {
+			fmt.Printf("%s : %v\n", k, settings[k])
+		}
+	}
+}
+
+func getTag(app *cli.Cmd) {
+	app.Action = func() {
+
+		setting, err := util.API.GetDeviceTag(DeviceSerial, DeviceTagName)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		tag := strings.TrimPrefix(DeviceTagName, "tag.")
+
+		if util.JSON {
+			util.JSONOut(map[string]string{tag: setting})
+		} else {
+			fmt.Println(setting)
+		}
+	}
+}
+
+func setTag(app *cli.Cmd) {
+	var settingValueArg = app.StringArg("VALUE", "", "Value of the tag")
+	app.Spec = "VALUE"
+	app.Action = func() {
+		err := util.API.SetDeviceTag(
+			DeviceSerial,
+			DeviceTagName,
+			*settingValueArg,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func deleteTag(app *cli.Cmd) {
+	app.Action = func() {
+		err := util.API.DeleteDeviceTag(
+			DeviceSerial,
+			DeviceTagName,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
 	}
 }
