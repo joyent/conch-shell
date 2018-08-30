@@ -2,7 +2,7 @@
 
 `conch` is a CLI for accessing the [Conch](https://github.com/joyent/conch) API.
 
-[![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell) [![Travis-CI](https://travis-ci.org/joyent/conch-shell.svg?branch=master)](https://travis-ci.org/joyent/conch-shell)
+[![Go Report Card](https://goreportcard.com/badge/joyent/conch-shell)](https://goreportcard.com/report/joyent/conch-shell)
 
 # Getting The App
 
