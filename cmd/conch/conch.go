@@ -50,9 +50,10 @@ func main() {
 		},
 	)
 	var (
-		useJSON    = app.BoolOpt("json j", false, "Output JSON")
-		configFile = app.StringOpt("config c", "~/.conch.json", "Path to config file")
-		noVersion  = app.BoolOpt("no-version-check", false, "Skip Github version check")
+		useJSON         = app.BoolOpt("json j", false, "Output JSON")
+		configFile      = app.StringOpt("config c", "~/.conch.json", "Path to config file")
+		noVersion       = app.BoolOpt("no-version-check", false, "Skip Github version check")
+		profileOverride = app.StringOpt("profile p", "", "Override the active profile")
 	)
 
 	app.Before = func() {
@@ -73,11 +74,20 @@ func main() {
 		util.Config = cfg
 
 		for _, prof := range cfg.Profiles {
-			if prof.Active {
+			if *profileOverride != "" {
+				if prof.Name == *profileOverride {
+					util.ActiveProfile = prof
+					break
+				}
+			} else if prof.Active {
 				util.ActiveProfile = prof
 				break
 			}
 		}
+		if (*profileOverride != "") && (util.ActiveProfile == nil) {
+			util.Bail(fmt.Errorf("Could not find a profile named '%s'", *profileOverride))
+		}
+
 		checkVersion := true
 		if *noVersion {
 			checkVersion = false
