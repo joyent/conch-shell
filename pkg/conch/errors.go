@@ -54,8 +54,11 @@ var (
 	// command. This is typically determined via checks on conch.apiVersion
 	ErrNotSupported = errors.New("This function is not supported")
 
-	// ErrNotAuthorized indicates that the API server returned a 403
+	// ErrNotAuthorized indicates that the API server returned a 401
 	ErrNotAuthorized = errors.New("Not authorized for this endpoint")
+
+	// ErrForbidden indicates that the API server returned a 403
+	ErrForbidden = errors.New("Access to this endpoint is forbidden")
 
 	// ErrMustChangePassword is used to signal that the user must change their
 	// password before proceeding. Typically, the existing auth credentials
@@ -79,7 +82,7 @@ func (c *Conch) isHTTPResOk(res *http.Response, err error, aerr *APIError) error
 	}
 
 	if res.StatusCode == http.StatusForbidden {
-		return ErrNotAuthorized
+		return ErrForbidden
 	}
 
 	if res.StatusCode == http.StatusNotFound {

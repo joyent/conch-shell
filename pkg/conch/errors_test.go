@@ -19,7 +19,8 @@ func TestErrors(t *testing.T) {
 	gock.Flush()
 
 	fourohfour := conch.APIError{ErrorMsg: "Not found"}
-	fourohthree := conch.APIError{ErrorMsg: "Not Authorized"}
+	fourohthree := conch.APIError{ErrorMsg: "Forbidden"}
+	fourohone := conch.APIError{ErrorMsg: "Not Authorized"}
 	aerr := conch.APIError{ErrorMsg: "totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
@@ -30,9 +31,9 @@ func TestErrors(t *testing.T) {
 
 	gock.New(API.BaseURL).Get(url).Reply(403).JSON(fourohthree)
 	_, err = API.GetUserSettings()
-	st.Expect(t, err, conch.ErrNotAuthorized)
+	st.Expect(t, err, conch.ErrForbidden)
 
-	gock.New(API.BaseURL).Get(url).Reply(401).JSON(fourohthree)
+	gock.New(API.BaseURL).Get(url).Reply(401).JSON(fourohone)
 	_, err = API.GetUserSettings()
 	st.Expect(t, err, conch.ErrNotAuthorized)
 
