@@ -243,10 +243,9 @@ func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, gr
 // GetDevice returns a Device given a specific serial/id
 func (c *Conch) GetDevice(serial string) (Device, error) {
 	var device Device
+	device.ID = serial
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/device/"+serial).Receive(&device, aerr)
-	return device, c.isHTTPResOk(res, err, aerr)
+	return c.FillInDevice(device)
 }
 
 // FillInDevice takes an existing device and fills in its data using "/device"
