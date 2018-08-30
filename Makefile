@@ -24,6 +24,7 @@ clean: ## Remove build products from bin/
 	@echo "==> Removing build products from bin/"
 	rm -f bin/conch
 
+.PHONY: vendor
 vendor: ## Install dependencies
 	dep ensure -v -vendor-only
 
