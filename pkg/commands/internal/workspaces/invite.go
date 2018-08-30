@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
+	"net/mail"
 )
 
 func inviteUser(app *cli.Cmd) {
@@ -16,6 +17,14 @@ func inviteUser(app *cli.Cmd) {
 
 	app.Action = func() {
 		var role string
+
+		address, err := mail.ParseAddress(*emailArg)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		email := address.Address
+
 		switch *roleArg {
 		case "ro", "rw", "admin":
 			role = *roleArg
@@ -43,14 +52,18 @@ func inviteUser(app *cli.Cmd) {
 			role = "ro"
 		}
 
-		err := util.API.InviteUser(
+		err = util.API.InviteUser(
 			WorkspaceUUID,
-			*emailArg,
+			email,
 			role,
 		)
 
 		if err != nil {
 			util.Bail(err)
+		}
+
+		if !util.JSON {
+			fmt.Println("User " + email + "has been added to workspace " + WorkspaceUUID.String() + " and they have been informed via email")
 		}
 	}
 }
