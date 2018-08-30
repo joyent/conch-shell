@@ -89,8 +89,10 @@ func (c *Conch) isHTTPResOk(res *http.Response, err error, aerr *APIError) error
 		return ErrDataNotFound
 	}
 
-	if aerr.ErrorMsg != "" {
-		return errors.New(aerr.ErrorMsg)
+	if aerr != nil {
+		if aerr.ErrorMsg != "" {
+			return errors.New(aerr.ErrorMsg)
+		}
 	}
 
 	if res.StatusCode >= 400 {
