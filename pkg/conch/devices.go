@@ -41,7 +41,7 @@ type Device struct {
 	UptimeSince     pgtime.PgTime      `json:"uptime_since"`
 	Validated       pgtime.PgTime      `json:"validated"`
 	Validations     []ValidationReport `json:"validations"`
-	LatestReport    ServerReport       `json:"latest_report"`
+	LatestReport    interface{}        `json:"latest_report"`
 }
 
 // ValidationReport vars provide an abstraction to make sense of the 'status'

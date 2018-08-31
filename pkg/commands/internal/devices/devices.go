@@ -8,7 +8,6 @@ package devices
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -361,9 +360,6 @@ func getReport(app *cli.Cmd) {
 		d, err := util.API.GetDevice(DeviceSerial)
 		if err != nil {
 			util.Bail(err)
-		}
-		if d.LatestReport.SerialNumber == "" {
-			util.Bail(errors.New("Device has not yet reported"))
 		}
 		j, err := json.MarshalIndent(d.LatestReport, "", "  ")
 		if err != nil {
