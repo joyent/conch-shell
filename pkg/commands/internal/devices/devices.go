@@ -126,30 +126,6 @@ func getOne(app *cli.Cmd) {
 				util.Bail(err)
 			}
 
-			if *showValidations || *showFailed {
-				t, err := template.New("validations").Parse(deviceValidationsTemplate)
-				if err != nil {
-					util.Bail(err)
-				}
-
-				validations := make([]conch.ValidationReport, 0)
-
-				if *showFailed {
-					for _, v := range device.Validations {
-						if v.Status == 0 {
-							validations = append(validations, v)
-						}
-					}
-
-				} else {
-					validations = device.Validations
-				}
-
-				if err := t.Execute(os.Stdout, validations); err != nil {
-					util.Bail(err)
-				}
-
-			}
 			return
 		}
 
