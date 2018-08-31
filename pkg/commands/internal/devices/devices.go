@@ -226,6 +226,22 @@ func getSettings(app *cli.Cmd) {
 	}
 }
 
+func getIPMI(app *cli.Cmd) {
+	app.Action = func() {
+
+		ipmi, err := util.API.GetDeviceIPMI(DeviceSerial)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(map[string]string{"ipmi": ipmi})
+		} else {
+			fmt.Println(ipmi)
+		}
+	}
+}
+
 func getSetting(app *cli.Cmd) {
 	app.Action = func() {
 

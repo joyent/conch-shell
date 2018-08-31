@@ -611,3 +611,18 @@ func (c *Conch) RemoveServiceFromDeviceRole(d DeviceRole, ds DeviceService) erro
 		Receive(nil, aerr)
 	return c.isHTTPResOk(res, err, aerr)
 }
+
+// GetDeviceIPMI retrieves "/device/:serial/interface/impi1/ipaddr"
+func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
+	j := make(map[string]string)
+
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Get("/device/"+serial+"/interface/ipmi1/ipaddr").Receive(&j, aerr)
+
+	if herr := c.isHTTPResOk(res, err, aerr); herr != nil {
+		return "", herr
+	}
+
+	return j["ipaddr"], nil
+}
