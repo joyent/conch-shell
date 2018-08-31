@@ -28,7 +28,6 @@ State:	{{ .D.State }}
 Location:
   Datacenter: {{ .D.Location.Datacenter.Name }}
   Rack: {{ .D.Location.Rack.Name }} - RU {{ .D.Location.Rack.Unit }}
-
 {{ if .D.AssetTag }}
 Asset Tag: {{ .D.AssetTag }}
 {{ end -}}
@@ -41,51 +40,12 @@ Graduated: {{ .D.Graduated.Local.Format .DF }}
 Triton Setup: {{ .D.TritonSetup.Local.Format .DF }}
 Triton UUID:  {{ .D.TritonUUID }}
 {{ end -}}
-{{ with $r := .D.LatestReport }}
-Hardware:
-  {{ if $.HardwareMatches }}Model: {{ $.D.Location.TargetHardwareProduct.Alias }} // {{ $.D.Location.TargetHardwareProduct.Name }}{{ else }}Target Model: {{ $.D.Location.TargetHardwareProduct.Alias }} // {{ $.D.Location.TargetHardwareProduct.Name }}{{ end }}
 
-  BIOS Version: {{ $r.BiosVersion }}
-  CPU: {{ $r.Processor.count }}x {{ $r.Processor.type}}
-  RAM: {{ $r.Memory.total }}GB ({{ $r.Memory.count }} sticks)
-
-  NICS:{{range $k, $n := $r.Interfaces }}
-    - {{ $k }}{{ if $n.state }} - {{ $n.state }}{{ end }}{{ if $n.ipaddr }}
-      IP:   {{ $n.ipaddr }}{{ end }}
-      MAC:  {{ $n.mac }}{{ if $n.mtu }}
-      MTU:  {{ $n.mtu }}{{ end }}
-      Type: {{ $n.vendor }} {{ $n.product }}{{ if $n.peer_text }}
-      Peer: {{ $n.peer_text }}{{ end }}
-  {{ end }}
-  Disks:{{ range $k, $d := $r.Disks }}
-    - {{ $k }}{{ if $d.health }} - {{ $d.health }}{{ end }}
-      Device: {{ $d.device }}
-      Model:  {{ $d.model }}{{if $d.guid }}
-      GUID:   {{ $d.guid }}{{ end }}{{ if $d.drive_type }}
-      Type:   {{ $d.drive_type }}{{ end }}
-      Vendor: {{ $d.vendor }}{{ if $d.firmware }}
-      Firmware:  {{ $d.firmware }}{{ end }}{{ if $d.enclosure }}
-      Enclosure: {{ $d.enclosure }}{{ end }}{{ if $d.slot }}
-      Slot:   {{ $d.slot }}{{ end }}
-{{ end }}{{ end }}
-`
-
-const deviceValidationsTemplate = `
-  Validations:{{ if eq (len .) 0 }} NONE{{ else }}{{ range . }}
-    - {{ .ComponentType }} 
-      Component Name: {{ .ComponentName }}
-      Status: {{ if eq .Status 1 }}OK{{ else }}FAIL{{ end }}
-      Log: {{ .Log }}
-{{ end }}{{ end }}
 `
 
 func getOne(app *cli.Cmd) {
-	var (
-		fullOutput      = app.BoolOpt("full", false, "Provide full data about the devices rather than normal truncated data")
-		showValidations = app.BoolOpt("validations", false, "When --full is used without --json, display a list of current validation reports")
-		showFailed      = app.BoolOpt("failed-validations", false, "When --full is used with --json, display a list of current validation reports, only those that failed. (Overrides --validations)")
-	)
 
+	var fullOutput = app.BoolOpt("full", false, "Provide full data about the devices rather than normal truncated data")
 	app.Action = func() {
 		device, err := util.API.GetDevice(DeviceSerial)
 		if err != nil {
