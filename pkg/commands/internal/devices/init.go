@@ -198,6 +198,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"ipmi",
+				"Get the IPMI address for a single device",
+				getIPMI,
+			)
+
+			cmd.Command(
 				"settings",
 				"Get the settings for a single device",
 				getSettings,
