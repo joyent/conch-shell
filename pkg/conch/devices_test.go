@@ -46,7 +46,7 @@ func TestDevicesErrors(t *testing.T) {
 
 		ret, err := API.GetDevice(serial)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, conch.Device{})
+		st.Expect(t, ret, conch.Device{ID: serial})
 	})
 
 	t.Run("FillInDevice", func(t *testing.T) {
