@@ -93,7 +93,12 @@ func getOne(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		if *fullOutput && !util.JSON {
+		if util.JSON {
+			util.JSONOut(device)
+			return
+		}
+
+		if *fullOutput {
 			t, err := template.New("device").Parse(singleDeviceTemplate)
 			if err != nil {
 				util.Bail(err)
