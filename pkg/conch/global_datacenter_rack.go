@@ -56,24 +56,30 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 			DatacenterRoomID string `json:"datacenter_room_id"`
 			Name             string `json:"name"`
 			RoleID           string `json:"role"`
+			SerialNumber     string `json:"serial_number,omitempty"`
+			AssetTag         string `json:"asset_tag,omitempty"`
 		}{
 			r.DatacenterRoomID.String(),
 			r.Name,
 			r.RoleID.String(),
+			r.SerialNumber,
+			r.AssetTag,
 		}
 
 		res, err = c.sling().New().Post("/rack").BodyJSON(j).Receive(&r, aerr)
 	} else {
 		j := struct {
-			ID               string `json:"id"`
 			DatacenterRoomID string `json:"datacenter_room_id"`
 			Name             string `json:"name"`
 			RoleID           string `json:"role"`
+			SerialNumber     string `json:"serial_number,omitempty"`
+			AssetTag         string `json:"asset_tag,omitempty"`
 		}{
-			r.ID.String(),
 			r.DatacenterRoomID.String(),
 			r.Name,
 			r.RoleID.String(),
+			r.SerialNumber,
+			r.AssetTag,
 		}
 		res, err = c.sling().New().Post("/rack/"+r.ID.String()).
 			BodyJSON(j).Receive(&r, aerr)

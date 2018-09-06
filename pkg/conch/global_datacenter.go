@@ -43,6 +43,8 @@ type GlobalRack struct {
 	DatacenterRoomID uuid.UUID `json:"datacenter_room_id"`
 	Name             string    `json:"name"`
 	RoleID           uuid.UUID `json:"role"`
+	SerialNumber     string    `json:"serial_number"`
+	AssetTag         string    `json:"asset_tag"`
 }
 
 // GlobalRackRole represents a rack role in the global domain
