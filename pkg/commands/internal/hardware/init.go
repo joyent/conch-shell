@@ -20,6 +20,9 @@ import (
 // gathered by the parent command
 var ProductUUID uuid.UUID
 
+// HardwareVendorName ...
+var HardwareVendorName string
+
 // Init loads up the hardware commands
 func Init(app *cli.Cli) {
 	app.Command(
@@ -54,6 +57,43 @@ func Init(app *cli.Cli) {
 						"get",
 						"Get a single hardware product",
 						getOne,
+					)
+				},
+			)
+
+			cmd.Command(
+				"vendors vs",
+				"Get a list of all hardware vendors",
+				getAllVendors,
+			)
+
+			cmd.Command(
+				"vendor v",
+				"Deal with a hardware vendor",
+				func(cmd *cli.Cmd) {
+					var vendorNameStr = cmd.StringArg("NAME", "", "The name of the hardware vendor")
+					cmd.Spec = "NAME"
+
+					cmd.Before = func() {
+						HardwareVendorName = *vendorNameStr
+					}
+
+					cmd.Command(
+						"get",
+						"Get a single vendor",
+						getOneVendor,
+					)
+
+					cmd.Command(
+						"create make mk",
+						"Create a single vendor",
+						createOneVendor,
+					)
+
+					cmd.Command(
+						"delete rm ",
+						"Delete a single vendor",
+						deleteOneVendor,
 					)
 				},
 			)
