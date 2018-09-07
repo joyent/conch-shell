@@ -23,6 +23,31 @@ import (
 	"strconv"
 )
 
+func displayOneGlobalRack(r conch.GlobalRack) {
+
+	fmt.Printf(`
+ID: %s
+Datacenter Room ID: %s
+Name: %s
+Role ID: %s
+Serial Number: %s
+Asset Tag: %s
+
+Created: %s
+Updated: %s
+
+`,
+		r.ID.String(),
+		r.DatacenterRoomID.String(),
+		r.Name,
+		r.RoleID.String(),
+		r.SerialNumber,
+		r.AssetTag,
+		util.TimeStr(r.Created),
+		util.TimeStr(r.Updated),
+	)
+}
+
 func rackGetAll(app *cli.Cmd) {
 	app.Action = func() {
 		rs, err := util.API.GetGlobalRacks()
@@ -40,6 +65,8 @@ func rackGetAll(app *cli.Cmd) {
 			"Datacenter Room ID",
 			"Name",
 			"Role ID",
+			"Serial Number",
+			"Asset Tag",
 		})
 
 		for _, r := range rs {
@@ -48,6 +75,8 @@ func rackGetAll(app *cli.Cmd) {
 				r.DatacenterRoomID.String(),
 				r.Name,
 				r.RoleID.String(),
+				r.SerialNumber,
+				r.AssetTag,
 			})
 		}
 
@@ -68,32 +97,17 @@ func rackGet(app *cli.Cmd) {
 			return
 		}
 
-		fmt.Printf(`
-ID: %s
-Datacenter Room ID: %s
-Name: %s
-Role ID: %s
-
-Created: %s
-Updated: %s
-
-`,
-			r.ID.String(),
-			r.DatacenterRoomID.String(),
-			r.Name,
-			r.RoleID.String(),
-			util.TimeStr(r.Created),
-			util.TimeStr(r.Updated),
-		)
+		displayOneGlobalRack(r)
 	}
-
 }
 
 func rackCreate(app *cli.Cmd) {
 	var (
-		dcIDOpt   = app.StringOpt("datacenter-room-id dr", "", "UUID of the datacenter room")
-		roleIDOpt = app.StringOpt("role-id r", "", "UUID of the rack role")
-		nameOpt   = app.StringOpt("name n", "", "Name of the rack")
+		dcIDOpt     = app.StringOpt("datacenter-room-id dr", "", "UUID of the datacenter room")
+		roleIDOpt   = app.StringOpt("role-id r", "", "UUID of the rack role")
+		nameOpt     = app.StringOpt("name n", "", "Name of the rack")
+		snOpt       = app.StringOpt("serial-number sn", "", "Serial number")
+		assetTagOpt = app.StringOpt("asset-tag a", "", "Asset tag")
 	)
 	app.Spec = "--datacenter-room-id --role-id --name [OPTIONS]"
 
@@ -111,6 +125,8 @@ func rackCreate(app *cli.Cmd) {
 			DatacenterRoomID: dcID,
 			RoleID:           roleID,
 			Name:             *nameOpt,
+			SerialNumber:     *snOpt,
+			AssetTag:         *assetTagOpt,
 		}
 
 		if err := util.API.SaveGlobalRack(&r); err != nil {
@@ -122,31 +138,17 @@ func rackCreate(app *cli.Cmd) {
 			return
 		}
 
-		fmt.Printf(`
-ID: %s
-Datacenter Room ID: %s
-Name: %s
-Role ID: %s
-
-Created: %s
-Updated: %s
-
-`,
-			r.ID.String(),
-			r.DatacenterRoomID.String(),
-			r.Name,
-			r.RoleID.String(),
-			util.TimeStr(r.Created),
-			util.TimeStr(r.Updated),
-		)
+		displayOneGlobalRack(r)
 	}
 }
 
 func rackUpdate(app *cli.Cmd) {
 	var (
-		dcIDOpt   = app.StringOpt("datacenter-room-id dr", "", "UUID of the datacenter room")
-		roleIDOpt = app.StringOpt("role-id r", "", "UUID of the rack role")
-		nameOpt   = app.StringOpt("name n", "", "Name of the rack")
+		dcIDOpt     = app.StringOpt("datacenter-room-id dr", "", "UUID of the datacenter room")
+		roleIDOpt   = app.StringOpt("role-id r", "", "UUID of the rack role")
+		nameOpt     = app.StringOpt("name n", "", "Name of the rack")
+		snOpt       = app.StringOpt("serial-number sn", "", "Serial number")
+		assetTagOpt = app.StringOpt("asset-tag a", "", "Asset tag")
 	)
 
 	app.Action = func() {
@@ -174,6 +176,14 @@ func rackUpdate(app *cli.Cmd) {
 			r.Name = *nameOpt
 		}
 
+		if *snOpt != "" {
+			r.SerialNumber = *snOpt
+		}
+
+		if *assetTagOpt != "" {
+			r.AssetTag = *assetTagOpt
+		}
+
 		if err := util.API.SaveGlobalRack(&r); err != nil {
 			util.Bail(err)
 		}
@@ -182,24 +192,7 @@ func rackUpdate(app *cli.Cmd) {
 			util.JSONOut(r)
 			return
 		}
-
-		fmt.Printf(`
-ID: %s
-Datacenter Room ID: %s
-Name: %s
-Role ID: %s
-
-Created: %s
-Updated: %s
-
-`,
-			r.ID.String(),
-			r.DatacenterRoomID.String(),
-			r.Name,
-			r.RoleID.String(),
-			util.TimeStr(r.Created),
-			util.TimeStr(r.Updated),
-		)
+		displayOneGlobalRack(r)
 	}
 }
 func rackDelete(app *cli.Cmd) {

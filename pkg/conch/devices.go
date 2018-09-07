@@ -137,7 +137,9 @@ type Rack struct {
 	Size       int       `json:"size"`
 	Datacenter string    `json:"datacenter"`
 	// The key of the Slots map is the RU slot number
-	Slots map[int]RackSlot `json:"slots"`
+	Slots        map[int]RackSlot `json:"slots"`
+	SerialNumber string           `json:"serial_number"`
+	AssetTag     string           `json:"asset_tag"`
 }
 
 // RackSlot represents a physical slot in a physical Rack
