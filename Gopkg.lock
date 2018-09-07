@@ -35,17 +35,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6e1c13bc32e58ccb4afa1115a3ba4fc071d918ed897b40dfa323ffb3fcc6619d"
-  name = "github.com/dnaeon/go-vcr"
-  packages = [
-    "cassette",
-    "recorder",
-  ]
-  pruneopts = "UT"
-  revision = "aafff18a5cc28fa0b2f26baf6a14472cda9b54c6"
-
-[[projects]]
-  branch = "master"
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
   name = "github.com/google/go-querystring"
   packages = ["query"]
@@ -125,14 +114,6 @@
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
   version = "v1.2.0"
 
-[[projects]]
-  digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
-  name = "gopkg.in/yaml.v2"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -141,7 +122,6 @@
     "github.com/DiSiqueira/GoTree",
     "github.com/blang/semver",
     "github.com/dghubble/sling",
-    "github.com/dnaeon/go-vcr/recorder",
     "github.com/jawher/mow.cli",
     "github.com/mitchellh/go-homedir",
     "github.com/nbio/st",
