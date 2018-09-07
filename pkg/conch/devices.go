@@ -133,7 +133,7 @@ type Rack struct {
 	ID         uuid.UUID `json:"id"`
 	Name       string    `json:"name"`
 	Role       string    `json:"role"`
-	Unit       int       `json:"unit"`
+	Unit       int       `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
 	Size       int       `json:"size"`
 	Datacenter string    `json:"datacenter"`
 	// The key of the Slots map is the RU slot number

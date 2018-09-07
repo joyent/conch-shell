@@ -208,7 +208,6 @@ func getRacks(app *cli.Cmd) {
 			"ID",
 			"Name",
 			"Role",
-			"Unit",
 			"Size",
 		})
 
@@ -217,7 +216,6 @@ func getRacks(app *cli.Cmd) {
 				r.ID.String(),
 				r.Name,
 				r.Role,
-				strconv.Itoa(r.Unit),
 				strconv.Itoa(r.Size),
 			})
 		}
