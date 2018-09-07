@@ -206,6 +206,7 @@ func getRacks(app *cli.Cmd) {
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{
 			"ID",
+			"Datacenter",
 			"Name",
 			"Role",
 			"Size",
@@ -214,6 +215,7 @@ func getRacks(app *cli.Cmd) {
 		for _, r := range racks {
 			table.Append([]string{
 				r.ID.String(),
+				r.Datacenter,
 				r.Name,
 				r.Role,
 				strconv.Itoa(r.Size),
