@@ -103,36 +103,3 @@ func getDeviceValidationStates(app *cli.Cmd) {
 		validationStates.renderTable(validationPlans, validations)
 	}
 }
-
-func getWorkspaceValidationStates(app *cli.Cmd) {
-	var workspaceStrID = app.StringArg("WORKSPACE_ID", "", "The Workspace UUID")
-
-	app.Spec = "WORKSPACE_ID"
-
-	app.Action = func() {
-		workspaceUUID, err := util.MagicWorkspaceID(*workspaceStrID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		var validationStates validationStates
-		validationStates, err = util.API.WorkspaceValidationStates(workspaceUUID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		if util.JSON {
-			util.JSONOut(validationStates)
-			return
-		}
-		validationPlans, err := util.API.GetValidationPlans()
-		if err != nil {
-			util.Bail(err)
-		}
-		validations, err := util.API.GetValidations()
-		if err != nil {
-			util.Bail(err)
-		}
-		validationStates.renderTable(validationPlans, validations)
-	}
-}
