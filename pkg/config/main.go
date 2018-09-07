@@ -53,10 +53,9 @@ func New() (c *ConchConfig) {
 	return c
 }
 
-// NewFromJSON unmarshals a JSON blob into a ConchConfig struct. It does
-// *not* fill in any default values.
+// NewFromJSON unmarshals a JSON blob into a ConchConfig struct
 func NewFromJSON(j string) (c *ConchConfig, err error) {
-	c = &ConchConfig{}
+	c = New()
 
 	err = json.Unmarshal([]byte(j), c)
 	if err != nil {
@@ -71,13 +70,12 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 }
 
 // NewFromJSONFile reads a file off disk and unmarshals it into ConchConfig
-// struct. It does *not* fill in any default values
+// struct.
 func NewFromJSONFile(path string) (c *ConchConfig, err error) {
-	c = &ConchConfig{Profiles: make(map[string]*ConchProfile)}
 
 	raw, err := ioutil.ReadFile(path)
 	if err != nil {
-		return c, err
+		return New(), err
 	}
 
 	return NewFromJSON(string(raw))
