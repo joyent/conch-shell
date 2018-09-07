@@ -66,10 +66,8 @@ func main() {
 			util.Bail(err)
 		}
 
-		cfg, err := config.NewFromJSONFile(expandedPath)
-		if err == nil {
-			cfg.Path = expandedPath
-		}
+		cfg, _ := config.NewFromJSONFile(expandedPath)
+		cfg.Path = expandedPath
 		util.Config = cfg
 
 		for _, prof := range cfg.Profiles {
