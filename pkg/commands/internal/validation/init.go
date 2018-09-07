@@ -132,11 +132,6 @@ func Init(app *cli.Cli) {
 				"Get validation states for a device",
 				getDeviceValidationStates,
 			)
-			cmd.Command(
-				"workspace",
-				"Get validation states for all devices in a workspace",
-				getWorkspaceValidationStates,
-			)
 		},
 	)
 }
