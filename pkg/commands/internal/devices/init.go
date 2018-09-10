@@ -10,20 +10,11 @@ package devices
 import (
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 // DeviceSerial represents the serial of the device, gathered from the parent
 // command
 var DeviceSerial string
-
-// DeviceServiceUUID represents the UUID of the device service being used in
-// the relevant command tree
-var DeviceServiceUUID uuid.UUID
-
-// DeviceRoleUUID represents the UUID of the device role being used in the
-// relevant command tree
-var DeviceRoleUUID uuid.UUID
 
 // DeviceSettingName is the name of the device setting being acted upon
 var DeviceSettingName string
@@ -33,143 +24,6 @@ var DeviceTagName string
 
 // Init loads up all the device related commands
 func Init(app *cli.Cli) {
-	app.Command(
-		"device-services dss",
-		"Commands for dealing with device services",
-		func(cmd *cli.Cmd) {
-			cmd.Before = func() {
-				util.BuildAPIAndVerifyLogin()
-			}
-
-			cmd.Command(
-				"get",
-				"Get a list all available device services",
-				getAllDeviceServices,
-			)
-
-			cmd.Command(
-				"create",
-				"Create a new device service",
-				createDeviceService,
-			)
-		},
-	)
-
-	app.Command(
-		"device-service ds",
-		"Commands for dealing with a single device service",
-		func(cmd *cli.Cmd) {
-			var deviceServiceIDArg = cmd.StringArg(
-				"ID",
-				"",
-				"The ID or name of the device service",
-			)
-			cmd.Spec = "ID"
-
-			cmd.Before = func() {
-				util.BuildAPIAndVerifyLogin()
-				var err error
-				DeviceServiceUUID, err = util.MagicDeviceServiceID(*deviceServiceIDArg)
-				if err != nil {
-					util.Bail(err)
-				}
-			}
-
-			cmd.Command(
-				"get",
-				"Get info about a single device service",
-				getOneDeviceService,
-			)
-
-			cmd.Command(
-				"delete rm",
-				"Delete a single device service",
-				deleteDeviceService,
-			)
-
-			cmd.Command(
-				"modify update",
-				"Update a device service",
-				modifyDeviceService,
-			)
-
-		},
-	)
-
-	app.Command(
-		"device-roles drs",
-		"Commands for dealing with device roles",
-		func(cmd *cli.Cmd) {
-			cmd.Before = func() {
-				util.BuildAPIAndVerifyLogin()
-			}
-
-			cmd.Command(
-				"get",
-				"Get a list of all available device roles",
-				getAllDeviceRoles,
-			)
-
-			cmd.Command(
-				"create",
-				"Create a new device role",
-				createDeviceRole,
-			)
-		},
-	)
-	app.Command(
-		"device-role dr",
-		"Commands for dealing with a single device role",
-		func(cmd *cli.Cmd) {
-			var deviceRoleIDArg = cmd.StringArg(
-				"ID",
-				"",
-				"The ID of the device role",
-			)
-			cmd.Spec = "ID"
-
-			cmd.Before = func() {
-				util.BuildAPIAndVerifyLogin()
-
-				var err error
-				DeviceRoleUUID, err = util.MagicDeviceRoleID(*deviceRoleIDArg)
-				if err != nil {
-					util.Bail(err)
-				}
-			}
-
-			cmd.Command(
-				"get",
-				"Get info about a single device role",
-				getOneDeviceRole,
-			)
-
-			cmd.Command(
-				"delete rm",
-				"Delete a single device role",
-				deleteDeviceRole,
-			)
-
-			cmd.Command(
-				"modify update",
-				"Update a device role",
-				modifyDeviceRole,
-			)
-
-			cmd.Command(
-				"add-service as",
-				"Add a device service to a role",
-				addServiceToDeviceRole,
-			)
-
-			cmd.Command(
-				"remove-service rms",
-				"Remove a device service from a role",
-				removeServiceFromDeviceRole,
-			)
-
-		},
-	)
 	app.Command(
 		"device d",
 		"Commands for dealing with a single device",
