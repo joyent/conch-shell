@@ -36,7 +36,6 @@ func getFailures(app *cli.Cmd) {
 			ID                string                              `json:"id"`
 			LastSeen          pgtime.PgTime                       `json:"last_seen"`
 			Location          conch.DeviceLocation                `json:"location"`
-			Role              uuid.UUID                           `json:"role"`
 			State             string                              `json:"state"`
 			SystemUUID        uuid.UUID                           `json:"system_uuid"`
 			Updated           pgtime.PgTime                       `json:"updated"`
@@ -90,7 +89,6 @@ func getFailures(app *cli.Cmd) {
 				fullDevice.ID,
 				fullDevice.LastSeen,
 				fullDevice.Location,
-				fullDevice.Role,
 				fullDevice.State,
 				fullDevice.SystemUUID,
 				fullDevice.Updated,

@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
-	"time"
 )
 
 // Device represents what the API docs call a "DetailedDevice"
@@ -32,7 +30,6 @@ type Device struct {
 	LastSeen        pgtime.PgTime      `json:"last_seen"`
 	Location        DeviceLocation     `json:"location"`
 	Nics            []Nic              `json:"nics"`
-	Role            uuid.UUID          `json:"role"`
 	State           string             `json:"state"`
 	SystemUUID      uuid.UUID          `json:"system_uuid"`
 	TritonUUID      uuid.UUID          `json:"triton_uuid"`
@@ -170,26 +167,6 @@ type DeviceLocation struct {
 	Datacenter            Datacenter            `json:"datacenter"`
 	Rack                  Rack                  `json:"rack"`
 	TargetHardwareProduct HardwareProductTarget `json:"target_hardware_product"`
-}
-
-// DeviceService represents a single device service, usually a piece of
-// software like Manta
-type DeviceService struct {
-	ID      uuid.UUID `json:"id"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
-	Name    string    `json:"name"`
-}
-
-// DeviceRole represents a device role, a combination of a hardware product and
-// a list of services
-type DeviceRole struct {
-	ID                uuid.UUID   `json:"id"`
-	Created           time.Time   `json:"created"`
-	Updated           time.Time   `json:"updated"`
-	Description       string      `json:"description"`
-	HardwareProductID uuid.UUID   `json:"hardware_product_id"`
-	Services          []uuid.UUID `json:"services"`
 }
 
 // GetWorkspaceDevices retrieves a list of Devices for the given
@@ -407,208 +384,6 @@ func (c *Conch) SetDeviceAssetTag(serial string, tag string) error {
 	aerr := &APIError{}
 	res, err := c.sling().New().
 		Post("/device/"+serial+"/asset_tag").
-		BodyJSON(j).
-		Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// GetDeviceServices gets a list of all active device services
-func (c *Conch) GetDeviceServices() ([]DeviceService, error) {
-	s := make([]DeviceService, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/service").
-		Receive(&s, aerr)
-
-	return s, c.isHTTPResOk(res, err, aerr)
-}
-
-// GetDeviceService gets a single device service
-func (c *Conch) GetDeviceService(id fmt.Stringer) (DeviceService, error) {
-	var service DeviceService
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/service/"+id.String()).
-		Receive(&service, aerr)
-
-	return service, c.isHTTPResOk(res, err, aerr)
-}
-
-// GetDeviceServiceByName gets a single device service by its name
-func (c *Conch) GetDeviceServiceByName(name string) (DeviceService, error) {
-	var service DeviceService
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/service/name="+name).
-		Receive(&service, aerr)
-
-	return service, c.isHTTPResOk(res, err, aerr)
-}
-
-// SaveDeviceService creates or updates a device service. A new service is
-// created if the structure lacks an ID. Otherwise, an update is attempted.
-//
-func (c *Conch) SaveDeviceService(s *DeviceService) error {
-	if s.Name == "" {
-		return ErrBadInput
-	}
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
-	if uuid.Equal(s.ID, uuid.UUID{}) {
-		j := struct {
-			Name string `json:"name"`
-		}{
-			s.Name,
-		}
-		res, err = c.sling().New().
-			Post("/device/service").
-			BodyJSON(j).
-			Receive(&s, aerr)
-	} else {
-		j := struct {
-			Name string `json:"name"`
-		}{
-			s.Name,
-		}
-		res, err = c.sling().New().
-			Post("/device/service/"+s.ID.String()).
-			BodyJSON(j).
-			Receive(&s, aerr)
-	}
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// DeleteDeviceService deletes a device service, given a UUID
-func (c *Conch) DeleteDeviceService(id fmt.Stringer) error {
-	aerr := &APIError{}
-
-	res, err := c.sling().New().
-		Delete("/device/service/"+id.String()).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// GetDeviceRoles returns a list of all active device roles
-func (c *Conch) GetDeviceRoles() ([]DeviceRole, error) {
-	d := make([]DeviceRole, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/role").
-		Receive(&d, aerr)
-
-	return d, c.isHTTPResOk(res, err, aerr)
-}
-
-// GetDeviceRole gets a single device role, given its uuid
-func (c *Conch) GetDeviceRole(id fmt.Stringer) (DeviceRole, error) {
-	var role DeviceRole
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/role/"+id.String()).
-		Receive(&role, aerr)
-	return role, c.isHTTPResOk(res, err, aerr)
-}
-
-// SaveDeviceRole creates or updates a device role. A new role is
-// created if the structure lacks an ID. Otherwise, an update is attempted.
-func (c *Conch) SaveDeviceRole(r *DeviceRole) error {
-	if uuid.Equal(r.HardwareProductID, uuid.UUID{}) {
-		return ErrBadInput
-	}
-
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
-	j := struct {
-		Description       string    `json:"description"`
-		HardwareProductID uuid.UUID `json:"hardware_product_id"`
-	}{
-		r.Description,
-		r.HardwareProductID,
-	}
-
-	if uuid.Equal(r.ID, uuid.UUID{}) {
-		res, err = c.sling().New().
-			Post("/device/role").
-			BodyJSON(j).
-			Receive(&r, aerr)
-	} else {
-		res, err = c.sling().New().
-			Post("/device/role/"+r.ID.String()).
-			BodyJSON(j).
-			Receive(&r, aerr)
-	}
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-//DeleteDeviceRole deletes the device role for the given uuid
-func (c *Conch) DeleteDeviceRole(id fmt.Stringer) error {
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/device/role/"+id.String()).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// AddServiceToDeviceRole removes the given service from the given device role
-func (c *Conch) AddServiceToDeviceRole(d DeviceRole, ds DeviceService) error {
-	if uuid.Equal(d.ID, uuid.UUID{}) {
-		return ErrBadInput
-	}
-	if uuid.Equal(ds.ID, uuid.UUID{}) {
-		return ErrBadInput
-	}
-
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
-	j := struct {
-		Service uuid.UUID `json:"service"`
-	}{
-		ds.ID,
-	}
-
-	res, err = c.sling().New().
-		Post("/device/role/"+d.ID.String()+"/add_service").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// RemoveServiceFromDeviceRole removes the given service from the given role
-func (c *Conch) RemoveServiceFromDeviceRole(d DeviceRole, ds DeviceService) error {
-	if uuid.Equal(d.ID, uuid.UUID{}) {
-		return ErrBadInput
-	}
-	if uuid.Equal(ds.ID, uuid.UUID{}) {
-		return ErrBadInput
-	}
-
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
-	j := struct {
-		Service uuid.UUID `json:"service"`
-	}{
-		ds.ID,
-	}
-
-	res, err = c.sling().New().
-		Post("/device/role/"+d.ID.String()+"/remove_service").
 		BodyJSON(j).
 		Receive(nil, aerr)
 	return c.isHTTPResOk(res, err, aerr)
