@@ -226,6 +226,19 @@ func getRacks(app *cli.Cmd) {
 	}
 }
 
+type slotByRackUnitStart []conch.RackSlot
+
+func (b slotByRackUnitStart) Len() int {
+	return len(b)
+}
+func (b slotByRackUnitStart) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
+}
+
+func (b slotByRackUnitStart) Less(i, j int) bool {
+	return b[i].RackUnitStart > b[j].RackUnitStart
+}
+
 func getRack(app *cli.Cmd) {
 	var (
 		slotDetail = app.BoolOpt("slots", false, "Show details about each rack slot")
@@ -259,11 +272,7 @@ Datacenter: %s
 		if *slotDetail {
 			fmt.Println()
 
-			slotNums := make([]int, 0, len(rack.Slots))
-			for k := range rack.Slots {
-				slotNums = append(slotNums, k)
-			}
-			sort.Sort(sort.Reverse(sort.IntSlice(slotNums)))
+			sort.Sort(slotByRackUnitStart(rack.Slots))
 
 			table := util.GetMarkdownTable()
 			table.SetHeader([]string{
@@ -276,8 +285,7 @@ Datacenter: %s
 				"Health",
 			})
 
-			for _, ru := range slotNums {
-				slot := rack.Slots[ru]
+			for _, slot := range rack.Slots {
 				occupied := "X"
 
 				occupantID := ""
@@ -290,7 +298,7 @@ Datacenter: %s
 				}
 
 				table.Append([]string{
-					strconv.Itoa(ru),
+					strconv.Itoa(slot.RackUnitStart),
 					occupied,
 					slot.Name,
 					slot.Alias,

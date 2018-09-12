@@ -137,19 +137,20 @@ type Rack struct {
 	Size       int       `json:"size"`
 	Datacenter string    `json:"datacenter"`
 	// The key of the Slots map is the RU slot number
-	Slots        map[int]RackSlot `json:"slots"`
-	SerialNumber string           `json:"serial_number"`
-	AssetTag     string           `json:"asset_tag"`
+	Slots        []RackSlot `json:"slots"`
+	SerialNumber string     `json:"serial_number"`
+	AssetTag     string     `json:"asset_tag"`
 }
 
 // RackSlot represents a physical slot in a physical Rack
 type RackSlot struct {
-	ID       uuid.UUID `json:"id"`
-	Size     int       `json:"size"`
-	Name     string    `json:"name"`
-	Alias    string    `json:"alias"`
-	Vendor   string    `json:"vendor"`
-	Occupant Device    `json:"occupant"`
+	ID            uuid.UUID `json:"id"`
+	Size          int       `json:"size"`
+	Name          string    `json:"name"`
+	Alias         string    `json:"alias"`
+	Vendor        string    `json:"vendor"`
+	Occupant      Device    `json:"occupant"`
+	RackUnitStart int       `json:"rack_unit_start"`
 }
 
 // Nic is a network interface card, including its peer switch info
