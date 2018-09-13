@@ -13,6 +13,45 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 )
 
+func listAllUsers(app *cli.Cmd) {
+	app.Action = func() {
+		users, err := util.API.GetAllUsers()
+		if err != nil {
+			util.Bail(err)
+		}
+		if util.JSON {
+			util.JSONOut(users)
+			return
+		}
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"ID",
+			"Name",
+			"Email",
+			"Created",
+			"Last Login",
+		})
+		for _, u := range users {
+			var last string
+			if u.LastLogin.Time.IsZero() {
+				last = ""
+			} else {
+				last = util.TimeStr(u.LastLogin.Time)
+			}
+
+			table.Append([]string{
+				u.ID.String(),
+				u.Name,
+				u.Email,
+				util.TimeStr(u.Created.Time),
+				last,
+			})
+		}
+		table.Render()
+	}
+}
+
 func revokeTokens(app *cli.Cmd) {
 	var (
 		forceOpt = app.BoolOpt("force", false, "Perform destructive actions")

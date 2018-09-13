@@ -16,9 +16,9 @@ import (
 type Workspace struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
-	Description string    `json:"description"`
+	Description string    `json:"description,omitempty"`
 	Role        string    `json:"role"`
-	ParentID    uuid.UUID `json:"parent_id"`
+	ParentID    uuid.UUID `json:"parent_id,omitempty"`
 }
 
 // Room represents a physical area in a datacenter/AZ
