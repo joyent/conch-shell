@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"github.com/joyent/conch-shell/pkg/pgtime"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 // User represents a person able to access the Conch API or UI
@@ -15,6 +17,18 @@ type User struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
 	Role  string `json:"role"`
+}
+
+// UserDetailed ...
+type UserDetailed struct {
+	ID                  uuid.UUID     `json:"id"`
+	Name                string        `json:"name"`
+	Email               string        `json:"email"`
+	Created             pgtime.PgTime `json:"created"`
+	LastLogin           pgtime.PgTime `json:"last_login"`
+	RefuseSessionAuth   bool          `json:"refuse_session_auth"`
+	ForcePasswordChange bool          `json:"force_password_change"`
+	Workspaces          []Workspace   `json:"workspaces,omitempty"`
 }
 
 // GetUserSettings returns the results of /user/me/settings
@@ -131,4 +145,14 @@ func (c *Conch) ResetUserPassword(email string) error {
 	res, err := c.sling().New().Delete("/user/email="+email+"/password").Receive(nil, aerr)
 
 	return c.isHTTPResOk(res, err, aerr)
+}
+
+// GetAllUsers retrieves a list of all users, if the user has the right
+// permissions, in the system. Returns UserDetailed structs
+func (c *Conch) GetAllUsers() ([]UserDetailed, error) {
+	u := make([]UserDetailed, 0)
+	aerr := &APIError{}
+
+	res, err := c.sling().New().Get("/user").Receive(&u, aerr)
+	return u, c.isHTTPResOk(res, err, aerr)
 }

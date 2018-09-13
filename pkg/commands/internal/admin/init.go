@@ -26,6 +26,12 @@ func Init(app *cli.Cli) {
 			cmd.Before = util.BuildAPIAndVerifyLogin
 
 			cmd.Command(
+				"users",
+				"List all users",
+				listAllUsers,
+			)
+
+			cmd.Command(
 				"user",
 				"Administrative commands for operating on a user",
 				func(cmd *cli.Cmd) {
