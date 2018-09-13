@@ -127,14 +127,13 @@ type HardwareProductTarget struct {
 
 // Rack represents a physical rack
 type Rack struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	Role       string    `json:"role"`
-	Unit       int       `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
-	Size       int       `json:"size"`
-	Datacenter string    `json:"datacenter"`
-	// The key of the Slots map is the RU slot number
-	Slots        []RackSlot `json:"slots"`
+	ID           uuid.UUID  `json:"id"`
+	Name         string     `json:"name"`
+	Role         string     `json:"role"`
+	Unit         int        `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
+	Size         int        `json:"size"`
+	Datacenter   string     `json:"datacenter"`
+	Slots        []RackSlot `json:"slots,omitempty"`
 	SerialNumber string     `json:"serial_number"`
 	AssetTag     string     `json:"asset_tag"`
 }
