@@ -62,8 +62,9 @@ type ValidationReport struct {
 
 // Datacenter represents a conch datacenter, aka an AZ
 type Datacenter struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID         uuid.UUID `json:"id"`
+	Name       string    `json:"name"`
+	VendorName string    `json:"vendor_name"`
 }
 
 // HardwareProfileZpool represents the layout of the target device's ZFS zpools
