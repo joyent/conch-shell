@@ -10,6 +10,7 @@ package workspaces
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
@@ -46,17 +47,20 @@ func Init(app *cli.Cli) {
 
 			cmd.Before = func() {
 				util.BuildAPIAndVerifyLogin()
+				var newUUID uuid.UUID
 				if len(*workspaceIDStr) > 0 {
-					WorkspaceUUID, _ = util.MagicWorkspaceID(*workspaceIDStr)
-				}
-				if !uuid.Equal(WorkspaceUUID, uuid.UUID{}) {
+					newUUID, _ = util.MagicWorkspaceID(*workspaceIDStr)
+					if uuid.Equal(newUUID, uuid.UUID{}) {
+						util.Bail(fmt.Errorf("Workspace %s does not exist or you do not have permission to access it", *workspaceIDStr))
+					}
+					WorkspaceUUID = newUUID
 					return
 				}
-				if !uuid.Equal(util.ActiveProfile.WorkspaceUUID, uuid.UUID{}) {
-					WorkspaceUUID = util.ActiveProfile.WorkspaceUUID
-					return
+				if uuid.Equal(util.ActiveProfile.WorkspaceUUID, uuid.UUID{}) {
+					util.Bail(errors.New("No workspace was found in the active profile"))
 				}
-				util.Bail(errors.New("No valid workspace could be found in the active profile or on the command line. Please set an active profile or provide a workspace ID in the command"))
+				WorkspaceUUID = util.ActiveProfile.WorkspaceUUID
+				return
 			}
 
 			cmd.Command(
