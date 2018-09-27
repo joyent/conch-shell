@@ -32,7 +32,7 @@ var RackUUID uuid.UUID
 func Init(app *cli.Cli) {
 	app.Command(
 		"workspaces wss",
-		"Commands for dealing with all workspaces",
+		"Get a list of all workspaces",
 		getAll,
 	)
 	app.Command(
