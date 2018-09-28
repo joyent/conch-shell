@@ -255,7 +255,7 @@ func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
 // GetWorkspaceRacks fetchest the list of racks for a workspace, via
 // /workspace/:uuid/rack
 //
-// NOTE: The API currently returns a hash of arrays where teh key is the
+// NOTE: The API currently returns a hash of arrays where the key is the
 // datacenter/az. This routine copies that key into the Datacenter field in the
 // Rack struct.
 func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {

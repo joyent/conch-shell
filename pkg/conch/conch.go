@@ -82,7 +82,7 @@ func (c *Conch) RevokeOwnTokens() error {
 // refresh, based on the number of seconds left until expiry. Pass in 0 to
 // prevent refreshing
 //
-// If the second paramter is true, a JWT refresh is forced, regardless of any
+// If the second parameter is true, a JWT refresh is forced, regardless of any
 // other parameters.
 //
 // NOTE: If the Conch struct contains cookie session data, it will be

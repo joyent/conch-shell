@@ -29,7 +29,7 @@ func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 		return filtered, ret
 	}
 
-	// Settings that start with 'tag.' are special cased and only availabe
+	// Settings that start with 'tag.' are special cased and only available
 	// in the device tag commands
 	re := regexp.MustCompile("^tag\\.")
 	for k, v := range settings {
@@ -125,7 +125,7 @@ func (c *Conch) GetDeviceTags(serial string) (map[string]string, error) {
 		return filtered, ret
 	}
 
-	// Settings that start with 'tag.' are special cased and only availabe
+	// Settings that start with 'tag.' are special cased and only available
 	// in the device tag commands
 	re := regexp.MustCompile("^tag\\.")
 	for k, v := range settings {
