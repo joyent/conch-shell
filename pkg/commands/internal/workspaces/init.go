@@ -154,9 +154,15 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"invite add",
+				"invite add add-user",
 				"Add a user to this workspace, creating them if necessary",
 				inviteUser,
+			)
+
+			cmd.Command(
+				"remove-user",
+				"Remove a user from this workspace",
+				removeUser,
 			)
 
 			cmd.Command(
