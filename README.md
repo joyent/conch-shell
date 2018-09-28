@@ -9,6 +9,16 @@
 Releases are available over at https://github.com/joyent/conch-shell/releases
 for a handful of platforms, including macOS, Linux, and Solaris/SmartOS.
 
+## Joyent Employees
+
+The latest production release at
+https://github.com/joyent/conch-shell/releases/latest is certified against the
+production instance.
+
+The most recent release is *not* certified for production yet (thus the
+'pre-release' tag) and probably works best against the staging instance. Grab
+it at https://github.com/joyent/conch-shell/releases
+
 # Data Guarantee
 
 One of the major goals of this application is to provide a stable data

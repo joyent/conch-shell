@@ -29,6 +29,16 @@ type Room struct {
 	VendorName string `json:"vendor_name"`
 }
 
+// WorkspaceAndRole ...
+type WorkspaceAndRole struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description,omitempty"`
+	ParentID    uuid.UUID `json:"parent_id,omitempty"`
+	Role        string    `json:"role"`
+	RoleVia     uuid.UUID `json:"role_via"`
+}
+
 // GetWorkspaces returns the contents of /workspace, getting the list of all
 // workspaces that the user has access to
 func (c *Conch) GetWorkspaces() ([]Workspace, error) {

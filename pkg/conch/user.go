@@ -14,21 +14,23 @@ import (
 
 // User represents a person able to access the Conch API or UI
 type User struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-	Role  string `json:"role"`
+	ID      string    `json:"id,omitempty"`
+	Email   string    `json:"email"`
+	Name    string    `json:"name"`
+	Role    string    `json:"role"`
+	RoleVia uuid.UUID `json:"role_via,omitempty"`
 }
 
 // UserDetailed ...
 type UserDetailed struct {
-	ID                  uuid.UUID     `json:"id"`
-	Name                string        `json:"name"`
-	Email               string        `json:"email"`
-	Created             pgtime.PgTime `json:"created"`
-	LastLogin           pgtime.PgTime `json:"last_login"`
-	RefuseSessionAuth   bool          `json:"refuse_session_auth"`
-	ForcePasswordChange bool          `json:"force_password_change"`
-	Workspaces          []Workspace   `json:"workspaces,omitempty"`
+	ID                  uuid.UUID          `json:"id"`
+	Name                string             `json:"name"`
+	Email               string             `json:"email"`
+	Created             pgtime.PgTime      `json:"created"`
+	LastLogin           pgtime.PgTime      `json:"last_login"`
+	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
+	ForcePasswordChange bool               `json:"force_password_change"`
+	Workspaces          []WorkspaceAndRole `json:"workspaces,omitempty"`
 }
 
 // GetUserSettings returns the results of /user/me/settings
@@ -103,6 +105,16 @@ func (c *Conch) InviteUser(workspaceUUID fmt.Stringer, user string, role string)
 	res, err := c.sling().New().
 		Post("/workspace/"+workspaceUUID.String()+"/user").
 		BodyJSON(body).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// WorkspaceRemoveUser ...
+func (c *Conch) WorkspaceRemoveUser(workspaceUUID fmt.Stringer, email string) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Delete("/workspace/"+workspaceUUID.String()+"/user/email="+email).
 		Receive(nil, aerr)
 
 	return c.isHTTPResOk(res, err, aerr)
