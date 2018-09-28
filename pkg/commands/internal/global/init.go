@@ -33,8 +33,8 @@ var GLayoutUUID uuid.UUID
 // Init loads up the commands
 func Init(app *cli.Cli) {
 	app.Command(
-		"global",
-		"Execute commands against objects in the global space. Admin access is required.",
+		"global system",
+		"Execute commands against objects without concern for workspaces. System admin access is required.",
 		func(cmd *cli.Cmd) {
 			cmd.Before = util.BuildAPIAndVerifyLogin
 
