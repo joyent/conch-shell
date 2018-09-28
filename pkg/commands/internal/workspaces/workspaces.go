@@ -128,10 +128,18 @@ func getUsers(app *cli.Cmd) {
 		}
 
 		table := util.GetMarkdownTable()
-		table.SetHeader([]string{"Name", "Email", "Role"})
+		table.SetHeader([]string{"Name", "Email", "Role", "Role Via"})
 
 		for _, u := range users {
-			table.Append([]string{u.Name, u.Email, u.Role})
+			roleVia := ""
+			if !uuid.Equal(u.RoleVia, WorkspaceUUID) && !uuid.Equal(u.RoleVia, uuid.UUID{}) {
+				ws, err := util.API.GetWorkspace(u.RoleVia)
+				if err != nil {
+					util.Bail(err)
+				}
+				roleVia = ws.Name
+			}
+			table.Append([]string{u.Name, u.Email, u.Role, roleVia})
 		}
 
 		table.Render()
