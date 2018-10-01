@@ -31,6 +31,7 @@ type UserDetailed struct {
 	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
 	ForcePasswordChange bool               `json:"force_password_change"`
 	Workspaces          []WorkspaceAndRole `json:"workspaces,omitempty"`
+	IsAdmin             bool               `json:"is_admin"`
 }
 
 // GetUserSettings returns the results of /user/me/settings
