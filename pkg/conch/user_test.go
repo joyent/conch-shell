@@ -62,11 +62,11 @@ func TestUserErrors(t *testing.T) {
 		st.Expect(t, err, aerrUnpacked)
 	})
 
-	t.Run("InviteUser", func(t *testing.T) {
+	t.Run("AddUser", func(t *testing.T) {
 		id := uuid.NewV4()
 		gock.New(API.BaseURL).Post("/workspace/" + id.String() + "/user").
 			Reply(400).JSON(aerr)
-		err := API.InviteUser(id, "user", "role")
+		err := API.AddUser(id, "user", "role")
 		st.Expect(t, err, aerrUnpacked)
 	})
 

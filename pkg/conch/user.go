@@ -92,8 +92,8 @@ func (c *Conch) DeleteUserSetting(name string) error {
 	return c.isHTTPResOk(res, err, aerr)
 }
 
-// InviteUser invites a user to a workspace via /workspace/:uuid/user
-func (c *Conch) InviteUser(workspaceUUID fmt.Stringer, user string, role string) error {
+// AddUser adds a user to a workspace via /workspace/:uuid/user
+func (c *Conch) AddUser(workspaceUUID fmt.Stringer, user string, role string) error {
 	body := struct {
 		User string `json:"user"`
 		Role string `json:"role"`
