@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package global contains commands that operate on strucutres in the global
+// Package global contains commands that operate on structures in the global
 // domain, rather than a workspace. API "global admin" access level is required
 // for these commands.
 package global
@@ -33,8 +33,8 @@ var GLayoutUUID uuid.UUID
 // Init loads up the commands
 func Init(app *cli.Cli) {
 	app.Command(
-		"global",
-		"Execute commands against objects in the global space. Admin access is required.",
+		"global system",
+		"Execute commands against objects without concern for workspaces. System admin access is required.",
 		func(cmd *cli.Cmd) {
 			cmd.Before = util.BuildAPIAndVerifyLogin
 

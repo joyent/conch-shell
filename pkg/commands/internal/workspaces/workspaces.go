@@ -47,7 +47,7 @@ func buildWSTree(parents map[string][]conch.Workspace, parent uuid.UUID, tree *g
 
 	for _, ws := range parents[parent.String()] {
 		sub := gotree.GTStructure{}
-		sub.Name = fmt.Sprintf("%s (%s)", ws.Name, ws.ID.String())
+		sub.Name = fmt.Sprintf("%s / %s (%s)", ws.Name, ws.Role, ws.ID.String())
 
 		buildWSTree(parents, ws.ID, &sub)
 		tree.Items = append(tree.Items, sub)
@@ -88,7 +88,7 @@ func getOne(app *cli.Cmd) {
 
 			tree := gotree.GTStructure{}
 			root := workspaces[WorkspaceUUID.String()]
-			tree.Name = fmt.Sprintf("%s (%s)", root.Name, root.ID.String())
+			tree.Name = fmt.Sprintf("%s / %s (%s)", root.Name, root.Role, root.ID.String())
 
 			buildWSTree(parents, WorkspaceUUID, &tree)
 			gotree.PrintTree(tree)
@@ -128,10 +128,18 @@ func getUsers(app *cli.Cmd) {
 		}
 
 		table := util.GetMarkdownTable()
-		table.SetHeader([]string{"Name", "Email", "Role"})
+		table.SetHeader([]string{"Name", "Email", "Role", "Role Via"})
 
 		for _, u := range users {
-			table.Append([]string{u.Name, u.Email, u.Role})
+			roleVia := ""
+			if !uuid.Equal(u.RoleVia, WorkspaceUUID) && !uuid.Equal(u.RoleVia, uuid.UUID{}) {
+				ws, err := util.API.GetWorkspace(u.RoleVia)
+				if err != nil {
+					util.Bail(err)
+				}
+				roleVia = ws.Name
+			}
+			table.Append([]string{u.Name, u.Email, u.Role, roleVia})
 		}
 
 		table.Render()

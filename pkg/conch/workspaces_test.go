@@ -56,7 +56,7 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspaceUsers(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.User{})
+		st.Expect(t, ret, []conch.WorkspaceUser{})
 	})
 
 	t.Run("GetWorkspaceRooms", func(t *testing.T) {
@@ -102,6 +102,22 @@ func TestWorkspaceErrors(t *testing.T) {
 			Reply(400).JSON(aerr)
 
 		err := API.DeleteRackFromWorkspace(id, id2)
+		st.Expect(t, err, aerrUnpacked)
+	})
+
+	t.Run("AddUserToWorkspace", func(t *testing.T) {
+		id := uuid.NewV4()
+		gock.New(API.BaseURL).Post("/workspace/" + id.String() + "/user").
+			Reply(400).JSON(aerr)
+		err := API.AddUserToWorkspace(id, "user", "role")
+		st.Expect(t, err, aerrUnpacked)
+	})
+
+	t.Run("RemoveUserFromWorkspace", func(t *testing.T) {
+		id := uuid.NewV4()
+		gock.New(API.BaseURL).Delete("/workspace/" + id.String() + "/user").
+			Reply(400).JSON(aerr)
+		err := API.RemoveUserFromWorkspace(id, "user")
 		st.Expect(t, err, aerrUnpacked)
 	})
 

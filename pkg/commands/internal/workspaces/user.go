@@ -8,9 +8,9 @@ import (
 	"net/mail"
 )
 
-func inviteUser(app *cli.Cmd) {
+func addUser(app *cli.Cmd) {
 	var (
-		emailArg = app.StringArg("EMAIL", "", "The email address of the user to be invited")
+		emailArg = app.StringArg("EMAIL", "", "The email address of the user to be added")
 		roleArg  = app.StringOpt("role", "ro", "The role for the new user. Acceptable values are 'ro', 'rw', and 'admin'")
 	)
 
@@ -53,7 +53,7 @@ func inviteUser(app *cli.Cmd) {
 			role = "ro"
 		}
 
-		err = util.API.InviteUser(
+		err = util.API.AddUserToWorkspace(
 			WorkspaceUUID,
 			email,
 			role,
@@ -103,7 +103,7 @@ func removeUser(app *cli.Cmd) {
 			}
 		}
 
-		err = util.API.WorkspaceRemoveUser(WorkspaceUUID, email)
+		err = util.API.RemoveUserFromWorkspace(WorkspaceUUID, email)
 		if err != nil {
 			util.Bail(err)
 		}

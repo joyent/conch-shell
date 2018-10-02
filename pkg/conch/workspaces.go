@@ -31,12 +31,14 @@ type Room struct {
 
 // WorkspaceAndRole ...
 type WorkspaceAndRole struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	ParentID    uuid.UUID `json:"parent_id,omitempty"`
-	Role        string    `json:"role"`
-	RoleVia     uuid.UUID `json:"role_via"`
+	Workspace
+	RoleVia uuid.UUID `json:"role_via"`
+}
+
+// WorkspaceUser ...
+type WorkspaceUser struct {
+	User
+	RoleVia uuid.UUID `json:"role_via,omitempty"`
 }
 
 // GetWorkspaces returns the contents of /workspace, getting the list of all
@@ -78,8 +80,8 @@ func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) ([]Workspace, error
 
 // GetWorkspaceUsers returns the contents of /workspace/:uuid/users, getting
 // a list of users for the given workspace id
-func (c *Conch) GetWorkspaceUsers(workspaceUUID fmt.Stringer) ([]User, error) {
-	users := make([]User, 0)
+func (c *Conch) GetWorkspaceUsers(workspaceUUID fmt.Stringer) ([]WorkspaceUser, error) {
+	users := make([]WorkspaceUser, 0)
 
 	aerr := &APIError{}
 	res, err := c.sling().New().
@@ -153,6 +155,35 @@ func (c *Conch) DeleteRackFromWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt
 	aerr := &APIError{}
 	res, err := c.sling().New().
 		Delete("/workspace/"+workspaceUUID.String()+"/rack/"+rackUUID.String()).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// AddUserToWorkspace adds a user to a workspace via /workspace/:uuid/user
+func (c *Conch) AddUserToWorkspace(workspaceUUID fmt.Stringer, user string, role string) error {
+	body := struct {
+		User string `json:"user"`
+		Role string `json:"role"`
+	}{
+		user,
+		role,
+	}
+
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Post("/workspace/"+workspaceUUID.String()+"/user").
+		BodyJSON(body).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// RemoveUserFromWorkspace ...
+func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Delete("/workspace/"+workspaceUUID.String()+"/user/email="+email).
 		Receive(nil, aerr)
 
 	return c.isHTTPResOk(res, err, aerr)

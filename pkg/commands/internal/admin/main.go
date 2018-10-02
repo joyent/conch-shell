@@ -31,6 +31,7 @@ func listAllUsers(app *cli.Cmd) {
 			"Email",
 			"Created",
 			"Last Login",
+			"Is Admin",
 		})
 		for _, u := range users {
 			var last string
@@ -40,12 +41,18 @@ func listAllUsers(app *cli.Cmd) {
 				last = util.TimeStr(u.LastLogin.Time)
 			}
 
+			isAdmin := ""
+			if u.IsAdmin {
+				isAdmin = "X"
+			}
+
 			table.Append([]string{
 				u.ID.String(),
 				u.Name,
 				u.Email,
 				util.TimeStr(u.Created.Time),
 				last,
+				isAdmin,
 			})
 		}
 		table.Render()
