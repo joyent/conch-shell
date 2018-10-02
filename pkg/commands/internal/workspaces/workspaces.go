@@ -47,7 +47,7 @@ func buildWSTree(parents map[string][]conch.Workspace, parent uuid.UUID, tree *g
 
 	for _, ws := range parents[parent.String()] {
 		sub := gotree.GTStructure{}
-		sub.Name = fmt.Sprintf("%s (%s)", ws.Name, ws.ID.String())
+		sub.Name = fmt.Sprintf("%s / %s (%s)", ws.Name, ws.Role, ws.ID.String())
 
 		buildWSTree(parents, ws.ID, &sub)
 		tree.Items = append(tree.Items, sub)
@@ -88,7 +88,7 @@ func getOne(app *cli.Cmd) {
 
 			tree := gotree.GTStructure{}
 			root := workspaces[WorkspaceUUID.String()]
-			tree.Name = fmt.Sprintf("%s (%s)", root.Name, root.ID.String())
+			tree.Name = fmt.Sprintf("%s / %s (%s)", root.Name, root.Role, root.ID.String())
 
 			buildWSTree(parents, WorkspaceUUID, &tree)
 			gotree.PrintTree(tree)
