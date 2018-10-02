@@ -53,7 +53,7 @@ func addUser(app *cli.Cmd) {
 			role = "ro"
 		}
 
-		err = util.API.AddUser(
+		err = util.API.AddUserToWorkspace(
 			WorkspaceUUID,
 			email,
 			role,
@@ -103,7 +103,7 @@ func removeUser(app *cli.Cmd) {
 			}
 		}
 
-		err = util.API.WorkspaceRemoveUser(WorkspaceUUID, email)
+		err = util.API.RemoveUserFromWorkspace(WorkspaceUUID, email)
 		if err != nil {
 			util.Bail(err)
 		}

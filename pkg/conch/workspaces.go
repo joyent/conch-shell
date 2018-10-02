@@ -159,3 +159,32 @@ func (c *Conch) DeleteRackFromWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt
 
 	return c.isHTTPResOk(res, err, aerr)
 }
+
+// AddUserToWorkspace adds a user to a workspace via /workspace/:uuid/user
+func (c *Conch) AddUserToWorkspace(workspaceUUID fmt.Stringer, user string, role string) error {
+	body := struct {
+		User string `json:"user"`
+		Role string `json:"role"`
+	}{
+		user,
+		role,
+	}
+
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Post("/workspace/"+workspaceUUID.String()+"/user").
+		BodyJSON(body).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// RemoveUserFromWorkspace ...
+func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Delete("/workspace/"+workspaceUUID.String()+"/user/email="+email).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}

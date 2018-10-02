@@ -7,7 +7,6 @@
 package conch
 
 import (
-	"fmt"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -87,35 +86,6 @@ func (c *Conch) DeleteUserSetting(name string) error {
 	aerr := &APIError{}
 	res, err := c.sling().New().
 		Delete("/user/me/settings/"+name).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// AddUser adds a user to a workspace via /workspace/:uuid/user
-func (c *Conch) AddUser(workspaceUUID fmt.Stringer, user string, role string) error {
-	body := struct {
-		User string `json:"user"`
-		Role string `json:"role"`
-	}{
-		user,
-		role,
-	}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+workspaceUUID.String()+"/user").
-		BodyJSON(body).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
-}
-
-// WorkspaceRemoveUser ...
-func (c *Conch) WorkspaceRemoveUser(workspaceUUID fmt.Stringer, email string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/workspace/"+workspaceUUID.String()+"/user/email="+email).
 		Receive(nil, aerr)
 
 	return c.isHTTPResOk(res, err, aerr)

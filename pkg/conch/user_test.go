@@ -11,9 +11,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"testing"
-	// "time"
 )
 
 func TestUserErrors(t *testing.T) {
@@ -59,14 +57,6 @@ func TestUserErrors(t *testing.T) {
 		gock.New(API.BaseURL).Delete("/user/me/settings/test").
 			Reply(400).JSON(aerr)
 		err := API.DeleteUserSetting("test")
-		st.Expect(t, err, aerrUnpacked)
-	})
-
-	t.Run("AddUser", func(t *testing.T) {
-		id := uuid.NewV4()
-		gock.New(API.BaseURL).Post("/workspace/" + id.String() + "/user").
-			Reply(400).JSON(aerr)
-		err := API.AddUser(id, "user", "role")
 		st.Expect(t, err, aerrUnpacked)
 	})
 
