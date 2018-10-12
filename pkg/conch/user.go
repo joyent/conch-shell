@@ -50,14 +50,21 @@ func (c *Conch) DeleteUser(emailAddress string, clearTokens bool) error {
 }
 
 // CreateUser creates a new user. They are *not* added to a workspace.
-// The 'name' argument is optional and will be omitted if set to ""
-// The 'password' argument is optional and will be omitted if set to ""
-func (c *Conch) CreateUser(email string, password string, name string) error {
+// The 'email' argument is required.
+// The 'name' argument is optional
+// The 'password' argument is optional
+// The 'isAdmin' argument sets the user to be an admin. Defaults to false.
+func (c *Conch) CreateUser(email string, password string, name string, isAdmin bool) error {
+	if email == "" {
+		return ErrBadInput
+	}
+
 	u := struct {
 		Email    string `json:"email"`
 		Password string `json:"password,omitempty"`
 		Name     string `json:"name,omitempty"`
-	}{email, password, name}
+		IsAdmin  bool   `json:"is_admin"`
+	}{email, password, name, isAdmin}
 
 	return c.post("/user", u, nil)
 }

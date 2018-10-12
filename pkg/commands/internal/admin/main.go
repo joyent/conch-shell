@@ -106,12 +106,20 @@ func deleteUser(app *cli.Cmd) {
 }
 
 func createUser(app *cli.Cmd) {
+	var (
+		adminOpt = app.BoolOpt("admin", false, "Set user as system admin")
+	)
 	app.Action = func() {
-		if err := util.API.CreateUser(UserEmail, "", ""); err != nil {
+		if err := util.API.CreateUser(UserEmail, "", "", *adminOpt); err != nil {
 			util.Bail(err)
 		}
+
 		if !util.JSON {
-			fmt.Println("User " + UserEmail + " created. An email has been sent containing their new password")
+			if *adminOpt {
+				fmt.Println("Admin user " + UserEmail + " created. An email has been sent containing their new password")
+			} else {
+				fmt.Println("User " + UserEmail + " created. An email has been sent containing their new password")
+			}
 		}
 	}
 }

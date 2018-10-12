@@ -69,7 +69,11 @@ func TestUserErrors(t *testing.T) {
 
 	t.Run("CreateUser", func(t *testing.T) {
 		gock.New(API.BaseURL).Post("/user").Reply(400).JSON(ErrApi)
-		err := API.CreateUser("foo@bar.bat", "", "")
+		err := API.CreateUser("foo@bar.bat", "", "", false)
+		st.Expect(t, err, ErrApiUnpacked)
+
+		gock.New(API.BaseURL).Post("/user").Reply(400).JSON(ErrApi)
+		err = API.CreateUser("foo@bar.bat", "", "", true)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
