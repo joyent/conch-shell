@@ -45,19 +45,16 @@ func (vs validationStates) renderTable(validationPlans []conch.ValidationPlan, v
 		resultGroup := make(map[string]string)
 		for _, r := range v.Results {
 			vName := validationNameMap[r.ValidationID]
+			if _, ok := resultGroup[vName]; !ok {
+				resultGroup[vName] = "pass" // Default to pass
+			}
+
 			if r.Status != "pass" {
-				result := resultGroup[vName]
-				var message string
-				if result != "pass" {
-					message = resultGroup[vName] + "\n  "
-				}
-				message = message + r.Status + ": " + r.Message
+				message := r.Status + "\n  " + r.Message
 				if r.Hint != "" {
 					message = message + " (" + r.Hint + ")"
 				}
 				resultGroup[vName] = message
-			} else {
-				resultGroup[vName] = "pass"
 			}
 		}
 		results := make([]string, 0, len(resultGroup))
