@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PREFIX="joyent"
+PREFIX="joyentbuildops"
 NAME="conch-shell"
 : ${BUILDNUMBER:=0}
 
@@ -27,4 +27,6 @@ docker run --rm \
 	--mount type=bind,source="${PWD}/release",target="/go/src/github.com/joyent/conch-shell/release" \
 	--entrypoint=make \
 	${IMAGE_NAME} \
-	release checksums
+	release checksums \
+&& \
+docker push ${IMAGE_NAME}
