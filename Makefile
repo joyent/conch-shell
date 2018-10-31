@@ -14,6 +14,14 @@ default: clean vendor check bin/conch ## By default, run 'clean', 'check', 'bin/
 
 first-run: tools ## Install all the dependencies needed to build and test
 
+.PHONY: docker_test
+docker_test: ## run a test build in docker
+	docker/test.bash
+
+.PHONY: docker_release
+docker_release: ## Build all release binaries and checksums in docker
+	docker/release.bash
+
 .PHONY: bin/conch
 bin/conch: pkg/**/*.go cmd/conch/*.go vendor ## Build bin/conch
 	@echo "==> building bin/conch"

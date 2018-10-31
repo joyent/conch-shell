@@ -6,8 +6,20 @@
 
 # Getting The App
 
+## Binaries
+
 Releases are available over at https://github.com/joyent/conch-shell/releases
 for a handful of platforms, including macOS, Linux, and Solaris/SmartOS.
+
+## Docker
+
+Images are available on Docker Hub ( https://hub.docker.com/r/joyentbuildops/conch-shell/ ).
+To sucessfully run the app, the app needs a persistent `.conch.json` file
+mounted in `/root`. An example run line is:
+
+```
+docker run --rm -it -v /home/user/.conch.json:/root/.conch.json joyent/conch-shell:latest profile ls
+```
 
 ## Joyent Employees
 
@@ -18,25 +30,6 @@ production instance.
 The most recent release is *not* certified for production yet (thus the
 'pre-release' tag) and probably works best against the staging instance. Grab
 it at https://github.com/joyent/conch-shell/releases
-
-# Data Guarantee
-
-One of the major goals of this application is to provide a stable data
-interface for the Conch API. To that end, to the best of our ability, the JSON
-output (`conch -j :command`) will not remove data or change its meaning. Data
-may be *added*, but not subtracted. If data must be removed, this change will
-be announced in advance and the major version of the application will be
-incremented.
-
-## Exceptions
-
-### Device Reports
-
-Device reports have evolved organically over time and are inconsistent. While an
-effort is underway to standardize those reports, at the time of writing,
-existing reports cannot be parsed in such a way as to guarantee consistent
-results. As such, the JSON output of a device report matches the data as
-provided by the API, without any guarantees of compatibility.
 
 # Notes
 
@@ -64,14 +57,33 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Building
 
+## Manual
+
 * `go get github.com/joyent/conch-shell`. This installs the code at
   `$GOPATH/src/github.com/joyent/conch-shell`
 * In the `conch-shell` checkout:
 	* `make tools` - Install the necessary build tools
 	* `make` - Build the application
 
-# Notes
+*Always* use the Makefile to build the app, rather than `go build`. The
+Makefile passes necessary build vars into the app.
 
-*Always* use the Makefile to build the app. The Makefile passes necessary build
-vars into the app. 
+## Docker
 
+Joyent's test and release process uses Docker. If you'd like to use that
+process as well, use the following Makefile targets:
+
+* `make docker_test` - Copies the local source code into the container, builds
+  the app, runs the test suite, and then runs `conch version` to verify basic
+  functionality
+
+* `make docker_release` - Copies the local source code into the container and
+  executes `make release checksums`, dropping the results in the local
+  `release` directory.
+
+## Reproducible Builds
+
+At this time, reproducible builds are not supported. The build environment sets
+certain values at build time that help us debug user problems. This
+unfortunately also causes each binary to be unique, specific to the exact time
+and place it was built.
