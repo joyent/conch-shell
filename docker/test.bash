@@ -25,6 +25,5 @@ docker build \
 docker run \
 	--rm \
 	--name ${BUILDER}_${BUILDNUMBER} \
-	${IMAGE_NAME} \
-	version
+	${IMAGE_NAME}
 
