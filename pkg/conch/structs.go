@@ -69,13 +69,13 @@ type Device struct {
 	Validated             pgtime.PgTime      `json:"validated"`
 	Validations           []ValidationReport `json:"validations"`
 	LatestReport          interface{}        `json:"latest_report"`
-	Disks                 []DeviceDisk       `json:"disks"`
 	LatestReportIsInvalid bool               `json:"latest_report_is_invalid"`
 	InvalidReport         string             `json:"invalid_report"`
+	Disks                 []Disk             `json:"disks"`
 }
 
 // DeviceDisk ...
-type DeviceDisk struct {
+type Disk struct {
 	ID           uuid.UUID     `json:"id"`
 	Created      pgtime.PgTime `json:"created"`
 	Updated      pgtime.PgTime `json:"updated"`
