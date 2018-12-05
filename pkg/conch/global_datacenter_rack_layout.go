@@ -50,32 +50,19 @@ func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
 	var res *http.Response
 	aerr := &APIError{}
 
-	if uuid.Equal(r.ID, uuid.UUID{}) {
-		j := struct {
-			RackID    string `json:"rack_id"`
-			ProductID string `json:"product_id"`
-			RUStart   int    `json:"ru_start"`
-		}{
-			r.RackID.String(),
-			r.ProductID.String(),
-			r.RUStart,
-		}
+	j := struct {
+		RackID    string `json:"rack_id"`
+		ProductID string `json:"product_id"`
+		RUStart   int    `json:"ru_start"`
+	}{
+		r.RackID.String(),
+		r.ProductID.String(),
+		r.RUStart,
+	}
 
+	if uuid.Equal(r.ID, uuid.UUID{}) {
 		res, err = c.sling().New().Post("/layout").BodyJSON(j).Receive(&r, aerr)
 	} else {
-
-		j := struct {
-			ID        string `json:"id"`
-			RackID    string `json:"rack_id"`
-			ProductID string `json:"product_id"`
-			RUStart   int    `json:"ru_start"`
-		}{
-			r.ID.String(),
-			r.RackID.String(),
-			r.ProductID.String(),
-			r.RUStart,
-		}
-
 		res, err = c.sling().New().Post("/layout/"+r.ID.String()).
 			BodyJSON(j).Receive(&r, aerr)
 	}
