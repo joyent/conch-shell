@@ -20,26 +20,47 @@ import (
 // case that the API does not provide all the data, those fields will be null
 // or zero values.
 type Device struct {
-	AssetTag        string             `json:"asset_tag"`
-	BootPhase       string             `json:"boot_phase"`
-	Created         pgtime.PgTime      `json:"created"`
-	Deactivated     pgtime.PgTime      `json:"deactivated"`
-	Graduated       pgtime.PgTime      `json:"graduated"`
-	HardwareProduct uuid.UUID          `json:"hardware_product"`
-	Health          string             `json:"health"`
-	ID              string             `json:"id"`
-	LastSeen        pgtime.PgTime      `json:"last_seen"`
-	Location        DeviceLocation     `json:"location"`
-	Nics            []Nic              `json:"nics"`
-	State           string             `json:"state"`
-	SystemUUID      uuid.UUID          `json:"system_uuid"`
-	TritonUUID      uuid.UUID          `json:"triton_uuid"`
-	TritonSetup     pgtime.PgTime      `json:"triton_setup"`
-	Updated         pgtime.PgTime      `json:"updated"`
-	UptimeSince     pgtime.PgTime      `json:"uptime_since"`
-	Validated       pgtime.PgTime      `json:"validated"`
-	Validations     []ValidationReport `json:"validations"`
-	LatestReport    interface{}        `json:"latest_report"`
+	AssetTag              string             `json:"asset_tag"`
+	Created               pgtime.PgTime      `json:"created"`
+	Deactivated           pgtime.PgTime      `json:"deactivated"`
+	Graduated             pgtime.PgTime      `json:"graduated"`
+	HardwareProduct       uuid.UUID          `json:"hardware_product"`
+	Health                string             `json:"health"`
+	ID                    string             `json:"id"`
+	LastSeen              pgtime.PgTime      `json:"last_seen"`
+	Location              DeviceLocation     `json:"location"`
+	Nics                  []Nic              `json:"nics"`
+	State                 string             `json:"state"`
+	SystemUUID            uuid.UUID          `json:"system_uuid"`
+	TritonUUID            uuid.UUID          `json:"triton_uuid"`
+	TritonSetup           pgtime.PgTime      `json:"triton_setup"`
+	Updated               pgtime.PgTime      `json:"updated"`
+	UptimeSince           pgtime.PgTime      `json:"uptime_since"`
+	Validated             pgtime.PgTime      `json:"validated"`
+	Validations           []ValidationReport `json:"validations"`
+	LatestReport          interface{}        `json:"latest_report"`
+	Disks                 []DeviceDisk       `json:"disks"`
+	LatestReportIsInvalid bool               `json:"latest_report_is_invalid"`
+	InvalidReport         string             `json:"invalid_report"`
+}
+
+// DeviceDisk ...
+type DeviceDisk struct {
+	ID           uuid.UUID     `json:"id"`
+	Created      pgtime.PgTime `json:"created"`
+	Updated      pgtime.PgTime `json:"updated"`
+	DriveType    string        `json:"drive_type"`
+	Enclosure    string        `json:"enclosure"`
+	Firmware     string        `json:"firmware"`
+	HBA          string        `json:"hba"`
+	Health       string        `json:"health"`
+	Model        string        `json:"model"`
+	SerialNumber string        `json:"serial_number"`
+	Size         int           `json:"size"`
+	Slot         int           `json:"slot"`
+	Temp         int           `json:"temp"`
+	Transport    string        `json:"transport"`
+	Vendor       string        `json:"vendor"`
 }
 
 // ValidationReport vars provide an abstraction to make sense of the 'status'
