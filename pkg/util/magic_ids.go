@@ -119,32 +119,6 @@ func MagicProductID(wat string) (uuid.UUID, error) {
 	return id, errors.New("Could not find product " + wat)
 }
 
-// MagicDBProductID takes a string and tries to find a valid UUID. If the
-// string is a UUID, it doesn't get checked further. If not, we dig through
-// GetHardwareProducts() looking for UUIDs that match up to the first hyphen or
-// where the product name or SKU matches the string
-func MagicDBProductID(wat string) (uuid.UUID, error) {
-	id, err := uuid.FromString(wat)
-	if err == nil {
-		return id, err
-	}
-
-	// So, it's not a UUID. Let's try for a string name or partial UUID
-	d, err := API.GetDBHardwareProducts()
-	if err != nil {
-		return id, err
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf("^%s-", wat))
-	for _, r := range d {
-		if (r.Name == wat) || (r.SKU == wat) || re.MatchString(r.ID.String()) {
-			return r.ID, nil
-		}
-	}
-
-	return id, errors.New("Could not find product " + wat)
-}
-
 // MagicValidationID takes a string and tries to find a valid UUID. If the
 // string is a UUID, it doesn't get checked further. Otherwise, we use
 // FindShortUUID to see if the string matches an existing Validation ID

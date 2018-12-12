@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
+	"net/http"
 )
 
 // Device represents what the API docs call a "DetailedDevice"
@@ -70,6 +71,7 @@ type Datacenter struct {
 // HardwareProfileZpool represents the layout of the target device's ZFS zpools
 type HardwareProfileZpool struct {
 	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
 	Cache    int       `json:"cache"`
 	Log      int       `json:"log"`
 	DisksPer int       `json:"disks_per"`
@@ -83,24 +85,26 @@ type HardwareProfileZpool struct {
 // in question
 type HardwareProfile struct {
 	ID           uuid.UUID            `json:"id"`
-	NumNics      int                  `json:"nics_num"`
 	BiosFirmware string               `json:"bios_firmware"`
-	NumCPU       int                  `json:"cpu_num"`
 	CPUType      string               `json:"cpu_type"`
+	HbaFirmware  string               `json:"hba_firmware"`
+	NumCPU       int                  `json:"cpu_num"`
 	NumDimms     int                  `json:"dimms_num"`
-	TotalPSU     int                  `json:"psu_total"`
+	NumNics      int                  `json:"nics_num"`
+	NumSATA      int                  `json:"sata_num"`
+	NumSSD       int                  `json:"ssd_num"`
+	NumUSB       int                  `json:"usb_num"`
 	Purpose      string               `json:"purpose"`
-	TotalRAM     int                  `json:"ram_total"`
 	SASNum       int                  `json:"sas_num"`
 	SizeSAS      int                  `json:"sas_size"`
-	SlotsSAS     string               `json:"saas_slots"`
-	NumSATA      int                  `json:"sata_num"`
 	SizeSATA     int                  `json:"sata_size"`
-	SlotsSATA    string               `json:"sata_slots"`
-	NumSSD       int                  `json:"ssd_num"`
 	SizeSSD      int                  `json:"ssd_size"`
+	SlotsSAS     string               `json:"saas_slots"`
+	SlotsSATA    string               `json:"sata_slots"`
 	SlotsSSD     string               `json:"ssd_slots"`
-	NumUSB       int                  `json:"usb_num"`
+	TotalPSU     int                  `json:"psu_total"`
+	TotalRAM     int                  `json:"ram_total"`
+	RackUnit     int                  `json:"rack_unit"`
 	Zpool        HardwareProfileZpool `json:"zpool"`
 }
 
@@ -110,12 +114,14 @@ type HardwareProduct struct {
 	Name              string          `json:"name"`
 	Alias             string          `json:"alias"`
 	Prefix            string          `json:"prefix"`
-	Profile           HardwareProfile `json:"profile"`
-	Vendor            string          `json:"vendor"`
-	Specification     interface{}     `json:"specification"`
-	SKU               string          `json:"sku"`
+	HardwareVendorID  uuid.UUID       `json:"hardware_vendor_id"`
 	GenerationName    string          `json:"generation_name"`
 	LegacyProductName string          `json:"legacy_product_name"`
+	SKU               string          `json:"sku"`
+	Specification     string          `json:"specification"`
+	Profile           HardwareProfile `json:"hardware_product_profile"`
+	Created           pgtime.PgTime   `json:"created"`
+	Updated           pgtime.PgTime   `json:"updated"`
 }
 
 // HardwareProductTarget represents the HardwareProduct that a device should
@@ -402,4 +408,65 @@ func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
 	}
 
 	return j["ipaddr"], nil
+}
+
+// SaveHardwareProduct creates or saves s hardware product, based
+// on the presence of an ID
+func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
+	if h.Name == "" {
+		return ErrBadInput
+	}
+
+	if h.Alias == "" {
+		return ErrBadInput
+	}
+
+	if uuid.Equal(h.HardwareVendorID, uuid.UUID{}) {
+		return ErrBadInput
+	}
+
+	var err error
+	var res *http.Response
+	aerr := &APIError{}
+
+	out := struct {
+		Name              string `json:"name"`
+		Alias             string `json:"alias"`
+		Prefix            string `json:"prefix"`
+		HardwareVendorID  string `json:"hardware_vendor_id"`
+		Specification     string `json:"specification,omitempty"`
+		SKU               string `json:"sku"`
+		GenerationName    string `json:"generation_name"`
+		LegacyProductName string `json:"legacy_product_name"`
+	}{
+		h.Name,
+		h.Alias,
+		h.Prefix,
+		h.HardwareVendorID.String(),
+		h.Specification,
+		h.SKU,
+		h.GenerationName,
+		h.LegacyProductName,
+	}
+
+	if uuid.Equal(h.ID, uuid.UUID{}) {
+		res, err = c.sling().New().Post("/hardware_product").
+			BodyJSON(out).Receive(&h, aerr)
+	} else {
+		res, err = c.sling().New().Post("/hardware_product/"+h.ID.String()).
+			BodyJSON(out).Receive(&h, aerr)
+	}
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+// DeleteHardwareProduct deletes a hardware product by marking it as
+// deactivated
+func (c *Conch) DeleteHardwareProduct(hwUUID fmt.Stringer) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Delete("/hardware_product/"+hwUUID.String()).
+		Receive(nil, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
 }
