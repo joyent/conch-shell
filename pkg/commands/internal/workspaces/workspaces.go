@@ -323,12 +323,24 @@ Datacenter: %s
 
 func getRelays(app *cli.Cmd) {
 	var (
-		activeOnly = app.BoolOpt("active-only", false, "Only retrieve active relays")
-		fullOutput = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
+		activeOnly   = app.BoolOpt("active-only", false, "Only retrieve active relays")
+		activeWithin = app.IntOpt("active-within", 5, "If active-only is used, this specifies the number of minutes in which a relay must have reported to be considered active")
+		fullOutput   = app.BoolOpt("full", false, "When global --json is used, provide full data about the devices rather than normal truncated data")
 	)
 
 	app.Action = func() {
-		relays, err := util.API.GetWorkspaceRelays(WorkspaceUUID, *activeOnly)
+		var relays []conch.WorkspaceRelay
+		var err error
+
+		if *activeOnly {
+			relays, err = util.API.GetActiveWorkspaceRelays(
+				WorkspaceUUID,
+				*activeWithin,
+			)
+		} else {
+			relays, err = util.API.GetWorkspaceRelays(WorkspaceUUID)
+		}
+
 		if err != nil {
 			util.Bail(err)
 		}
@@ -352,16 +364,15 @@ func getRelays(app *cli.Cmd) {
 		results := make([]resultRow, 0)
 
 		for _, r := range relays {
-			numDevices := len(r.Devices)
 			results = append(results, resultRow{
 				r.ID,
 				r.Alias,
-				r.Created,
+				r.Created.Time,
 				r.IPAddr,
 				r.SSHPort,
-				r.Updated,
+				r.Updated.Time,
 				r.Version,
-				numDevices,
+				r.NumDevices,
 			})
 		}
 
@@ -456,24 +467,14 @@ func getRelayDevices(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
-		relays, err := util.API.GetWorkspaceRelays(WorkspaceUUID, false)
+		devices, err := util.API.GetWorkspaceRelayDevices(
+			WorkspaceUUID,
+			RelayID,
+		)
 		if err != nil {
 			util.Bail(err)
 		}
-		var relay conch.Relay
-		foundRelay := false
-		for _, r := range relays {
-			if r.ID == RelayID {
-				relay = r
-				foundRelay = true
-			}
-		}
-		if !foundRelay {
-			util.Bail(conch.ErrDataNotFound)
-		}
-
-		_ = util.DisplayDevices(relay.Devices, *fullOutput)
-
+		_ = util.DisplayDevices(devices, *fullOutput)
 	}
 }
 
