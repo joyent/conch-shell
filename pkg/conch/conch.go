@@ -21,7 +21,7 @@ import (
 
 const (
 	// MinimumAPIVersion sets the earliest API version that we support.
-	MinimumAPIVersion = "2.6.0"
+	MinimumAPIVersion = "2.22.0"
 )
 
 // Conch contains auth and configuration data
