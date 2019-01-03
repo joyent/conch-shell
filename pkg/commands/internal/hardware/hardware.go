@@ -77,12 +77,12 @@ func getOne(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		extRet := extendedProduct{&ret, ""}
-
 		if util.JSON {
-			util.JSONOut(extRet)
+			util.JSONOut(ret)
 			return
 		}
+
+		extRet := extendedProduct{&ret, ""} // BUG(sungo): get the vendor name - joyent/conch #596
 		t, err := template.New("hw").Parse(singleHWPTemplate)
 		if err != nil {
 			util.Bail(err)
