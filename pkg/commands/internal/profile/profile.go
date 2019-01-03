@@ -49,7 +49,7 @@ func newProfile(app *cli.Cmd) {
 			if _, ok := util.Config.Profiles[p.Name]; ok {
 				util.Bail(
 					fmt.Errorf(
-						"A profile already exists with name '%s'",
+						"a profile already exists with name '%s'",
 						p.Name,
 					),
 				)
@@ -272,7 +272,7 @@ func setActive(app *cli.Cmd) {
 			}
 		} else {
 			util.Bail(
-				fmt.Errorf("Profile '%s' does not exist", *profileArg),
+				fmt.Errorf("profile '%s' does not exist", *profileArg),
 			)
 		}
 
@@ -288,7 +288,7 @@ func refreshJWT(app *cli.Cmd) {
 	app.Action = func() {
 		util.BuildAPI()
 		if util.ActiveProfile == nil {
-			util.Bail(errors.New("No active profile. Please use 'conch profile' to create or set an active profile"))
+			util.Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
 		}
 
 		if err := util.API.VerifyLogin(0, true); err != nil {

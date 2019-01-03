@@ -24,16 +24,16 @@ func (ai *APIError) Error() error {
 var (
 	// ErrLoginFailed indicates that the login process failed for unspecified
 	// reasons
-	ErrLoginFailed = errors.New("Login Failed")
+	ErrLoginFailed = errors.New("login failed")
 
 	// ErrNoSessionData indicates that an auth related error occurred where
 	// either the user did not provide session data or no data was returned
 	// from the API
-	ErrNoSessionData = errors.New("No Session Data Provided")
+	ErrNoSessionData = errors.New("no session data provided")
 
 	// ErrHTTPNotOk indicates that the API returned a non-200 status code that
 	// we don't know how to handle
-	ErrHTTPNotOk = errors.New("Non-200 HTTP status code returned")
+	ErrHTTPNotOk = errors.New("non-200 HTTP status code returned")
 
 	// ErrDataNotFound inidicates that the API returned a status code
 	// inidicating that the requested data does not exist or is not available.
@@ -44,26 +44,26 @@ var (
 	// ErrBadInput indicates that the user passed incomplete or bad data to a
 	// routine. This typicallly only occurs when a struct parameter isn't
 	// filled out with enough data.
-	ErrBadInput = errors.New("Incomplete data passed to the routine")
+	ErrBadInput = errors.New("incomplete data passed to the routine")
 
 	// ErrSemVerParse indicates that a semantic version string could not be
 	// parsed
-	ErrSemVerParse = errors.New("Could not parse semantic version string")
+	ErrSemVerParse = errors.New("could not parse semantic version string")
 
 	// ErrNotSupported indicates that the API server does not support this
 	// command. This is typically determined via checks on conch.apiVersion
-	ErrNotSupported = errors.New("This function is not supported")
+	ErrNotSupported = errors.New("this function is not supported")
 
 	// ErrNotAuthorized indicates that the API server returned a 401
-	ErrNotAuthorized = errors.New("Not authorized for this endpoint")
+	ErrNotAuthorized = errors.New("not authorized for this endpoint")
 
 	// ErrForbidden indicates that the API server returned a 403
-	ErrForbidden = errors.New("Access to this endpoint is forbidden")
+	ErrForbidden = errors.New("access to this endpoint is forbidden")
 
 	// ErrMustChangePassword is used to signal that the user must change their
 	// password before proceeding. Typically, the existing auth credentials
 	// will continue to work for a few minutes.
-	ErrMustChangePassword = errors.New("Password must be changed")
+	ErrMustChangePassword = errors.New("password must be changed")
 )
 
 // isHTTPResOk is a convenience function to abstract out all the code to see

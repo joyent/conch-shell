@@ -63,7 +63,7 @@ func Init(app *cli.Cli) {
 					cmd.Before = func() {
 						ProductUUID, _ = util.MagicProductID(*productIDStr)
 						if uuid.Equal(ProductUUID, uuid.UUID{}) {
-							util.Bail(errors.New("Could not resolve the hardware product ID, name, or SKU"))
+							util.Bail(errors.New("could not resolve the hardware product ID, name, or SKU"))
 						}
 					}
 

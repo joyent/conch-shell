@@ -338,7 +338,7 @@ func rackImportLayout(cmd *cli.Cmd) {
 
 		if len(existingLayout) > 0 {
 			if *overwriteOpt == false {
-				util.Bail(errors.New("Rack already has a layout. Use --overwrite to overwrite"))
+				util.Bail(errors.New("rack already has a layout. Use --overwrite to overwrite"))
 			}
 		}
 
