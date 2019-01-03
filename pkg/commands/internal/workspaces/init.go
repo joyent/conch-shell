@@ -51,16 +51,15 @@ func Init(app *cli.Cli) {
 				if len(*workspaceIDStr) > 0 {
 					newUUID, _ = util.MagicWorkspaceID(*workspaceIDStr)
 					if uuid.Equal(newUUID, uuid.UUID{}) {
-						util.Bail(fmt.Errorf("Workspace %s does not exist or you do not have permission to access it", *workspaceIDStr))
+						util.Bail(fmt.Errorf("workspace %s does not exist or you do not have permission to access it", *workspaceIDStr))
 					}
 					WorkspaceUUID = newUUID
 					return
 				}
 				if uuid.Equal(util.ActiveProfile.WorkspaceUUID, uuid.UUID{}) {
-					util.Bail(errors.New("No workspace was found in the active profile"))
+					util.Bail(errors.New("no workspace was found in the active profile"))
 				}
 				WorkspaceUUID = util.ActiveProfile.WorkspaceUUID
-				return
 			}
 
 			cmd.Command(

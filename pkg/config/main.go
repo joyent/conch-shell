@@ -17,7 +17,7 @@ import (
 
 // ErrConfigNoPath is issued when a file operation is attempted on a
 // ConchConfig that lacks a path
-var ErrConfigNoPath = errors.New("No path found in config data")
+var ErrConfigNoPath = errors.New("no path found in config data")
 
 // ConchConfig represents the configuration information for the shell, mostly
 // just a profile list

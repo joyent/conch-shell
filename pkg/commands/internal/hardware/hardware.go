@@ -229,7 +229,7 @@ func createOne(app *cli.Cmd) {
 				util.Bail(err)
 			}
 			if len(string(b)) <= 1 {
-				util.Bail(errors.New("No specification provided"))
+				util.Bail(errors.New("no specification provided"))
 			}
 			h.Specification = string(b)
 		}
@@ -325,7 +325,7 @@ func updateOne(app *cli.Cmd) {
 				util.Bail(err)
 			}
 			if len(string(b)) <= 1 {
-				util.Bail(errors.New("No specification provided"))
+				util.Bail(errors.New("no specification provided"))
 			}
 			h.Specification = string(b)
 		}

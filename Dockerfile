@@ -7,8 +7,7 @@ ARG CACHE_BUSTER="wat"
 
 ENV PATH "/go/bin:${PATH}"
 
-RUN go get github.com/alecthomas/gometalinter && \
-	gometalinter --install
+RUN go get honnef.co/go/tools/cmd/staticcheck
 
 RUN mkdir -p /go/src/github.com/joyent/conch-shell/
 WORKDIR /go/src/github.com/joyent/conch-shell/
@@ -20,7 +19,7 @@ LABEL org.label-schema.version $VERSION
 
 COPY . /go/src/github.com/joyent/conch-shell/
 
-RUN make default
+RUN make
 
 FROM scratch
 COPY --from=build /go/src/github.com/joyent/conch-shell/bin/conch /bin/conch

@@ -11,6 +11,12 @@ import (
 	"strings"
 )
 
+func isTag(str string) bool {
+	// Settings that start with 'tag.' are special cased and only available
+	// in the device tag commands
+	return regexp.MustCompile(`^tag\.`).MatchString(str)
+}
+
 // GetDeviceSettings fetches settings for a device, via
 // /device/:serial/settings
 // Device settings that begin with 'tag.' are filtered out.
@@ -29,11 +35,8 @@ func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 		return filtered, ret
 	}
 
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag commands
-	re := regexp.MustCompile("^tag\\.")
 	for k, v := range settings {
-		if !re.MatchString(k) {
+		if !isTag(k) {
 			filtered[k] = v
 		}
 	}
@@ -46,10 +49,7 @@ func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 // Device settings that begin with 'tag.' are filtered out.
 func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
 
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag interface
-	re := regexp.MustCompile("^tag\\.")
-	if re.MatchString(key) {
+	if isTag(key) {
 		return "", ErrDataNotFound
 	}
 
@@ -72,10 +72,7 @@ func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
 // Settings that begin with "tag." cannot be processed by this routine and will
 // always return ErrDataNotFound
 func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) error {
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag interface
-	re := regexp.MustCompile("^tag\\.")
-	if re.MatchString(key) {
+	if isTag(key) {
 		return ErrDataNotFound
 	}
 
@@ -94,10 +91,7 @@ func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) erro
 // Settings that begin with "tag." cannot be processed by this routine and will
 // always return ErrDataNotFound
 func (c *Conch) DeleteDeviceSetting(deviceID string, key string) error {
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag interface
-	re := regexp.MustCompile("^tag\\.")
-	if re.MatchString(key) {
+	if isTag(key) {
 		return ErrDataNotFound
 	}
 
@@ -125,11 +119,8 @@ func (c *Conch) GetDeviceTags(serial string) (map[string]string, error) {
 		return filtered, ret
 	}
 
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag commands
-	re := regexp.MustCompile("^tag\\.")
 	for k, v := range settings {
-		if re.MatchString(k) {
+		if isTag(k) {
 			filtered[strings.TrimPrefix(k, "tag.")] = v
 		}
 	}
@@ -144,8 +135,7 @@ func (c *Conch) GetDeviceTags(serial string) (map[string]string, error) {
 // The key must either begin with 'tag.' or it will be prepended
 func (c *Conch) GetDeviceTag(serial string, key string) (string, error) {
 
-	re := regexp.MustCompile("^tag\\.")
-	if !re.MatchString(key) {
+	if !isTag(key) {
 		key = "tag." + key
 	}
 
@@ -167,10 +157,7 @@ func (c *Conch) GetDeviceTag(serial string, key string) (string, error) {
 // SetDeviceTag sets a single tag for a device via /device/:deviceID/settings/:key
 // The key must either begin with 'tag.' or it will be prepended
 func (c *Conch) SetDeviceTag(deviceID string, key string, value string) error {
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag interface
-	re := regexp.MustCompile("^tag\\.")
-	if !re.MatchString(key) {
+	if !isTag(key) {
 		key = "tag." + key
 	}
 
@@ -189,10 +176,7 @@ func (c *Conch) SetDeviceTag(deviceID string, key string, value string) error {
 // Settings that do NOT begin with "tag." cannot be processed by this routine
 // and will always return ErrDataNotFound
 func (c *Conch) DeleteDeviceTag(deviceID string, key string) error {
-	// Settings that start with 'tag.' are special cased and only available
-	// in the device tag interface
-	re := regexp.MustCompile("^tag\\.")
-	if !re.MatchString(key) {
+	if !isTag(key) {
 		key = "tag." + key
 	}
 

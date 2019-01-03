@@ -337,8 +337,8 @@ func rackImportLayout(cmd *cli.Cmd) {
 		}
 
 		if len(existingLayout) > 0 {
-			if *overwriteOpt == false {
-				util.Bail(errors.New("Rack already has a layout. Use --overwrite to overwrite"))
+			if !*overwriteOpt {
+				util.Bail(errors.New("rack already has a layout. Use --overwrite to overwrite"))
 			}
 		}
 
@@ -405,7 +405,7 @@ func rackImportLayout(cmd *cli.Cmd) {
 
 		// If the rack has a layout, and the user asked us to, nuke the
 		// existing layout
-		if *overwriteOpt == true {
+		if *overwriteOpt {
 			for _, s := range existingLayout {
 				err := util.API.DeleteGlobalRackLayoutSlot(s.ID)
 				if err != nil {

@@ -96,7 +96,7 @@ func removeUser(app *cli.Cmd) {
 						if err != nil {
 							util.Bail(err)
 						}
-						util.Bail(fmt.Errorf("Cannot continue. User %s has access to this workspace via the parent workspace %s", *emailArg, ws.Name))
+						util.Bail(fmt.Errorf("cannot continue. User %s has access to this workspace via the parent workspace %s", *emailArg, ws.Name))
 						return
 					}
 				}

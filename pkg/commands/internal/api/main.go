@@ -27,7 +27,7 @@ func get(cmd *cli.Cmd) {
 				util.Bail(err)
 			}
 			if res == nil {
-				util.Bail(errors.New("Empty response"))
+				util.Bail(errors.New("empty response"))
 			}
 
 			body, err := ioutil.ReadAll(res.Body)
@@ -60,7 +60,7 @@ func deleteAPI(cmd *cli.Cmd) {
 				util.Bail(err)
 			}
 			if res == nil {
-				util.Bail(errors.New("Empty response"))
+				util.Bail(errors.New("empty response"))
 			}
 
 			body, err := ioutil.ReadAll(res.Body)
@@ -107,7 +107,7 @@ func postAPI(cmd *cli.Cmd) {
 			util.Bail(err)
 		}
 		if res == nil {
-			util.Bail(errors.New("Empty response"))
+			util.Bail(errors.New("empty response"))
 		}
 
 		body, err := ioutil.ReadAll(res.Body)

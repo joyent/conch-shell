@@ -39,7 +39,6 @@ func Init(app *cli.Cli) {
 				if err != nil {
 					util.Bail(err)
 				}
-				return
 			}
 
 			cmd.Command(
@@ -85,7 +84,6 @@ func Init(app *cli.Cli) {
 
 					util.Bail(err)
 				}
-				return
 			}
 
 			cmd.Command(

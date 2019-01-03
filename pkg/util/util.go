@@ -100,7 +100,7 @@ func WriteConfig() {
 // BuildAPI builds a Conch object
 func BuildAPI() {
 	if ActiveProfile == nil {
-		Bail(errors.New("No active profile. Please use 'conch profile' to create or set an active profile"))
+		Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
 	}
 
 	API = &conch.Conch{
@@ -332,11 +332,11 @@ func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
 // and restrictions
 func IsPasswordSane(password string, profile *config.ConchProfile) error {
 	if utf8.RuneCountInString(password) < 12 {
-		return errors.New("Length must be >= 12")
+		return errors.New("length must be >= 12")
 	}
 	if profile != nil {
 		if strings.EqualFold(password, profile.User) {
-			return errors.New("Password cannot match user name")
+			return errors.New("password cannot match user name")
 		}
 	}
 	return nil

@@ -86,7 +86,7 @@ func main() {
 			}
 		}
 		if (*profileOverride != "") && (util.ActiveProfile == nil) {
-			util.Bail(fmt.Errorf("Could not find a profile named '%s'", *profileOverride))
+			util.Bail(fmt.Errorf("could not find a profile named '%s'", *profileOverride))
 		}
 
 		checkVersion := true
