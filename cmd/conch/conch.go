@@ -15,6 +15,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/commands"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/util"
 	homedir "github.com/mitchellh/go-homedir"
@@ -40,11 +41,13 @@ func main() {
 					"Conch Shell v%s\n"+
 						"  Git Revision: %s\n"+
 						"  Build Time: %s\n"+
-						"  Build Host: %s\n",
+						"  Build Host: %s\n"+
+						"  Requires API version: >= %s\n",
 					util.Version,
 					util.GitRev,
 					buildTime,
 					util.BuildHost,
+					conch.MinimumAPIVersion,
 				)
 			}
 		},
