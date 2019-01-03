@@ -28,18 +28,14 @@ func TestRelayErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/relay").
 			Persist().Reply(400).JSON(aerr)
 
-		ret, err := API.GetWorkspaceRelays(id, false)
+		ret, err := API.GetWorkspaceRelays(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Relay{})
-
-		ret, err = API.GetWorkspaceRelays(id, true)
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Relay{})
+		st.Expect(t, ret, []conch.WorkspaceRelay{})
 	})
 
 	t.Run("RegisterRelay", func(t *testing.T) {
 		id := uuid.NewV4()
-		r := conch.Relay{ID: id.String(), SSHPort: 22, Version: "wat"}
+		r := conch.WorkspaceRelay{ID: id.String(), SSHPort: 22, Version: "wat"}
 
 		gock.New(API.BaseURL).Post("/relay/" + id.String() + "/register").
 			Reply(400).JSON(aerr)
@@ -54,16 +50,7 @@ func TestRelayErrors(t *testing.T) {
 
 		ret, err := API.GetAllRelays()
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Relay{})
-	})
-
-	t.Run("GetAllRelaysWithoutDevices", func(t *testing.T) {
-		gock.New(API.BaseURL).Get("/relay").
-			Reply(400).JSON(aerr)
-
-		ret, err := API.GetAllRelaysWithoutDevices()
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Relay{})
+		st.Expect(t, ret, []conch.WorkspaceRelay{})
 	})
 
 }

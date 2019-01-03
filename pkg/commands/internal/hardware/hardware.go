@@ -7,12 +7,15 @@
 package hardware
 
 import (
+	"errors"
 	"fmt"
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/util"
+	uuid "gopkg.in/satori/go.uuid.v1"
+	"io/ioutil"
 	"os"
 	"text/template"
-
-	"github.com/jawher/mow.cli"
-	"github.com/joyent/conch-shell/pkg/util"
 )
 
 const singleHWPTemplate = `
@@ -29,6 +32,7 @@ ID: {{ .ID }}
   Profile: {{ .Profile.ID }}
     Purpose: {{ .Profile.Purpose }}
     BIOS: {{ .Profile.BiosFirmware }}
+    HBA Firmware: {{ .Profile.HbaFirmware }}
 
     CPU Count: {{ .Profile.NumCPU }}
     CPU Type:  {{ .Profile.CPUType }}
@@ -64,6 +68,10 @@ ID: {{ .ID }}
 
 func getOne(app *cli.Cmd) {
 	app.Action = func() {
+		type extendedProduct struct {
+			*conch.HardwareProduct
+			Vendor string `json:"vendor"`
+		}
 		ret, err := util.API.GetHardwareProduct(ProductUUID)
 		if err != nil {
 			util.Bail(err)
@@ -73,21 +81,37 @@ func getOne(app *cli.Cmd) {
 			util.JSONOut(ret)
 			return
 		}
+
+		extRet := extendedProduct{&ret, ""} // BUG(sungo): get the vendor name - joyent/conch #596
 		t, err := template.New("hw").Parse(singleHWPTemplate)
 		if err != nil {
 			util.Bail(err)
 		}
-		if err := t.Execute(os.Stdout, ret); err != nil {
+		if err := t.Execute(os.Stdout, extRet); err != nil {
 			util.Bail(err)
 		}
 
 	}
 }
 
+func getOneSpecification(app *cli.Cmd) {
+	app.Action = func() {
+		ret, err := util.API.GetHardwareProduct(ProductUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		if ret.Specification == "" {
+			fmt.Println("{}")
+			return
+		}
+		fmt.Println(ret.Specification)
+	}
+}
+
 func getAll(app *cli.Cmd) {
 	var (
-		fullOutput = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
-		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
+		fullOutput = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data.")
+		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve hardware product IDs")
 	)
 
 	app.Action = func() {
@@ -142,7 +166,7 @@ func getAll(app *cli.Cmd) {
 				r.Name,
 				r.Alias,
 				r.Prefix,
-				r.Vendor,
+				r.HardwareVendorID.String(), // BUG(sungo) fetch the vendor name
 				r.Profile.Purpose,
 			})
 		}
@@ -160,5 +184,164 @@ func getAll(app *cli.Cmd) {
 		}
 
 		table.Render()
+	}
+}
+
+func createOne(app *cli.Cmd) {
+	var (
+		nameOpt     = app.StringOpt("name", "", "Joyent's Name")
+		aliasOpt    = app.StringOpt("alias", "", "Joyent's Name")
+		vendorOpt   = app.StringOpt("vendor", "", "Vendor UUID")
+		prefixOpt   = app.StringOpt("prefix", "", "Prefix")
+		skuOpt      = app.StringOpt("sku", "", "SKU")
+		genOpt      = app.StringOpt("generation-name generation gen", "", "Generation Name")
+		legacyOpt   = app.StringOpt("legacy-name legacy", "", "Legacy Product Name")
+		specOpt     = app.BoolOpt("specification spec", false, "Will provide specification as last arg")
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the specification. '-' indicates STDIN")
+	)
+	app.Spec = "--name --alias --vendor [OPTIONS] [FILE]"
+
+	app.Action = func() {
+		vendor, err := uuid.FromString(*vendorOpt)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		h := conch.HardwareProduct{
+			Name:              *nameOpt,
+			Alias:             *aliasOpt,
+			HardwareVendorID:  vendor,
+			SKU:               *skuOpt,
+			GenerationName:    *genOpt,
+			LegacyProductName: *legacyOpt,
+			Prefix:            *prefixOpt,
+		}
+
+		if *specOpt {
+			var b []byte
+			var err error
+			if *filePathArg == "-" {
+				b, err = ioutil.ReadAll(os.Stdin)
+			} else {
+				b, err = ioutil.ReadFile(*filePathArg)
+			}
+			if err != nil {
+				util.Bail(err)
+			}
+			if len(string(b)) <= 1 {
+				util.Bail(errors.New("No specification provided"))
+			}
+			h.Specification = string(b)
+		}
+
+		if err := util.API.SaveHardwareProduct(&h); err != nil {
+			util.Bail(err)
+		}
+
+		ret, err := util.API.GetHardwareProduct(&h.ID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(ret)
+			return
+		}
+		fmt.Println(ret.ID)
+	}
+
+}
+
+func removeOne(app *cli.Cmd) {
+	app.Action = func() {
+		if err := util.API.DeleteHardwareProduct(ProductUUID); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func updateOne(app *cli.Cmd) {
+	var (
+		nameOpt     = app.StringOpt("name", "", "Joyent's Name")
+		aliasOpt    = app.StringOpt("alias", "", "Joyent's Name")
+		vendorOpt   = app.StringOpt("vendor", "", "Vendor UUID")
+		prefixOpt   = app.StringOpt("prefix", "", "Prefix")
+		skuOpt      = app.StringOpt("sku", "", "SKU")
+		genOpt      = app.StringOpt("generation-name generation gen", "", "Generation Name")
+		legacyOpt   = app.StringOpt("legacy-name legacy", "", "Legacy Product Name")
+		specOpt     = app.BoolOpt("specification spec", false, "Will provide specification as last arg")
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the specification. '-' indicates STDIN")
+	)
+	app.Spec = "[OPTIONS] [ --specification ] [FILE]"
+
+	app.Action = func() {
+		h, err := util.API.GetHardwareProduct(ProductUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if *nameOpt != "" {
+			h.Name = *nameOpt
+		}
+
+		if *aliasOpt != "" {
+			h.Alias = *aliasOpt
+		}
+
+		if *vendorOpt != "" {
+			vendor, err := uuid.FromString(*vendorOpt)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			h.HardwareVendorID = vendor
+		}
+
+		if *prefixOpt != "" {
+			h.Prefix = *prefixOpt
+		}
+
+		if *skuOpt != "" {
+			h.SKU = *skuOpt
+		}
+
+		if *genOpt != "" {
+			h.GenerationName = *genOpt
+		}
+
+		if *legacyOpt != "" {
+			h.LegacyProductName = *legacyOpt
+		}
+
+		if *specOpt {
+			var b []byte
+			var err error
+			if *filePathArg == "-" {
+				b, err = ioutil.ReadAll(os.Stdin)
+			} else {
+				b, err = ioutil.ReadFile(*filePathArg)
+			}
+			if err != nil {
+				util.Bail(err)
+			}
+			if len(string(b)) <= 1 {
+				util.Bail(errors.New("No specification provided"))
+			}
+			h.Specification = string(b)
+		}
+
+		if err := util.API.SaveHardwareProduct(&h); err != nil {
+			util.Bail(err)
+		}
+
+		ret, err := util.API.GetHardwareProduct(h.ID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(ret)
+			return
+		}
 	}
 }

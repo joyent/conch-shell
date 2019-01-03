@@ -25,7 +25,7 @@ func register(app *cli.Cmd) {
 	app.Spec = "--version [OPTIONS]"
 
 	app.Action = func() {
-		r := conch.Relay{
+		r := conch.WorkspaceRelay{
 			ID:      RelaySerial,
 			Version: *versionOpt,
 			IPAddr:  *ipAddrOpt,
@@ -42,7 +42,7 @@ func register(app *cli.Cmd) {
 func getAllRelays(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
 	app.Action = func() {
-		relays, err := util.API.GetAllRelaysWithoutDevices()
+		relays, err := util.API.GetAllRelays()
 		if err != nil {
 			util.Bail(err)
 		}
@@ -70,8 +70,8 @@ func getAllRelays(app *cli.Cmd) {
 				r.IPAddr,
 				strconv.Itoa(r.SSHPort),
 				r.Version,
-				util.TimeStr(r.Created),
-				util.TimeStr(r.Updated),
+				util.TimeStr(r.Created.Time),
+				util.TimeStr(r.Updated.Time),
 			})
 		}
 
@@ -80,7 +80,7 @@ func getAllRelays(app *cli.Cmd) {
 	}
 }
 
-type sortRelaysByUpdated []conch.Relay
+type sortRelaysByUpdated []conch.WorkspaceRelay
 
 func (s sortRelaysByUpdated) Len() int {
 	return len(s)
@@ -91,5 +91,5 @@ func (s sortRelaysByUpdated) Swap(i, j int) {
 }
 
 func (s sortRelaysByUpdated) Less(i, j int) bool {
-	return s[i].Updated.Before(s[j].Updated)
+	return s[i].Updated.Before(s[j].Updated.Time)
 }
