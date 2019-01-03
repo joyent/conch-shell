@@ -215,36 +215,21 @@ func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, gr
 		health,
 	}
 
-	aerr := &APIError{}
-
 	url := "/workspace/" + workspaceUUID.String() + "/device"
 	if idsOnly {
 		ids := make([]string, 0)
 
-		res, err := c.sling().New().
-			Get(url).
-			QueryStruct(opts).
-			Receive(&ids, aerr)
-
-		cerr := c.isHTTPResOk(res, err, aerr)
-
-		if cerr != nil {
-			return devices, cerr
+		if err := c.getWithQuery(url, opts, &ids); err != nil {
+			return devices, err
 		}
 
 		for _, v := range ids {
 			device := Device{ID: v}
 			devices = append(devices, device)
 		}
-		return devices, cerr
+		return devices, nil
 	}
-
-	res, err := c.sling().New().
-		Get(url).
-		QueryStruct(opts).
-		Receive(&devices, aerr)
-
-	return devices, c.isHTTPResOk(res, err, aerr)
+	return devices, c.getWithQuery(url, opts, &devices)
 }
 
 // GetDevice returns a Device given a specific serial/id
@@ -273,7 +258,6 @@ func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
 
 // GetWorkspaceRacks fetchest the list of racks for a workspace, via
 // /workspace/:uuid/rack
-//
 // NOTE: The API currently returns a hash of arrays where the key is the
 // datacenter/az. This routine copies that key into the Datacenter field in the
 // Rack struct.

@@ -132,6 +132,12 @@ func (c *Conch) get(url string, data interface{}) error {
 	return c.isHTTPResOk(res, err, aerr)
 }
 
+func (c *Conch) getWithQuery(url string, query interface{}, data interface{}) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().Get(url).QueryStruct(query).Receive(data, aerr)
+	return c.isHTTPResOk(res, err, aerr)
+}
+
 // RawGet allows the user to perform an HTTP GET against the API, with the
 // library handling all auth but *not* processing the response.
 func (c *Conch) RawGet(url string) (*http.Response, error) {
