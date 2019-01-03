@@ -60,7 +60,6 @@ func Init(app *cli.Cli) {
 					util.Bail(errors.New("no workspace was found in the active profile"))
 				}
 				WorkspaceUUID = util.ActiveProfile.WorkspaceUUID
-				return
 			}
 
 			cmd.Command(
