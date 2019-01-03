@@ -55,35 +55,18 @@ checksums: ## Build checksums for all release binaries
 	@rm -f release/*.sha256
 	@cd release && find . -type f -iname conch-\* -print0 | xargs -0 -n 1 -I {} sh -c 'shasum -a 256 {} > "{}.sha256"'
 
-# gem install github_changelog_generator
-changelog:
-	github_changelog_generator -u joyent -p conch-shell #--due-tag ${CONCH_VERSION}
 
 .PHONY: check
 check: ## Ensure that code matchs best practices and run tests
 	@echo "==> Checking for best practices"
-	gometalinter \
-		--deadline 10m \
-		--vendor \
-		--sort="path" \
-		--aggregate \
-		--enable-gc \
-		--disable-all \
-		--enable vet \
-		--enable deadcode \
-		--enable varcheck \
-		--enable ineffassign \
-		--enable golint \
-		--enable gofmt \
-		./...
+	staticcheck ./...
 	@echo "==> Tests for pkg/conch"
 	@cd pkg/conch && go test -v 
 
 tools: ## Download and install all dev/code tools
 	@echo "==> Installing dev tools"
 	go get -u github.com/golang/dep/cmd/dep
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
+	go get -u honnef.co/go/tools/cmd/staticcheck
 
 
 .PHONY: help
