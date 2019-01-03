@@ -104,13 +104,11 @@ func (c *Conch) CreateSubWorkspace(parent Workspace, sub Workspace) (Workspace, 
 		sub.Description,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+parent.ID.String()+"/child").
-		BodyJSON(j).
-		Receive(&sub, aerr)
-
-	return sub, c.isHTTPResOk(res, err, aerr)
+	return sub, c.post(
+		"/workspace/"+parent.ID.String()+"/child",
+		j,
+		&sub,
+	)
 }
 
 // AddRackToWorkspace adds an existing rack to an existing workspace, via
@@ -122,13 +120,7 @@ func (c *Conch) AddRackToWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt.Stri
 		rackUUID.String(),
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+workspaceUUID.String()+"/rack").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/workspace/"+workspaceUUID.String()+"/rack", j, nil)
 }
 
 // DeleteRackFromWorkspace removes an existing rack from an existing workplace,
@@ -149,13 +141,7 @@ func (c *Conch) AddUserToWorkspace(workspaceUUID fmt.Stringer, user string, role
 		role,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+workspaceUUID.String()+"/user").
-		BodyJSON(body).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/workspace/"+workspaceUUID.String()+"/user", body, nil)
 }
 
 // RemoveUserFromWorkspace ...

@@ -9,7 +9,6 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 )
 
 // GetGlobalRackRoles fetches a list of all rack roles in the global domain
@@ -36,10 +35,6 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 		j := struct {
 			Name     string `json:"name"`
@@ -49,10 +44,10 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 			r.RackSize,
 		}
 
-		res, err = c.sling().New().Post("/rack_role").BodyJSON(j).Receive(&r, aerr)
+		return c.post("/rack_role", j, &r)
 	} else {
 		j := struct {
-			ID       string `json:"id"`
+			ID       string `json:"id"` // BUG(sungo): this is probably wrong
 			Name     string `json:"name"`
 			RackSize int    `json:"rack_size"`
 		}{
@@ -61,11 +56,13 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 			r.RackSize,
 		}
 
-		res, err = c.sling().New().Post("/rack_role/"+r.ID.String()).
-			BodyJSON(j).Receive(&r, aerr)
+		return c.post(
+			"/rack_role/"+r.ID.String(),
+			j,
+			&r,
+		)
 	}
 
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteGlobalRackRole deletes a rack role

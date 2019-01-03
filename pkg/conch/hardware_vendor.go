@@ -46,14 +46,13 @@ func (c *Conch) SaveHardwareVendor(v *HardwareVendor) error {
 		return ErrBadInput
 	}
 
-	aerr := &APIError{}
-
 	out := struct {
 		Name string `json:"name"`
 	}{v.Name}
 
-	res, err := c.sling().New().Post("/hardware_vendor/"+v.Name).BodyJSON(out).
-		Receive(&v, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/hardware_vendor/"+v.Name,
+		out,
+		&v,
+	)
 }

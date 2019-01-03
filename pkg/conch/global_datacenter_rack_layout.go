@@ -9,7 +9,6 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 )
 
 // GetGlobalRackLayoutSlots fetches a list of all rack layouts in the global domain
@@ -38,10 +37,6 @@ func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	j := struct {
 		RackID    string `json:"rack_id"`
 		ProductID string `json:"product_id"`
@@ -53,13 +48,10 @@ func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
 	}
 
 	if uuid.Equal(r.ID, uuid.UUID{}) {
-		res, err = c.sling().New().Post("/layout").BodyJSON(j).Receive(&r, aerr)
+		return c.post("/layout", j, &r)
 	} else {
-		res, err = c.sling().New().Post("/layout/"+r.ID.String()).
-			BodyJSON(j).Receive(&r, aerr)
+		return c.post("/layout/"+r.ID.String(), j, &r)
 	}
-
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteGlobalRackLayoutSlot deletes a rack layout

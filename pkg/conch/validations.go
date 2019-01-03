@@ -91,13 +91,7 @@ func (c *Conch) CreateValidationPlan(newValidationPlan ValidationPlan) (Validati
 		newValidationPlan.Description,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/validation_plan").
-		BodyJSON(j).
-		Receive(&newValidationPlan, aerr)
-
-	return newValidationPlan, c.isHTTPResOk(res, err, aerr)
+	return newValidationPlan, c.post("/validation_plan", j, &newValidationPlan)
 }
 
 // AddValidationToPlan associates a validation with a validation plan
@@ -108,13 +102,11 @@ func (c *Conch) AddValidationToPlan(validationPlanUUID fmt.Stringer, validationU
 		validationUUID.String(),
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/validation_plan/"+validationPlanUUID.String()+"/validation").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/validation_plan/"+validationPlanUUID.String()+"/validation",
+		j,
+		nil,
+	)
 }
 
 // RemoveValidationFromPlan removes a validation from a validation plan
@@ -141,26 +133,21 @@ func (c *Conch) GetValidationPlanValidations(validationPlanUUID fmt.Stringer) ([
 func (c *Conch) RunDeviceValidation(deviceSerial string, validationUUID fmt.Stringer, body io.Reader) ([]ValidationResult, error) {
 	results := make([]ValidationResult, 0)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+deviceSerial+"/validation/"+validationUUID.String()).
-		Body(body).
-		Receive(&results, aerr)
-
-	return results, c.isHTTPResOk(res, err, aerr)
+	return results, c.post(
+		"/device/"+deviceSerial+"/validation/"+validationUUID.String(),
+		body,
+		&results,
+	)
 }
 
 // RunDeviceValidationPlan runs a validation plan against a given device and returns the results
 func (c *Conch) RunDeviceValidationPlan(deviceSerial string, validationPlanUUID fmt.Stringer, body io.Reader) ([]ValidationResult, error) {
 	results := make([]ValidationResult, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String()).
-		Body(body).
-		Receive(&results, aerr)
-
-	return results, c.isHTTPResOk(res, err, aerr)
+	return results, c.post(
+		"/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String(),
+		body,
+		&results,
+	)
 }
 
 // DeviceValidationStates returns the stored validation states for a device

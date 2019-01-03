@@ -97,13 +97,11 @@ func (c *Conch) RegisterRelay(r WorkspaceRelay) error {
 		r.Version,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/relay/"+r.ID+"/register").
-		BodyJSON(d).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/relay/"+r.ID+"/register",
+		d,
+		nil,
+	)
 }
 
 // GetAllRelays uses the /relay endpoint to get a list of all

@@ -9,7 +9,6 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 	"time"
 )
 
@@ -92,10 +91,6 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	if uuid.Equal(d.ID, uuid.UUID{}) {
 		j := struct {
 			Vendor     string `json:"vendor"`
@@ -104,21 +99,18 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 			VendorName string `json:"vendor_name,omitempty"`
 		}{d.Vendor, d.Region, d.Location, d.VendorName}
 
-		res, err = c.sling().New().Post("/dc").BodyJSON(j).Receive(&d, aerr)
+		return c.post("/dc", j, &d)
 	} else {
 		j := struct {
-			ID         string `json:"id"`
+			ID         string `json:"id"` // BUG(sungo): this is probably wrong
 			Vendor     string `json:"vendor,omitempty"`
 			Region     string `json:"region,omitempty"`
 			Location   string `json:"location,omitempty"`
 			VendorName string `json:"vendor_name,omitempty"`
 		}{d.ID.String(), d.Vendor, d.Region, d.Location, d.VendorName}
 
-		res, err = c.sling().New().Post("/dc/"+d.ID.String()).
-			BodyJSON(j).Receive(&d, aerr)
+		return c.post("/dc/"+d.ID.String(), j, &d)
 	}
-
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteGlobalDatacenter deletes a datacenter

@@ -53,24 +53,12 @@ func (c *Conch) GetUserSetting(key string) (interface{}, error) {
 
 // SetUserSettings sets the value of *all* user settings via /user/me/settings
 func (c *Conch) SetUserSettings(settings map[string]interface{}) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/user/me/settings").
-		BodyJSON(settings).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/user/me/settings", settings, nil)
 }
 
 // SetUserSetting sets the value of a user setting via /user/me/settings/:name
 func (c *Conch) SetUserSetting(name string, value interface{}) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/user/me/settings/"+name).
-		BodyJSON(value).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/user/me/settings/"+name, value, nil)
 }
 
 // DeleteUserSetting deletes a user setting via /user/me/settings/:name
@@ -99,10 +87,7 @@ func (c *Conch) CreateUser(email string, password string, name string) error {
 		Name     string `json:"name,omitempty"`
 	}{email, password, name}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Post("/user").BodyJSON(u).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/user", u, nil)
 }
 
 // ResetUserPassword resets the password for the provided user, causing an

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 )
 
 // Device represents what the API docs call a "DetailedDevice"
@@ -316,12 +315,7 @@ func (c *Conch) GetHardwareProducts() ([]HardwareProduct, error) {
 // WARNING: This is a one way operation and cannot currently be undone via the
 // API
 func (c *Conch) GraduateDevice(serial string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/graduate").
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/graduate", nil, nil)
 }
 
 // DeviceTritonReboot sets the 'triton_reboot' field for the given device, via
@@ -329,12 +323,7 @@ func (c *Conch) GraduateDevice(serial string) error {
 // WARNING: This is a one way operation and cannot currently be undone via the
 // API
 func (c *Conch) DeviceTritonReboot(serial string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/triton_reboot").
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/triton_reboot", nil, nil)
 }
 
 // SetDeviceTritonUUID sets the triton UUID via /device/:serial/triton_uuid
@@ -345,13 +334,7 @@ func (c *Conch) SetDeviceTritonUUID(serial string, id uuid.UUID) error {
 		id.String(),
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/triton_uuid").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/triton_uuid", j, nil)
 }
 
 // MarkDeviceTritonSetup marks the device as setup for Triton
@@ -359,13 +342,7 @@ func (c *Conch) SetDeviceTritonUUID(serial string, id uuid.UUID) error {
 // marked as rebooted into Triton. If these conditions are not met, this
 // function will return ErrBadInput
 func (c *Conch) MarkDeviceTritonSetup(serial string) error {
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/triton_setup").
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/triton_setup", nil, nil)
 }
 
 // SetDeviceAssetTag sets the asset tag for the provided serial
@@ -376,12 +353,7 @@ func (c *Conch) SetDeviceAssetTag(serial string, tag string) error {
 		tag,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/asset_tag").
-		BodyJSON(j).
-		Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/asset_tag", j, nil)
 }
 
 // GetDeviceIPMI retrieves "/device/:serial/interface/impi1/ipaddr"
@@ -410,10 +382,6 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	out := struct {
 		Name              string `json:"name"`
 		Alias             string `json:"alias"`
@@ -435,14 +403,14 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 	}
 
 	if uuid.Equal(h.ID, uuid.UUID{}) {
-		res, err = c.sling().New().Post("/hardware_product").
-			BodyJSON(out).Receive(&h, aerr)
+		return c.post("/hardware_product", out, &h)
 	} else {
-		res, err = c.sling().New().Post("/hardware_product/"+h.ID.String()).
-			BodyJSON(out).Receive(&h, aerr)
+		return c.post(
+			"/hardware_product/"+h.ID.String(),
+			out,
+			&h,
+		)
 	}
-
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteHardwareProduct deletes a hardware product by marking it as

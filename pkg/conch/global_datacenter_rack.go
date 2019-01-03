@@ -9,7 +9,6 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 )
 
 // GetGlobalRacks fetches a list of all racks in the global domain
@@ -38,10 +37,6 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 
 		j := struct {
@@ -58,7 +53,7 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 			r.AssetTag,
 		}
 
-		res, err = c.sling().New().Post("/rack").BodyJSON(j).Receive(&r, aerr)
+		return c.post("/rack", j, &r)
 	} else {
 		j := struct {
 			DatacenterRoomID string `json:"datacenter_room_id"`
@@ -73,11 +68,9 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 			r.SerialNumber,
 			r.AssetTag,
 		}
-		res, err = c.sling().New().Post("/rack/"+r.ID.String()).
-			BodyJSON(j).Receive(&r, aerr)
+		return c.post("/rack/"+r.ID.String(), j, &r)
 	}
 
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteGlobalRack deletes a rack

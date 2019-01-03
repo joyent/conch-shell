@@ -71,11 +71,11 @@ func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) erro
 	j := make(map[string]string)
 	j[key] = value
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Post("/device/"+deviceID+"/settings/"+key).
-		BodyJSON(j).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/device/"+deviceID+"/settings/"+key,
+		j,
+		nil,
+	)
 }
 
 // DeleteDeviceSetting deletes a single setting for a device via
@@ -143,11 +143,7 @@ func (c *Conch) SetDeviceTag(deviceID string, key string, value string) error {
 	j := make(map[string]string)
 	j[key] = value
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Post("/device/"+deviceID+"/settings/"+key).
-		BodyJSON(j).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+deviceID+"/settings/"+key, j, nil)
 }
 
 // DeleteDeviceTag deletes a single tag for a device via

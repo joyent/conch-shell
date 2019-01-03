@@ -144,6 +144,32 @@ func (c *Conch) httpDelete(url string) error {
 	return c.isHTTPResOk(res, err, aerr)
 }
 
+func (c *Conch) post(url string, payload interface{}, response interface{}) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Post(url).
+		BodyJSON(payload).
+		Receive(response, aerr)
+
+	return c.isHTTPResOk(res, err, aerr)
+}
+
+func (c *Conch) postNeedsResponse(
+	url string,
+	payload interface{},
+	response interface{},
+
+) (*http.Response, error) {
+
+	aerr := &APIError{}
+	res, err := c.sling().New().
+		Post(url).
+		BodyJSON(payload).
+		Receive(response, aerr)
+
+	return res, c.isHTTPResOk(res, err, aerr)
+}
+
 // RawGet allows the user to perform an HTTP GET against the API, with the
 // library handling all auth but *not* processing the response.
 func (c *Conch) RawGet(url string) (*http.Response, error) {
