@@ -22,22 +22,13 @@ type HardwareVendor struct {
 // GetHardwareVendor ...
 func (c *Conch) GetHardwareVendor(name string) (HardwareVendor, error) {
 	var vendor HardwareVendor
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/hardware_vendor/"+name).
-		Receive(&vendor, aerr)
-
-	return vendor, c.isHTTPResOk(res, err, aerr)
+	return vendor, c.get("/hardware_vendor/"+name, &vendor)
 }
 
 // GetHardwareVendors ...
 func (c *Conch) GetHardwareVendors() ([]HardwareVendor, error) {
 	vendors := make([]HardwareVendor, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/hardware_vendor").Receive(&vendors, aerr)
-
-	return vendors, c.isHTTPResOk(res, err, aerr)
+	return vendors, c.get("/hardware_vendor", &vendors)
 }
 
 // DeleteHardwareVendor ...

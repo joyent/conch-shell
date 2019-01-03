@@ -69,22 +69,14 @@ type GlobalRackLayoutSlot struct {
 // GetGlobalDatacenters fetches a list of all datacenters in the global domain
 func (c *Conch) GetGlobalDatacenters() ([]GlobalDatacenter, error) {
 	d := make([]GlobalDatacenter, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/dc").Receive(&d, aerr)
-
-	return d, c.isHTTPResOk(res, err, aerr)
+	return d, c.get("/dc", &d)
 }
 
 // GetGlobalDatacenter fetches a single datacenter in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalDatacenter(id fmt.Stringer) (GlobalDatacenter, error) {
-	d := GlobalDatacenter{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/dc/"+id.String()).Receive(&d, aerr)
-
-	return d, c.isHTTPResOk(res, err, aerr)
+	var d GlobalDatacenter
+	return d, c.get("/dc/"+id.String(), &d)
 }
 
 // SaveGlobalDatacenter creates or updates a datacenter in the global domain,
@@ -139,9 +131,5 @@ func (c *Conch) DeleteGlobalDatacenter(id fmt.Stringer) error {
 // GetGlobalDatacenterRooms gets the global rooms assigned to a global datacenter
 func (c *Conch) GetGlobalDatacenterRooms(d GlobalDatacenter) ([]GlobalRoom, error) {
 	r := make([]GlobalRoom, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/dc/"+d.ID.String()+"/rooms").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/dc/"+d.ID.String()+"/rooms", &r)
 }

@@ -15,22 +15,14 @@ import (
 // GetGlobalRackRoles fetches a list of all rack roles in the global domain
 func (c *Conch) GetGlobalRackRoles() ([]GlobalRackRole, error) {
 	r := make([]GlobalRackRole, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack_role").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/rack_role", &r)
 }
 
 // GetGlobalRackRole fetches a single rack role in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (*GlobalRackRole, error) {
-	r := &GlobalRackRole{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack_role/"+id.String()).Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (GlobalRackRole, error) {
+	var r GlobalRackRole
+	return r, c.get("/rack_role/"+id.String(), &r)
 }
 
 // SaveGlobalRackRole creates or updates a rack role in the global domain,

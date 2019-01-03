@@ -55,24 +55,15 @@ func (c *Conch) GetActiveWorkspaceRelays(
 		minutes,
 	)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Get(url).Receive(&relays, aerr)
-
-	return relays, c.isHTTPResOk(res, err, aerr)
+	return relays, c.get(url, &relays)
 }
 
 // GetWorkspaceRelays returns all Relays associated with the given workspace
 func (c *Conch) GetWorkspaceRelays(workspaceUUID fmt.Stringer) ([]WorkspaceRelay, error) {
-	var err error
-
 	relays := make([]WorkspaceRelay, 0)
 
 	url := "/workspace/" + workspaceUUID.String() + "/relay"
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get(url).Receive(&relays, aerr)
-
-	return relays, c.isHTTPResOk(res, err, aerr)
+	return relays, c.get(url, &relays)
 }
 
 // GetWorkspaceRelayDevices ...
@@ -80,13 +71,10 @@ func (c *Conch) GetWorkspaceRelayDevices(
 	workspaceUUID fmt.Stringer,
 	relayName string,
 ) ([]Device, error) {
+
 	devices := make([]Device, 0)
 	url := "/workspace/" + workspaceUUID.String() + "/relay/" + relayName + "/device"
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get(url).Receive(&devices, aerr)
-
-	return devices, c.isHTTPResOk(res, err, aerr)
+	return devices, c.get(url, &devices)
 }
 
 // RegisterRelay registers/updates a Relay via /relay/:serial/register
@@ -122,8 +110,5 @@ func (c *Conch) RegisterRelay(r WorkspaceRelay) error {
 // relays, but without their assigned devices.
 func (c *Conch) GetAllRelays() ([]WorkspaceRelay, error) {
 	relays := make([]WorkspaceRelay, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/relay?no_devices=1").Receive(&relays, aerr)
-	return relays, c.isHTTPResOk(res, err, aerr)
+	return relays, c.get("/relay?no_devices=1", &relays)
 }

@@ -59,34 +59,25 @@ type ValidationState struct {
 // validations loaded in the system
 func (c *Conch) GetValidations() ([]Validation, error) {
 	validations := make([]Validation, 0)
-	aerr := &APIError{}
-
-	res, err := c.sling().New().Get("/validation").Receive(&validations, aerr)
-	return validations, c.isHTTPResOk(res, err, aerr)
+	return validations, c.get("/validation", &validations)
 }
 
 // GetValidationPlans returns the contents of /validation_plan, getting the
 // list of all validations plans loaded in the system
 func (c *Conch) GetValidationPlans() ([]ValidationPlan, error) {
 	validationPlans := make([]ValidationPlan, 0)
-	aerr := &APIError{}
-
-	res, err := c.sling().New().Get("/validation_plan").
-		Receive(&validationPlans, aerr)
-	return validationPlans, c.isHTTPResOk(res, err, aerr)
+	return validationPlans, c.get("/validation_plan", &validationPlans)
 }
 
 // GetValidationPlan returns the contents of /validation_plan/:uuid, getting information
 // about a single validation plan
+// BUG(sungo): why is this returning a pointer?
 func (c *Conch) GetValidationPlan(validationPlanUUID fmt.Stringer) (*ValidationPlan, error) {
-	validationPlan := &ValidationPlan{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/validation_plan/"+validationPlanUUID.String()).
-		Receive(validationPlan, aerr)
-
-	return validationPlan, c.isHTTPResOk(res, err, aerr)
+	var validationPlan ValidationPlan
+	return &validationPlan, c.get(
+		"/validation_plan/"+validationPlanUUID.String(),
+		&validationPlan,
+	)
 }
 
 // CreateValidationPlan creates a new validation plan in Conch
@@ -140,13 +131,10 @@ func (c *Conch) RemoveValidationFromPlan(validationPlanUUID fmt.Stringer, valida
 // GetValidationPlanValidations gets the list of validations associated with a validation plan
 func (c *Conch) GetValidationPlanValidations(validationPlanUUID fmt.Stringer) ([]Validation, error) {
 	validations := make([]Validation, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/validation_plan/"+validationPlanUUID.String()+"/validation").
-		Receive(&validations, aerr)
-
-	return validations, c.isHTTPResOk(res, err, aerr)
+	return validations, c.get(
+		"/validation_plan/"+validationPlanUUID.String()+"/validation",
+		&validations,
+	)
 }
 
 // RunDeviceValidation runs a validation against given a device and returns the results
@@ -178,23 +166,14 @@ func (c *Conch) RunDeviceValidationPlan(deviceSerial string, validationPlanUUID 
 // DeviceValidationStates returns the stored validation states for a device
 func (c *Conch) DeviceValidationStates(deviceSerial string) ([]ValidationState, error) {
 	states := make([]ValidationState, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+deviceSerial+"/validation_state").
-		Receive(&states, aerr)
-
-	return states, c.isHTTPResOk(res, err, aerr)
+	return states, c.get("/device/"+deviceSerial+"/validation_state", &states)
 }
 
 // WorkspaceValidationStates returns the stored validation states for all devices in a workspace
 func (c *Conch) WorkspaceValidationStates(workspaceUUID fmt.Stringer) ([]ValidationState, error) {
 	states := make([]ValidationState, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/validation_state").
-		Receive(&states, aerr)
-
-	return states, c.isHTTPResOk(res, err, aerr)
+	return states, c.get(
+		"/workspace/"+workspaceUUID.String()+"/validation_state",
+		&states,
+	)
 }

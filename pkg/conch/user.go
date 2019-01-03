@@ -39,10 +39,7 @@ type UserDetailed struct {
 // know in advanace what's in that data so here there be dragons.
 func (c *Conch) GetUserSettings() (map[string]interface{}, error) {
 	settings := make(map[string]interface{})
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/user/me/settings").Receive(&settings, aerr)
-	return settings, c.isHTTPResOk(res, err, aerr)
+	return settings, c.get("/user/me/settings", &settings)
 }
 
 // GetUserSetting returns the results of /user/me/settings/:key
@@ -51,12 +48,7 @@ func (c *Conch) GetUserSettings() (map[string]interface{}, error) {
 // advanace what's in that data so here there be dragons.
 func (c *Conch) GetUserSetting(key string) (interface{}, error) {
 	var setting interface{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/user/me/settings/"+key).
-		Receive(&setting, aerr)
-
-	return setting, c.isHTTPResOk(res, err, aerr)
+	return setting, c.get("/user/me/settings/"+key, &setting)
 }
 
 // SetUserSettings sets the value of *all* user settings via /user/me/settings
@@ -134,8 +126,5 @@ func (c *Conch) ResetUserPassword(email string) error {
 // permissions, in the system. Returns UserDetailed structs
 func (c *Conch) GetAllUsers() ([]UserDetailed, error) {
 	u := make([]UserDetailed, 0)
-	aerr := &APIError{}
-
-	res, err := c.sling().New().Get("/user").Receive(&u, aerr)
-	return u, c.isHTTPResOk(res, err, aerr)
+	return u, c.get("/user", &u)
 }

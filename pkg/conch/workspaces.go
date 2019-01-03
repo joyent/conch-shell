@@ -45,63 +45,45 @@ type WorkspaceUser struct {
 // workspaces that the user has access to
 func (c *Conch) GetWorkspaces() ([]Workspace, error) {
 	workspaces := make([]Workspace, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/workspace").Receive(&workspaces, aerr)
-
-	return workspaces, c.isHTTPResOk(res, err, aerr)
+	return workspaces, c.get("/workspace", &workspaces)
 }
 
 // GetWorkspace returns the contents of /workspace/:uuid, getting information
 // about a single workspace
+// BUG(sungo): why is this returning a pointer
 func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (*Workspace, error) {
-	workspace := &Workspace{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()).
-		Receive(&workspace, aerr)
-
-	return workspace, c.isHTTPResOk(res, err, aerr)
+	var workspace Workspace
+	return &workspace, c.get("/workspace/"+workspaceUUID.String(), &workspace)
 }
 
 // GetSubWorkspaces returns the contents of /workspace/:uuid/child, getting
 // a list of subworkspaces for the given workspace id
 func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) ([]Workspace, error) {
 	workspaces := make([]Workspace, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/child").
-		Receive(&workspaces, aerr)
-
-	return workspaces, c.isHTTPResOk(res, err, aerr)
+	return workspaces, c.get(
+		"/workspace/"+workspaceUUID.String()+"/child",
+		&workspaces,
+	)
 }
 
 // GetWorkspaceUsers returns the contents of /workspace/:uuid/users, getting
 // a list of users for the given workspace id
 func (c *Conch) GetWorkspaceUsers(workspaceUUID fmt.Stringer) ([]WorkspaceUser, error) {
 	users := make([]WorkspaceUser, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/user").
-		Receive(&users, aerr)
-
-	return users, c.isHTTPResOk(res, err, aerr)
+	return users, c.get(
+		"/workspace/"+workspaceUUID.String()+"/user",
+		&users,
+	)
 }
 
 // GetWorkspaceRooms returns the contents of /workspace/:uuid/room, getting
 // a list of rooms for the given workspace id
 func (c *Conch) GetWorkspaceRooms(workspaceUUID fmt.Stringer) ([]Room, error) {
 	rooms := make([]Room, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/room").
-		Receive(&rooms, aerr)
-
-	return rooms, c.isHTTPResOk(res, err, aerr)
+	return rooms, c.get(
+		"/workspace/"+workspaceUUID.String()+"/room",
+		&rooms,
+	)
 }
 
 // CreateSubWorkspace creates a sub workspace under the parent, via

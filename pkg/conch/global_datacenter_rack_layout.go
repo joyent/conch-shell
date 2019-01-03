@@ -15,22 +15,14 @@ import (
 // GetGlobalRackLayoutSlots fetches a list of all rack layouts in the global domain
 func (c *Conch) GetGlobalRackLayoutSlots() ([]GlobalRackLayoutSlot, error) {
 	r := make([]GlobalRackLayoutSlot, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/layout").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/layout", &r)
 }
 
 // GetGlobalRackLayoutSlot fetches a single rack layout in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalRackLayoutSlot(id fmt.Stringer) (*GlobalRackLayoutSlot, error) {
 	r := &GlobalRackLayoutSlot{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/layout/"+id.String()).Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/layout/"+id.String(), &r)
 }
 
 // SaveGlobalRackLayoutSlot creates or updates a rack layout in the global domain,

@@ -15,22 +15,14 @@ import (
 // GetGlobalRooms fetches a list of all rooms in the global domain
 func (c *Conch) GetGlobalRooms() ([]GlobalRoom, error) {
 	r := make([]GlobalRoom, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/room").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/room", &r)
 }
 
 // GetGlobalRoom fetches a single room in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalRoom(id fmt.Stringer) (GlobalRoom, error) {
-	r := GlobalRoom{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/room/"+id.String()).Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	var r GlobalRoom
+	return r, c.get("/room/"+id.String(), &r)
 }
 
 // SaveGlobalRoom creates or updates a room in the global domain,
@@ -83,10 +75,5 @@ func (c *Conch) DeleteGlobalRoom(id fmt.Stringer) error {
 // domain
 func (c *Conch) GetGlobalRoomRacks(r GlobalRoom) ([]GlobalRack, error) {
 	rs := make([]GlobalRack, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/room/"+r.ID.String()+"/racks").
-		Receive(&rs, aerr)
-
-	return rs, c.isHTTPResOk(res, err, aerr)
+	return rs, c.get("/room/"+r.ID.String()+"/racks", &rs)
 }

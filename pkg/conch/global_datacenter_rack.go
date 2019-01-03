@@ -15,22 +15,14 @@ import (
 // GetGlobalRacks fetches a list of all racks in the global domain
 func (c *Conch) GetGlobalRacks() ([]GlobalRack, error) {
 	r := make([]GlobalRack, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/rack", &r)
 }
 
 // GetGlobalRack fetches a single rack in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalRack(id fmt.Stringer) (GlobalRack, error) {
-	r := GlobalRack{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack/"+id.String()).Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	var r GlobalRack
+	return r, c.get("/rack/"+id.String(), &r)
 }
 
 // SaveGlobalRack creates or updates a rack in the global domain,
@@ -98,10 +90,5 @@ func (c *Conch) DeleteGlobalRack(id fmt.Stringer) error {
 // GetGlobalRackLayout fetches the layout entries for a rack in the global domain
 func (c *Conch) GetGlobalRackLayout(r GlobalRack) ([]GlobalRackLayoutSlot, error) {
 	rs := make([]GlobalRackLayoutSlot, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack/"+r.ID.String()+"/layouts").
-		Receive(&rs, aerr)
-
-	return rs, c.isHTTPResOk(res, err, aerr)
+	return rs, c.get("/rack/"+r.ID.String()+"/layouts", &rs)
 }

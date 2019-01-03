@@ -139,7 +139,7 @@ func roleUpdate(app *cli.Cmd) {
 			r.RackSize = *rackSizeOpt
 		}
 
-		if err := util.API.SaveGlobalRackRole(r); err != nil {
+		if err := util.API.SaveGlobalRackRole(&r); err != nil {
 			util.Bail(err)
 		}
 

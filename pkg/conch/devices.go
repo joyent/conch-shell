@@ -261,22 +261,14 @@ func (c *Conch) GetDevice(serial string) (Device, error) {
 // likely, though, that any client utility will eventually want all the data
 // about a device and not just bits
 func (c *Conch) FillInDevice(d Device) (Device, error) {
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/device/"+d.ID).Receive(&d, aerr)
-	return d, c.isHTTPResOk(res, err, aerr)
+	return d, c.get("/device/"+d.ID, &d)
 }
 
 // GetDeviceLocation fetches the location for a device, via
 // /device/:serial/location
 func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
 	var location DeviceLocation
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/location").
-		Receive(&location, aerr)
-
-	return location, c.isHTTPResOk(res, err, aerr)
+	return location, c.get("/device/"+serial+"/location", &location)
 }
 
 // GetWorkspaceRacks fetchest the list of racks for a workspace, via
@@ -289,10 +281,9 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 	racks := make([]Rack, 0)
 	j := make(map[string][]Rack)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/rack").
-		Receive(&j, aerr)
+	if err := c.get("/workspace/"+workspaceUUID.String()+"/rack", &j); err != nil {
+		return racks, err
+	}
 
 	for az, loc := range j {
 		for _, rack := range loc {
@@ -301,46 +292,39 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 		}
 	}
 
-	return racks, c.isHTTPResOk(res, err, aerr)
+	return racks, nil
 }
 
 // GetWorkspaceRack fetches a single rack for a workspace, via
 // /workspace/:uuid/rack/:id
-func (c *Conch) GetWorkspaceRack(workspaceUUID fmt.Stringer, rackUUID fmt.Stringer) (Rack, error) {
+func (c *Conch) GetWorkspaceRack(
+	workspaceUUID fmt.Stringer,
+	rackUUID fmt.Stringer,
+) (Rack, error) {
+
 	var rack Rack
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/rack/"+rackUUID.String()).
-		Receive(&rack, aerr)
-
-	return rack, c.isHTTPResOk(res, err, aerr)
+	return rack, c.get(
+		"/workspace/"+
+			workspaceUUID.String()+
+			"/rack/"+
+			rackUUID.String(),
+		&rack,
+	)
 }
 
 // GetHardwareProduct fetches a single hardware product via
 // /hardware/product/:uuid
 func (c *Conch) GetHardwareProduct(hardwareProductUUID fmt.Stringer) (HardwareProduct, error) {
 	var prod HardwareProduct
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/hardware_product/"+hardwareProductUUID.String()).
-		Receive(&prod, aerr)
-
-	return prod, c.isHTTPResOk(res, err, aerr)
+	return prod, c.get("/hardware_product/"+hardwareProductUUID.String(), &prod)
 }
 
 // GetHardwareProducts fetches a single hardware product via
 // /hardware_product
 func (c *Conch) GetHardwareProducts() ([]HardwareProduct, error) {
 	prods := make([]HardwareProduct, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/hardware_product").
-		Receive(&prods, aerr)
-
-	return prods, c.isHTTPResOk(res, err, aerr)
+	return prods, c.get("/hardware_product", &prods)
 }
 
 // GraduateDevice sets the 'graduated' field for the given device, via
@@ -420,12 +404,8 @@ func (c *Conch) SetDeviceAssetTag(serial string, tag string) error {
 func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
 	j := make(map[string]string)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/interface/ipmi1/ipaddr").Receive(&j, aerr)
-
-	if herr := c.isHTTPResOk(res, err, aerr); herr != nil {
-		return "", herr
+	if err := c.get("/device/"+serial+"/interface/ipmi1/ipaddr", &j); err != nil {
+		return "", err
 	}
 
 	return j["ipaddr"], nil
