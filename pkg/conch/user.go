@@ -75,12 +75,7 @@ func (c *Conch) SetUserSetting(name string, value interface{}) error {
 
 // DeleteUserSetting deletes a user setting via /user/me/settings/:name
 func (c *Conch) DeleteUserSetting(name string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/user/me/settings/"+name).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/user/me/settings/" + name)
 }
 
 // DeleteUser deletes a user and, optionally, clears their JWT credentials
@@ -91,10 +86,7 @@ func (c *Conch) DeleteUser(emailAddress string, clearTokens bool) error {
 		url = url + "?clear_tokens=1"
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete(url).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete(url)
 }
 
 // CreateUser creates a new user. They are *not* added to a workspace.
@@ -116,10 +108,7 @@ func (c *Conch) CreateUser(email string, password string, name string) error {
 // ResetUserPassword resets the password for the provided user, causing an
 // email to be sent
 func (c *Conch) ResetUserPassword(email string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/user/email="+email+"/password").Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/user/email=" + email + "/password")
 }
 
 // GetAllUsers retrieves a list of all users, if the user has the right

@@ -66,9 +66,7 @@ func (c *Conch) SaveGlobalRoom(r *GlobalRoom) error {
 
 // DeleteGlobalRoom deletes a room
 func (c *Conch) DeleteGlobalRoom(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/room/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/room/" + id.String())
 }
 
 // GetGlobalRoomRacks retrieves the racks assigned to a room in the global

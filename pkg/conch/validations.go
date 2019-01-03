@@ -120,12 +120,12 @@ func (c *Conch) AddValidationToPlan(validationPlanUUID fmt.Stringer, validationU
 // RemoveValidationFromPlan removes a validation from a validation plan
 func (c *Conch) RemoveValidationFromPlan(validationPlanUUID fmt.Stringer, validationUUID fmt.Stringer) error {
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/validation_plan/"+validationPlanUUID.String()+"/validation/"+validationUUID.String()).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete(
+		"/validation_plan/" +
+			validationPlanUUID.String() +
+			"/validation/" +
+			validationUUID.String(),
+	)
 }
 
 // GetValidationPlanValidations gets the list of validations associated with a validation plan

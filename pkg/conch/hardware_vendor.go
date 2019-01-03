@@ -33,11 +33,7 @@ func (c *Conch) GetHardwareVendors() ([]HardwareVendor, error) {
 
 // DeleteHardwareVendor ...
 func (c *Conch) DeleteHardwareVendor(name string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/hardware_vendor/"+name).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/hardware_vendor/" + name)
 }
 
 // SaveHardwareVendor ...

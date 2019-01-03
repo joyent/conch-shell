@@ -70,7 +70,5 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 
 // DeleteGlobalRackRole deletes a rack role
 func (c *Conch) DeleteGlobalRackRole(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/rack_role/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/rack_role/" + id.String())
 }

@@ -138,6 +138,12 @@ func (c *Conch) getWithQuery(url string, query interface{}, data interface{}) er
 	return c.isHTTPResOk(res, err, aerr)
 }
 
+func (c *Conch) httpDelete(url string) error {
+	aerr := &APIError{}
+	res, err := c.sling().New().Delete(url).Receive(nil, aerr)
+	return c.isHTTPResOk(res, err, aerr)
+}
+
 // RawGet allows the user to perform an HTTP GET against the API, with the
 // library handling all auth but *not* processing the response.
 func (c *Conch) RawGet(url string) (*http.Response, error) {

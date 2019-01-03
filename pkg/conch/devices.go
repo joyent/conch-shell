@@ -448,10 +448,5 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 // DeleteHardwareProduct deletes a hardware product by marking it as
 // deactivated
 func (c *Conch) DeleteHardwareProduct(hwUUID fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/hardware_product/"+hwUUID.String()).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/hardware_product/" + hwUUID.String())
 }

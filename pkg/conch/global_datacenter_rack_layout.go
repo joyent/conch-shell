@@ -64,7 +64,5 @@ func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
 
 // DeleteGlobalRackLayoutSlot deletes a rack layout
 func (c *Conch) DeleteGlobalRackLayoutSlot(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/layout/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/layout/" + id.String())
 }

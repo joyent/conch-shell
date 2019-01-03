@@ -86,12 +86,7 @@ func (c *Conch) DeleteDeviceSetting(deviceID string, key string) error {
 	if isTag(key) {
 		return ErrDataNotFound
 	}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/device/"+deviceID+"/settings/"+key).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
 }
 
 // GetDeviceTags fetches tags for a device, via /device/:serial/settings
@@ -164,9 +159,5 @@ func (c *Conch) DeleteDeviceTag(deviceID string, key string) error {
 		key = "tag." + key
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/device/"+deviceID+"/settings/"+key).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
 }

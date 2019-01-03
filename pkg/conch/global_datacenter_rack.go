@@ -82,9 +82,7 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 
 // DeleteGlobalRack deletes a rack
 func (c *Conch) DeleteGlobalRack(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/rack/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/rack/" + id.String())
 }
 
 // GetGlobalRackLayout fetches the layout entries for a rack in the global domain

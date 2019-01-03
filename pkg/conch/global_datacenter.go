@@ -123,9 +123,7 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 
 // DeleteGlobalDatacenter deletes a datacenter
 func (c *Conch) DeleteGlobalDatacenter(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/dc/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/dc/" + id.String())
 }
 
 // GetGlobalDatacenterRooms gets the global rooms assigned to a global datacenter
