@@ -24,22 +24,6 @@ func TestDevicesErrors(t *testing.T) {
 	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
-	t.Run("GetWorkspaceDevices", func(t *testing.T) {
-		id := uuid.NewV4()
-
-		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/device").
-			Persist().Reply(400).JSON(aerr)
-		defer gock.Flush()
-
-		ret, err := API.GetWorkspaceDevices(id, false, "g", "h")
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Device{})
-
-		ret, err = API.GetWorkspaceDevices(id, true, "g", "h")
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Device{})
-	})
-
 	t.Run("GetDevice", func(t *testing.T) {
 		serial := "test"
 
@@ -72,50 +56,6 @@ func TestDevicesErrors(t *testing.T) {
 		ret, err := API.GetDeviceLocation(serial)
 		st.Expect(t, err, aerrUnpacked)
 		st.Expect(t, ret, conch.DeviceLocation{})
-	})
-
-	t.Run("GetWorkspaceRacks", func(t *testing.T) {
-		id := uuid.NewV4()
-
-		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/rack").
-			Reply(400).JSON(aerr)
-
-		ret, err := API.GetWorkspaceRacks(id)
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.Rack{})
-	})
-
-	t.Run("GetWorkspaceRack", func(t *testing.T) {
-		id := uuid.NewV4()
-		rID := uuid.NewV4()
-
-		gock.New(API.BaseURL).
-			Get("/workspace/" + id.String() + "/rack/" + rID.String()).
-			Reply(400).JSON(aerr)
-
-		ret, err := API.GetWorkspaceRack(id, rID)
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, conch.Rack{})
-	})
-
-	t.Run("GetHardwareProduct", func(t *testing.T) {
-		id := uuid.NewV4()
-
-		gock.New(API.BaseURL).
-			Get("/hardware_product/" + id.String()).
-			Reply(400).JSON(aerr)
-
-		ret, err := API.GetHardwareProduct(id)
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, conch.HardwareProduct{})
-	})
-
-	t.Run("GetHardwareProducts", func(t *testing.T) {
-		gock.New(API.BaseURL).Get("/hardware_product").Reply(400).JSON(aerr)
-
-		ret, err := API.GetHardwareProducts()
-		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, []conch.HardwareProduct{})
 	})
 
 	t.Run("GraduateDevice", func(t *testing.T) {
