@@ -11,36 +11,6 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-// Workspace represents a Conch data partition which allows users to create
-// custom lists of hardware
-type Workspace struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	Role        string    `json:"role"`
-	ParentID    uuid.UUID `json:"parent_id,omitempty"`
-}
-
-// Room represents a physical area in a datacenter/AZ
-type Room struct {
-	ID         string `json:"id"`
-	AZ         string `json:"az"`
-	Alias      string `json:"alias"`
-	VendorName string `json:"vendor_name"`
-}
-
-// WorkspaceAndRole ...
-type WorkspaceAndRole struct {
-	Workspace
-	RoleVia uuid.UUID `json:"role_via"`
-}
-
-// WorkspaceUser ...
-type WorkspaceUser struct {
-	User
-	RoleVia uuid.UUID `json:"role_via,omitempty"`
-}
-
 // GetWorkspaces returns the contents of /workspace, getting the list of all
 // workspaces that the user has access to
 func (c *Conch) GetWorkspaces() ([]Workspace, error) {

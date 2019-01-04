@@ -8,36 +8,7 @@ package conch
 
 import (
 	"fmt"
-	"github.com/joyent/conch-shell/pkg/pgtime"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
-
-// WorkspaceRelays ...
-type WorkspaceRelays []WorkspaceRelay
-
-// WorkspaceRelay represents a Conch Relay unit, a physical piece of hardware that
-// mediates Livesys interactions in the field
-type WorkspaceRelay struct {
-	ID         string                 `json:"id"` // *not* a UUID
-	Created    pgtime.PgTime          `json:"created"`
-	Updated    pgtime.PgTime          `json:"updated"`
-	Alias      string                 `json:"alias"`
-	IPAddr     string                 `json:"ipaddr"`
-	SSHPort    int                    `json:"ssh_port"`
-	Version    string                 `json:"version"`
-	LastSeen   pgtime.PgTime          `json:"last_seen"`
-	NumDevices int                    `json:"num_devices"`
-	Location   WorkspaceRelayLocation `json:"location"`
-}
-
-// WorkspaceRelayLocation ...
-type WorkspaceRelayLocation struct {
-	Az            string    `json:"az"`
-	RackID        uuid.UUID `json:"rack_id"`
-	RackName      string    `json:"rack_name"`
-	RackUnitStart int       `json:"rack_unit_start"`
-	RoleName      string    `json:"role_name"`
-}
 
 // GetActiveWorkspaceRelays ...
 func (c *Conch) GetActiveWorkspaceRelays(

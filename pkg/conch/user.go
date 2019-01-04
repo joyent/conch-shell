@@ -6,33 +6,6 @@
 
 package conch
 
-import (
-	"github.com/joyent/conch-shell/pkg/pgtime"
-	uuid "gopkg.in/satori/go.uuid.v1"
-)
-
-// User represents a person able to access the Conch API or UI
-type User struct {
-	ID      string    `json:"id,omitempty"`
-	Email   string    `json:"email"`
-	Name    string    `json:"name"`
-	Role    string    `json:"role"`
-	RoleVia uuid.UUID `json:"role_via,omitempty"`
-}
-
-// UserDetailed ...
-type UserDetailed struct {
-	ID                  uuid.UUID          `json:"id"`
-	Name                string             `json:"name"`
-	Email               string             `json:"email"`
-	Created             pgtime.PgTime      `json:"created"`
-	LastLogin           pgtime.PgTime      `json:"last_login"`
-	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
-	ForcePasswordChange bool               `json:"force_password_change"`
-	Workspaces          []WorkspaceAndRole `json:"workspaces,omitempty"`
-	IsAdmin             bool               `json:"is_admin"`
-}
-
 // GetUserSettings returns the results of /user/me/settings
 // The return is a map[string]interface{} because the database structure is a
 // string name and a jsonb data field.  There is no way for this library to

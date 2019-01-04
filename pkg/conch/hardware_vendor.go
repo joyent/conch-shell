@@ -7,17 +7,8 @@
 package conch
 
 import (
-	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
-
-// HardwareVendor ...
-type HardwareVendor struct {
-	ID      uuid.UUID     `json:"id"`
-	Name    string        `json:"name"`
-	Created pgtime.PgTime `json:"created"`
-	Updated pgtime.PgTime `json:"updated"`
-}
 
 // GetHardwareVendor ...
 func (c *Conch) GetHardwareVendor(name string) (v HardwareVendor, err error) {

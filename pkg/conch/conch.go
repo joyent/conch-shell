@@ -10,32 +10,18 @@ package conch
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/blang/semver"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"time"
+
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 const (
 	// MinimumAPIVersion sets the earliest API version that we support.
 	MinimumAPIVersion = "2.22.0"
 )
-
-// Conch contains auth and configuration data
-type Conch struct {
-	Session string // DEPRECATED
-	BaseURL string
-	UA      string
-	JWToken string
-	Expires int // This will be overwritten by JWT claims
-
-	HTTPClient *http.Client
-	CookieJar  *cookiejar.Jar
-	apiVersion *semver.Version
-}
 
 // RevokeUserTokens revokes all auth tokens for a the given user. This action
 // is typically limited server-side to admins.

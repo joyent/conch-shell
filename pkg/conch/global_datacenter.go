@@ -9,61 +9,7 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"time"
 )
-
-// GlobalDatacenter represents a datacenter in the global domain
-type GlobalDatacenter struct {
-	ID         uuid.UUID `json:"id"`
-	Vendor     string    `json:"vendor"`
-	VendorName string    `json:"vendor_name"`
-	Region     string    `json:"region"`
-	Location   string    `json:"location"`
-	Created    time.Time `json:"created"`
-	Updated    time.Time `json:"updated"`
-}
-
-// GlobalRoom represents a datacenter room in the global domain
-type GlobalRoom struct {
-	ID           uuid.UUID `json:"id"`
-	Created      time.Time `json:"created"`
-	Updated      time.Time `json:"updated"`
-	DatacenterID uuid.UUID `json:"datacenter"`
-	AZ           string    `json:"az"`
-	Alias        string    `json:"alias"`
-	VendorName   string    `json:"vendor_name"`
-}
-
-// GlobalRack represents a datacenter rack in the global domain
-type GlobalRack struct {
-	ID               uuid.UUID `json:"id"`
-	Created          time.Time `json:"created"`
-	Updated          time.Time `json:"updated"`
-	DatacenterRoomID uuid.UUID `json:"datacenter_room_id"`
-	Name             string    `json:"name"`
-	RoleID           uuid.UUID `json:"role"`
-	SerialNumber     string    `json:"serial_number"`
-	AssetTag         string    `json:"asset_tag"`
-}
-
-// GlobalRackRole represents a rack role in the global domain
-type GlobalRackRole struct {
-	ID       uuid.UUID `json:"id"`
-	Created  time.Time `json:"created"`
-	Updated  time.Time `json:"updated"`
-	Name     string    `json:"name"`
-	RackSize int       `json:"rack_size"`
-}
-
-// GlobalRackLayoutSlot represents an individual rack layout entry
-type GlobalRackLayoutSlot struct {
-	ID        uuid.UUID `json:"id"`
-	Created   time.Time `json:"created"`
-	Updated   time.Time `json:"updated"`
-	RackID    uuid.UUID `json:"rack_id"`
-	ProductID uuid.UUID `json:"product_id"`
-	RUStart   int       `json:"ru_start"`
-}
 
 // GetGlobalDatacenters fetches a list of all datacenters in the global domain
 func (c *Conch) GetGlobalDatacenters() ([]GlobalDatacenter, error) {
