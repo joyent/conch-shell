@@ -59,7 +59,7 @@ func getValidationPlan(app *cli.Cmd) {
 			util.JSONOut(validationPlan)
 			return
 		}
-		validationPlans := validationPlans{*validationPlan}
+		validationPlans := validationPlans{validationPlan}
 		validationPlans.renderTable()
 	}
 }

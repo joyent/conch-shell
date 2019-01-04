@@ -71,13 +71,11 @@ func (c *Conch) GetValidationPlans() ([]ValidationPlan, error) {
 
 // GetValidationPlan returns the contents of /validation_plan/:uuid, getting information
 // about a single validation plan
-// BUG(sungo): why is this returning a pointer?
 func (c *Conch) GetValidationPlan(
 	validationPlanUUID fmt.Stringer,
-) (*ValidationPlan, error) {
-	var vp ValidationPlan
+) (vp ValidationPlan, err error) {
 
-	return &vp, c.get(
+	return vp, c.get(
 		"/validation_plan/"+validationPlanUUID.String(),
 		&vp,
 	)

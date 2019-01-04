@@ -49,7 +49,7 @@ func TestValidationErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get(url).Reply(400).JSON(aerr)
 		ret, err := API.GetValidationPlan(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, &conch.ValidationPlan{})
+		st.Expect(t, ret, conch.ValidationPlan{})
 	})
 
 	t.Run("RunDeviceValidationPlan", func(t *testing.T) {
