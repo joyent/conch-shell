@@ -8,7 +8,6 @@ package conch_test
 
 import (
 	"errors"
-	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
 	"testing"
@@ -18,7 +17,9 @@ func TestDeviceSettingsErrors(t *testing.T) {
 	BuildAPI()
 	gock.Flush()
 
-	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	aerr := struct {
+		ErrorMsg string `json:"error"`
+	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
 	t.Run("GetDeviceSettings", func(t *testing.T) {

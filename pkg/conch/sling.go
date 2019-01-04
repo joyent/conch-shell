@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,16 +7,20 @@
 package conch
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/blang/semver"
-	"github.com/dghubble/sling"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/blang/semver"
+	"github.com/dghubble/sling"
 )
 
 const (
@@ -125,6 +129,112 @@ func (c *Conch) sling() *sling.Sling {
 
 	return s
 }
+
+func (c *Conch) get(url string, data interface{}) error {
+	req, err := c.sling().New().Get(url).Request()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.httpDo(req, data)
+	return err
+}
+
+func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, error) {
+	res, err := c.HTTPClient.Do(req)
+	if (res == nil) || (err != nil) {
+		return res, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusUnauthorized {
+		return res, ErrNotAuthorized
+	}
+
+	if res.StatusCode == http.StatusForbidden {
+		return res, ErrForbidden
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		return res, ErrDataNotFound
+	}
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return res, err
+	}
+
+	// BUG(sungo): an awfully simplistic view of the world
+	if code := res.StatusCode; code >= 200 && code < 300 {
+		if data != nil {
+			// BUG(sungo): do we really want to throw away parse errors?
+			json.Unmarshal(bodyBytes, data)
+		}
+		return res, nil
+	}
+	aerr := struct {
+		Error string `json:"error"`
+	}{""}
+	if err := json.Unmarshal(bodyBytes, &aerr); err == nil {
+		return res, errors.New(aerr.Error)
+	}
+
+	// In general, we should expect the API to give us error structures when
+	// things go awry, but just in case not...
+	return res, ErrHTTPNotOk
+}
+
+func (c *Conch) getWithQuery(url string, query interface{}, data interface{}) error {
+	req, err := c.sling().New().Get(url).QueryStruct(query).Request()
+	if err != nil {
+		return err
+	}
+	_, err = c.httpDo(req, data)
+	return err
+}
+
+func (c *Conch) httpDelete(url string) error {
+	req, err := c.sling().New().Delete(url).Request()
+	if err != nil {
+		return err
+	}
+	_, err = c.httpDo(req, nil)
+	return err
+}
+
+func (c *Conch) post(url string, payload interface{}, response interface{}) error {
+	req, err := c.sling().New().
+		Post(url).
+		BodyJSON(payload).
+		Request()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = c.httpDo(req, response)
+	return err
+}
+
+func (c *Conch) postNeedsResponse(
+	url string,
+	payload interface{},
+	response interface{},
+
+) (*http.Response, error) {
+	req, err := c.sling().New().
+		Post(url).
+		BodyJSON(payload).
+		Request()
+
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpDo(req, response)
+	return res, err
+}
+
+//////
 
 // RawGet allows the user to perform an HTTP GET against the API, with the
 // library handling all auth but *not* processing the response.

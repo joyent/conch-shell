@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -45,63 +45,43 @@ type WorkspaceUser struct {
 // workspaces that the user has access to
 func (c *Conch) GetWorkspaces() ([]Workspace, error) {
 	workspaces := make([]Workspace, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/workspace").Receive(&workspaces, aerr)
-
-	return workspaces, c.isHTTPResOk(res, err, aerr)
+	return workspaces, c.get("/workspace", &workspaces)
 }
 
 // GetWorkspace returns the contents of /workspace/:uuid, getting information
 // about a single workspace
-func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (*Workspace, error) {
-	workspace := &Workspace{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()).
-		Receive(&workspace, aerr)
-
-	return workspace, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (w Workspace, e error) {
+	return w, c.get("/workspace/"+workspaceUUID.String(), &w)
 }
 
 // GetSubWorkspaces returns the contents of /workspace/:uuid/child, getting
 // a list of subworkspaces for the given workspace id
 func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) ([]Workspace, error) {
 	workspaces := make([]Workspace, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/child").
-		Receive(&workspaces, aerr)
-
-	return workspaces, c.isHTTPResOk(res, err, aerr)
+	return workspaces, c.get(
+		"/workspace/"+workspaceUUID.String()+"/child",
+		&workspaces,
+	)
 }
 
 // GetWorkspaceUsers returns the contents of /workspace/:uuid/users, getting
 // a list of users for the given workspace id
 func (c *Conch) GetWorkspaceUsers(workspaceUUID fmt.Stringer) ([]WorkspaceUser, error) {
 	users := make([]WorkspaceUser, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/user").
-		Receive(&users, aerr)
-
-	return users, c.isHTTPResOk(res, err, aerr)
+	return users, c.get(
+		"/workspace/"+workspaceUUID.String()+"/user",
+		&users,
+	)
 }
 
 // GetWorkspaceRooms returns the contents of /workspace/:uuid/room, getting
 // a list of rooms for the given workspace id
 func (c *Conch) GetWorkspaceRooms(workspaceUUID fmt.Stringer) ([]Room, error) {
 	rooms := make([]Room, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/room").
-		Receive(&rooms, aerr)
-
-	return rooms, c.isHTTPResOk(res, err, aerr)
+	return rooms, c.get(
+		"/workspace/"+workspaceUUID.String()+"/room",
+		&rooms,
+	)
 }
 
 // CreateSubWorkspace creates a sub workspace under the parent, via
@@ -122,13 +102,11 @@ func (c *Conch) CreateSubWorkspace(parent Workspace, sub Workspace) (Workspace, 
 		sub.Description,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+parent.ID.String()+"/child").
-		BodyJSON(j).
-		Receive(&sub, aerr)
-
-	return sub, c.isHTTPResOk(res, err, aerr)
+	return sub, c.post(
+		"/workspace/"+parent.ID.String()+"/child",
+		j,
+		&sub,
+	)
 }
 
 // AddRackToWorkspace adds an existing rack to an existing workspace, via
@@ -140,24 +118,15 @@ func (c *Conch) AddRackToWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt.Stri
 		rackUUID.String(),
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+workspaceUUID.String()+"/rack").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/workspace/"+workspaceUUID.String()+"/rack", j, nil)
 }
 
 // DeleteRackFromWorkspace removes an existing rack from an existing workplace,
 // via /workspace/:uuid/rack/:uuid
 func (c *Conch) DeleteRackFromWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/workspace/"+workspaceUUID.String()+"/rack/"+rackUUID.String()).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete(
+		"/workspace/" + workspaceUUID.String() + "/rack/" + rackUUID.String(),
+	)
 }
 
 // AddUserToWorkspace adds a user to a workspace via /workspace/:uuid/user
@@ -170,21 +139,10 @@ func (c *Conch) AddUserToWorkspace(workspaceUUID fmt.Stringer, user string, role
 		role,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/workspace/"+workspaceUUID.String()+"/user").
-		BodyJSON(body).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/workspace/"+workspaceUUID.String()+"/user", body, nil)
 }
 
 // RemoveUserFromWorkspace ...
 func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/workspace/"+workspaceUUID.String()+"/user/email="+email).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/workspace/" + workspaceUUID.String() + "/user/email=" + email)
 }

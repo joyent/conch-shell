@@ -19,7 +19,9 @@ func TestGlobalRackRoleErrors(t *testing.T) {
 	BuildAPI()
 	gock.Flush()
 
-	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	aerr := struct {
+		ErrorMsg string `json:"error"`
+	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
 	t.Run("GetGlobalRackRoles", func(t *testing.T) {
@@ -39,7 +41,7 @@ func TestGlobalRackRoleErrors(t *testing.T) {
 
 		ret, err := API.GetGlobalRackRole(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, &conch.GlobalRackRole{})
+		st.Expect(t, ret, conch.GlobalRackRole{})
 	})
 
 	t.Run("CreateGlobalRackRole", func(t *testing.T) {

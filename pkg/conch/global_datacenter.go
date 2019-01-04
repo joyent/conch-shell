@@ -9,7 +9,6 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 	"time"
 )
 
@@ -69,22 +68,13 @@ type GlobalRackLayoutSlot struct {
 // GetGlobalDatacenters fetches a list of all datacenters in the global domain
 func (c *Conch) GetGlobalDatacenters() ([]GlobalDatacenter, error) {
 	d := make([]GlobalDatacenter, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/dc").Receive(&d, aerr)
-
-	return d, c.isHTTPResOk(res, err, aerr)
+	return d, c.get("/dc", &d)
 }
 
 // GetGlobalDatacenter fetches a single datacenter in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalDatacenter(id fmt.Stringer) (GlobalDatacenter, error) {
-	d := GlobalDatacenter{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/dc/"+id.String()).Receive(&d, aerr)
-
-	return d, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetGlobalDatacenter(id fmt.Stringer) (d GlobalDatacenter, err error) {
+	return d, c.get("/dc/"+id.String(), &d)
 }
 
 // SaveGlobalDatacenter creates or updates a datacenter in the global domain,
@@ -100,10 +90,6 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	if uuid.Equal(d.ID, uuid.UUID{}) {
 		j := struct {
 			Vendor     string `json:"vendor"`
@@ -112,36 +98,27 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 			VendorName string `json:"vendor_name,omitempty"`
 		}{d.Vendor, d.Region, d.Location, d.VendorName}
 
-		res, err = c.sling().New().Post("/dc").BodyJSON(j).Receive(&d, aerr)
+		return c.post("/dc", j, &d)
 	} else {
 		j := struct {
-			ID         string `json:"id"`
+			ID         string `json:"id"` // BUG(sungo): this is probably wrong
 			Vendor     string `json:"vendor,omitempty"`
 			Region     string `json:"region,omitempty"`
 			Location   string `json:"location,omitempty"`
 			VendorName string `json:"vendor_name,omitempty"`
 		}{d.ID.String(), d.Vendor, d.Region, d.Location, d.VendorName}
 
-		res, err = c.sling().New().Post("/dc/"+d.ID.String()).
-			BodyJSON(j).Receive(&d, aerr)
+		return c.post("/dc/"+d.ID.String(), j, &d)
 	}
-
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteGlobalDatacenter deletes a datacenter
 func (c *Conch) DeleteGlobalDatacenter(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/dc/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/dc/" + id.String())
 }
 
 // GetGlobalDatacenterRooms gets the global rooms assigned to a global datacenter
 func (c *Conch) GetGlobalDatacenterRooms(d GlobalDatacenter) ([]GlobalRoom, error) {
 	r := make([]GlobalRoom, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/dc/"+d.ID.String()+"/rooms").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/dc/"+d.ID.String()+"/rooms", &r)
 }

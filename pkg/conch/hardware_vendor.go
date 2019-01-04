@@ -20,33 +20,19 @@ type HardwareVendor struct {
 }
 
 // GetHardwareVendor ...
-func (c *Conch) GetHardwareVendor(name string) (HardwareVendor, error) {
-	var vendor HardwareVendor
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/hardware_vendor/"+name).
-		Receive(&vendor, aerr)
-
-	return vendor, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetHardwareVendor(name string) (v HardwareVendor, err error) {
+	return v, c.get("/hardware_vendor/"+name, &v)
 }
 
 // GetHardwareVendors ...
 func (c *Conch) GetHardwareVendors() ([]HardwareVendor, error) {
 	vendors := make([]HardwareVendor, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/hardware_vendor").Receive(&vendors, aerr)
-
-	return vendors, c.isHTTPResOk(res, err, aerr)
+	return vendors, c.get("/hardware_vendor", &vendors)
 }
 
 // DeleteHardwareVendor ...
 func (c *Conch) DeleteHardwareVendor(name string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/hardware_vendor/"+name).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/hardware_vendor/" + name)
 }
 
 // SaveHardwareVendor ...
@@ -59,14 +45,13 @@ func (c *Conch) SaveHardwareVendor(v *HardwareVendor) error {
 		return ErrBadInput
 	}
 
-	aerr := &APIError{}
-
 	out := struct {
 		Name string `json:"name"`
 	}{v.Name}
 
-	res, err := c.sling().New().Post("/hardware_vendor/"+v.Name).BodyJSON(out).
-		Receive(&v, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/hardware_vendor/"+v.Name,
+		out,
+		&v,
+	)
 }

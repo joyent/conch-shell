@@ -22,17 +22,10 @@ func isTag(str string) bool {
 // Device settings that begin with 'tag.' are filtered out.
 func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 	settings := make(map[string]string)
-
-	aerr := &APIError{}
-
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/settings").
-		Receive(&settings, aerr)
-
 	filtered := make(map[string]string)
 
-	if ret := c.isHTTPResOk(res, err, aerr); ret != nil {
-		return filtered, ret
+	if err := c.get("/device/"+serial+"/settings", &settings); err != nil {
+		return filtered, err
 	}
 
 	for k, v := range settings {
@@ -56,16 +49,15 @@ func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
 	var setting string
 	j := make(map[string]string)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/settings/"+key).
-		Receive(&j, aerr)
+	if err := c.get("/device/"+serial+"/settings/"+key, &j); err != nil {
+		return setting, err
+	}
 
 	if _, ok := j[key]; ok {
 		setting = j[key]
 	}
 
-	return setting, c.isHTTPResOk(res, err, aerr)
+	return setting, nil
 }
 
 // SetDeviceSetting sets a single setting for a device via /device/:deviceID/settings/:key
@@ -79,11 +71,11 @@ func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) erro
 	j := make(map[string]string)
 	j[key] = value
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Post("/device/"+deviceID+"/settings/"+key).
-		BodyJSON(j).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/device/"+deviceID+"/settings/"+key,
+		j,
+		nil,
+	)
 }
 
 // DeleteDeviceSetting deletes a single setting for a device via
@@ -94,29 +86,17 @@ func (c *Conch) DeleteDeviceSetting(deviceID string, key string) error {
 	if isTag(key) {
 		return ErrDataNotFound
 	}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/device/"+deviceID+"/settings/"+key).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
 }
 
 // GetDeviceTags fetches tags for a device, via /device/:serial/settings
 // Device settings that do NOT begin with 'tag.' are filtered out.
 func (c *Conch) GetDeviceTags(serial string) (map[string]string, error) {
 	settings := make(map[string]string)
-
-	aerr := &APIError{}
-
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/settings").
-		Receive(&settings, aerr)
-
 	filtered := make(map[string]string)
 
-	if ret := c.isHTTPResOk(res, err, aerr); ret != nil {
-		return filtered, ret
+	if err := c.get("/device/"+serial+"/settings", &settings); err != nil {
+		return filtered, err
 	}
 
 	for k, v := range settings {
@@ -142,16 +122,15 @@ func (c *Conch) GetDeviceTag(serial string, key string) (string, error) {
 	var setting string
 	j := make(map[string]string)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/settings/"+key).
-		Receive(&j, aerr)
+	if err := c.get("/device/"+serial+"/settings/"+key, &j); err != nil {
+		return setting, err
+	}
 
 	if _, ok := j[key]; ok {
 		setting = j[key]
 	}
 
-	return setting, c.isHTTPResOk(res, err, aerr)
+	return setting, nil
 }
 
 // SetDeviceTag sets a single tag for a device via /device/:deviceID/settings/:key
@@ -164,11 +143,7 @@ func (c *Conch) SetDeviceTag(deviceID string, key string, value string) error {
 	j := make(map[string]string)
 	j[key] = value
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Post("/device/"+deviceID+"/settings/"+key).
-		BodyJSON(j).Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+deviceID+"/settings/"+key, j, nil)
 }
 
 // DeleteDeviceTag deletes a single tag for a device via
@@ -180,9 +155,5 @@ func (c *Conch) DeleteDeviceTag(deviceID string, key string) error {
 		key = "tag." + key
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/device/"+deviceID+"/settings/"+key).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
 }

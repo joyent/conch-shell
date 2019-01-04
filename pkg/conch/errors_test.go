@@ -18,11 +18,18 @@ func TestErrors(t *testing.T) {
 	BuildAPI()
 	gock.Flush()
 
-	fourohfour := conch.APIError{ErrorMsg: "Not found"}
-	fourohthree := conch.APIError{ErrorMsg: "Forbidden"}
-	fourohone := conch.APIError{ErrorMsg: "Not Authorized"}
-	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	type APIError struct {
+		ErrorMsg string `json:"error"`
+	}
+
+	aerr := struct {
+		ErrorMsg string `json:"error"`
+	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
+
+	fourohfour := APIError{ErrorMsg: "Not found"}
+	fourohthree := APIError{ErrorMsg: "Forbidden"}
+	fourohone := APIError{ErrorMsg: "Not Authorized"}
 
 	url := "/user/me/settings"
 	gock.New(API.BaseURL).Get(url).Reply(404).JSON(fourohfour)

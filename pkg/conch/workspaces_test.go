@@ -19,7 +19,9 @@ func TestWorkspaceErrors(t *testing.T) {
 	BuildAPI()
 	gock.Flush()
 
-	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	aerr := struct {
+		ErrorMsg string `json:"error"`
+	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
 	t.Run("GetWorkspaces", func(t *testing.T) {
@@ -36,7 +38,7 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspace(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, &conch.Workspace{})
+		st.Expect(t, ret, conch.Workspace{})
 	})
 
 	t.Run("GetSubWorkspaces", func(t *testing.T) {

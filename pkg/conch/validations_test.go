@@ -20,7 +20,9 @@ func TestValidationErrors(t *testing.T) {
 	BuildAPI()
 	gock.Flush()
 
-	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	aerr := struct {
+		ErrorMsg string `json:"error"`
+	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
 	t.Run("GetValidations", func(t *testing.T) {
@@ -47,7 +49,7 @@ func TestValidationErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get(url).Reply(400).JSON(aerr)
 		ret, err := API.GetValidationPlan(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, &conch.ValidationPlan{})
+		st.Expect(t, ret, conch.ValidationPlan{})
 	})
 
 	t.Run("RunDeviceValidationPlan", func(t *testing.T) {

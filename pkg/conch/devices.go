@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 )
 
 // Device represents what the API docs call a "DetailedDevice"
@@ -215,44 +214,28 @@ func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, gr
 		health,
 	}
 
-	aerr := &APIError{}
-
 	url := "/workspace/" + workspaceUUID.String() + "/device"
 	if idsOnly {
 		ids := make([]string, 0)
 
-		res, err := c.sling().New().
-			Get(url).
-			QueryStruct(opts).
-			Receive(&ids, aerr)
-
-		cerr := c.isHTTPResOk(res, err, aerr)
-
-		if cerr != nil {
-			return devices, cerr
+		if err := c.getWithQuery(url, opts, &ids); err != nil {
+			return devices, err
 		}
 
 		for _, v := range ids {
 			device := Device{ID: v}
 			devices = append(devices, device)
 		}
-		return devices, cerr
+		return devices, nil
 	}
-
-	res, err := c.sling().New().
-		Get(url).
-		QueryStruct(opts).
-		Receive(&devices, aerr)
-
-	return devices, c.isHTTPResOk(res, err, aerr)
+	return devices, c.getWithQuery(url, opts, &devices)
 }
 
 // GetDevice returns a Device given a specific serial/id
-func (c *Conch) GetDevice(serial string) (Device, error) {
-	var device Device
-	device.ID = serial
+func (c *Conch) GetDevice(serial string) (d Device, err error) {
+	d.ID = serial
 
-	return c.FillInDevice(device)
+	return c.FillInDevice(d)
 }
 
 // FillInDevice takes an existing device and fills in its data using "/device"
@@ -261,27 +244,17 @@ func (c *Conch) GetDevice(serial string) (Device, error) {
 // likely, though, that any client utility will eventually want all the data
 // about a device and not just bits
 func (c *Conch) FillInDevice(d Device) (Device, error) {
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/device/"+d.ID).Receive(&d, aerr)
-	return d, c.isHTTPResOk(res, err, aerr)
+	return d, c.get("/device/"+d.ID, &d)
 }
 
 // GetDeviceLocation fetches the location for a device, via
 // /device/:serial/location
-func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
-	var location DeviceLocation
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/location").
-		Receive(&location, aerr)
-
-	return location, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetDeviceLocation(serial string) (loc DeviceLocation, err error) {
+	return loc, c.get("/device/"+serial+"/location", &loc)
 }
 
 // GetWorkspaceRacks fetchest the list of racks for a workspace, via
 // /workspace/:uuid/rack
-//
 // NOTE: The API currently returns a hash of arrays where the key is the
 // datacenter/az. This routine copies that key into the Datacenter field in the
 // Rack struct.
@@ -289,10 +262,9 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 	racks := make([]Rack, 0)
 	j := make(map[string][]Rack)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/rack").
-		Receive(&j, aerr)
+	if err := c.get("/workspace/"+workspaceUUID.String()+"/rack", &j); err != nil {
+		return racks, err
+	}
 
 	for az, loc := range j {
 		for _, rack := range loc {
@@ -301,46 +273,37 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 		}
 	}
 
-	return racks, c.isHTTPResOk(res, err, aerr)
+	return racks, nil
 }
 
 // GetWorkspaceRack fetches a single rack for a workspace, via
 // /workspace/:uuid/rack/:id
-func (c *Conch) GetWorkspaceRack(workspaceUUID fmt.Stringer, rackUUID fmt.Stringer) (Rack, error) {
-	var rack Rack
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/rack/"+rackUUID.String()).
-		Receive(&rack, aerr)
-
-	return rack, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetWorkspaceRack(
+	workspaceUUID fmt.Stringer,
+	rackUUID fmt.Stringer,
+) (rack Rack, err error) {
+	return rack, c.get(
+		"/workspace/"+
+			workspaceUUID.String()+
+			"/rack/"+
+			rackUUID.String(),
+		&rack,
+	)
 }
 
 // GetHardwareProduct fetches a single hardware product via
 // /hardware/product/:uuid
-func (c *Conch) GetHardwareProduct(hardwareProductUUID fmt.Stringer) (HardwareProduct, error) {
-	var prod HardwareProduct
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/hardware_product/"+hardwareProductUUID.String()).
-		Receive(&prod, aerr)
-
-	return prod, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetHardwareProduct(
+	hardwareProductUUID fmt.Stringer,
+) (hp HardwareProduct, err error) {
+	return hp, c.get("/hardware_product/"+hardwareProductUUID.String(), &hp)
 }
 
 // GetHardwareProducts fetches a single hardware product via
 // /hardware_product
 func (c *Conch) GetHardwareProducts() ([]HardwareProduct, error) {
 	prods := make([]HardwareProduct, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/hardware_product").
-		Receive(&prods, aerr)
-
-	return prods, c.isHTTPResOk(res, err, aerr)
+	return prods, c.get("/hardware_product", &prods)
 }
 
 // GraduateDevice sets the 'graduated' field for the given device, via
@@ -348,12 +311,7 @@ func (c *Conch) GetHardwareProducts() ([]HardwareProduct, error) {
 // WARNING: This is a one way operation and cannot currently be undone via the
 // API
 func (c *Conch) GraduateDevice(serial string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/graduate").
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/graduate", nil, nil)
 }
 
 // DeviceTritonReboot sets the 'triton_reboot' field for the given device, via
@@ -361,12 +319,7 @@ func (c *Conch) GraduateDevice(serial string) error {
 // WARNING: This is a one way operation and cannot currently be undone via the
 // API
 func (c *Conch) DeviceTritonReboot(serial string) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/triton_reboot").
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/triton_reboot", nil, nil)
 }
 
 // SetDeviceTritonUUID sets the triton UUID via /device/:serial/triton_uuid
@@ -377,13 +330,7 @@ func (c *Conch) SetDeviceTritonUUID(serial string, id uuid.UUID) error {
 		id.String(),
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/triton_uuid").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/triton_uuid", j, nil)
 }
 
 // MarkDeviceTritonSetup marks the device as setup for Triton
@@ -391,13 +338,7 @@ func (c *Conch) SetDeviceTritonUUID(serial string, id uuid.UUID) error {
 // marked as rebooted into Triton. If these conditions are not met, this
 // function will return ErrBadInput
 func (c *Conch) MarkDeviceTritonSetup(serial string) error {
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/triton_setup").
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/triton_setup", nil, nil)
 }
 
 // SetDeviceAssetTag sets the asset tag for the provided serial
@@ -408,24 +349,15 @@ func (c *Conch) SetDeviceAssetTag(serial string, tag string) error {
 		tag,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+serial+"/asset_tag").
-		BodyJSON(j).
-		Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/device/"+serial+"/asset_tag", j, nil)
 }
 
 // GetDeviceIPMI retrieves "/device/:serial/interface/impi1/ipaddr"
 func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
 	j := make(map[string]string)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+serial+"/interface/ipmi1/ipaddr").Receive(&j, aerr)
-
-	if herr := c.isHTTPResOk(res, err, aerr); herr != nil {
-		return "", herr
+	if err := c.get("/device/"+serial+"/interface/ipmi1/ipaddr", &j); err != nil {
+		return "", err
 	}
 
 	return j["ipaddr"], nil
@@ -445,10 +377,6 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 	if uuid.Equal(h.HardwareVendorID, uuid.UUID{}) {
 		return ErrBadInput
 	}
-
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
 
 	out := struct {
 		Name              string `json:"name"`
@@ -471,23 +399,18 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 	}
 
 	if uuid.Equal(h.ID, uuid.UUID{}) {
-		res, err = c.sling().New().Post("/hardware_product").
-			BodyJSON(out).Receive(&h, aerr)
+		return c.post("/hardware_product", out, &h)
 	} else {
-		res, err = c.sling().New().Post("/hardware_product/"+h.ID.String()).
-			BodyJSON(out).Receive(&h, aerr)
+		return c.post(
+			"/hardware_product/"+h.ID.String(),
+			out,
+			&h,
+		)
 	}
-
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteHardwareProduct deletes a hardware product by marking it as
 // deactivated
 func (c *Conch) DeleteHardwareProduct(hwUUID fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/hardware_product/"+hwUUID.String()).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/hardware_product/" + hwUUID.String())
 }

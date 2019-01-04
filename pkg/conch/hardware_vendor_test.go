@@ -18,7 +18,9 @@ func TestHardwareVendorErrors(t *testing.T) {
 	BuildAPI()
 	gock.Flush()
 
-	aerr := conch.APIError{ErrorMsg: "totally broken"}
+	aerr := struct {
+		ErrorMsg string `json:"error"`
+	}{"totally broken"}
 	aerrUnpacked := errors.New(aerr.ErrorMsg)
 
 	name := "hardware vendor"

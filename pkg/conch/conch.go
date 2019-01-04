@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -48,26 +48,17 @@ func (c *Conch) RevokeUserTokens(user string) error {
 		uPart = "email=" + user
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().Post("/user/"+uPart+"/revoke").Receive(nil, aerr)
-
-	if err := c.isHTTPResOk(res, err, aerr); err != nil {
-		return err
-	}
-
-	return nil
+	return c.post("/user/"+uPart+"/revoke", nil, nil)
 }
 
 // RevokeOwnTokens revokes all auth tokens for the current user. Login() is
 // required after to generate new tokens. Clears the Session, JWToken, and
 // Expires attributes
 func (c *Conch) RevokeOwnTokens() error {
-	aerr := &APIError{}
-	res, err := c.sling().Post("/user/me/revoke").Receive(nil, aerr)
-
-	if err := c.isHTTPResOk(res, err, aerr); err != nil {
+	if err := c.post("/user/me/revoke", nil, nil); err != nil {
 		return err
 	}
+
 	c.Session = ""
 	c.JWToken = ""
 	c.Expires = 0
@@ -108,10 +99,7 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 		Token string `json:"jwt_token,omitempty"`
 	}{}
 
-	aerr := &APIError{}
-	res, err := c.sling().Post("/refresh_token").Receive(&jwtAuth, aerr)
-
-	if err := c.isHTTPResOk(res, err, aerr); err != nil {
+	if err := c.post("/refresh_token", nil, &jwtAuth); err != nil {
 		return err
 	}
 
@@ -155,10 +143,9 @@ func (c *Conch) Login(user string, password string) error {
 		Token string `json:"jwt_token,omitempty"`
 	}{}
 
-	aerr := &APIError{}
-	res, err := c.sling().Post("/login").BodyJSON(payload).Receive(&jwtAuth, aerr)
-	if rerr := c.isHTTPResOk(res, err, aerr); rerr != nil {
-		return rerr
+	res, err := c.postNeedsResponse("/login", payload, &jwtAuth)
+	if err != nil {
+		return err
 	}
 
 	u, _ := url.Parse(c.BaseURL)
@@ -213,9 +200,7 @@ func (c *Conch) ChangePassword(password string) error {
 		Password string `json:"password"`
 	}{password}
 
-	aerr := &APIError{}
-	res, err := c.sling().Post("/user/me/password").BodyJSON(b).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post("/user/me/password", b, nil)
 
 }
 

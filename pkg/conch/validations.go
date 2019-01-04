@@ -1,4 +1,4 @@
-// Copyright 2017 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -59,38 +59,32 @@ type ValidationState struct {
 // validations loaded in the system
 func (c *Conch) GetValidations() ([]Validation, error) {
 	validations := make([]Validation, 0)
-	aerr := &APIError{}
-
-	res, err := c.sling().New().Get("/validation").Receive(&validations, aerr)
-	return validations, c.isHTTPResOk(res, err, aerr)
+	return validations, c.get("/validation", &validations)
 }
 
 // GetValidationPlans returns the contents of /validation_plan, getting the
 // list of all validations plans loaded in the system
 func (c *Conch) GetValidationPlans() ([]ValidationPlan, error) {
 	validationPlans := make([]ValidationPlan, 0)
-	aerr := &APIError{}
-
-	res, err := c.sling().New().Get("/validation_plan").
-		Receive(&validationPlans, aerr)
-	return validationPlans, c.isHTTPResOk(res, err, aerr)
+	return validationPlans, c.get("/validation_plan", &validationPlans)
 }
 
 // GetValidationPlan returns the contents of /validation_plan/:uuid, getting information
 // about a single validation plan
-func (c *Conch) GetValidationPlan(validationPlanUUID fmt.Stringer) (*ValidationPlan, error) {
-	validationPlan := &ValidationPlan{}
+func (c *Conch) GetValidationPlan(
+	validationPlanUUID fmt.Stringer,
+) (vp ValidationPlan, err error) {
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/validation_plan/"+validationPlanUUID.String()).
-		Receive(validationPlan, aerr)
-
-	return validationPlan, c.isHTTPResOk(res, err, aerr)
+	return vp, c.get(
+		"/validation_plan/"+validationPlanUUID.String(),
+		&vp,
+	)
 }
 
 // CreateValidationPlan creates a new validation plan in Conch
-func (c *Conch) CreateValidationPlan(newValidationPlan ValidationPlan) (ValidationPlan, error) {
+func (c *Conch) CreateValidationPlan(
+	newValidationPlan ValidationPlan,
+) (ValidationPlan, error) {
 
 	j := struct {
 		Name        string `json:"name"`
@@ -100,101 +94,103 @@ func (c *Conch) CreateValidationPlan(newValidationPlan ValidationPlan) (Validati
 		newValidationPlan.Description,
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/validation_plan").
-		BodyJSON(j).
-		Receive(&newValidationPlan, aerr)
-
-	return newValidationPlan, c.isHTTPResOk(res, err, aerr)
+	return newValidationPlan, c.post("/validation_plan", j, &newValidationPlan)
 }
 
 // AddValidationToPlan associates a validation with a validation plan
-func (c *Conch) AddValidationToPlan(validationPlanUUID fmt.Stringer, validationUUID fmt.Stringer) error {
+func (c *Conch) AddValidationToPlan(
+	validationPlanUUID fmt.Stringer,
+	validationUUID fmt.Stringer,
+) error {
 	j := struct {
 		ID string `json:"id"`
 	}{
 		validationUUID.String(),
 	}
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/validation_plan/"+validationPlanUUID.String()+"/validation").
-		BodyJSON(j).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.post(
+		"/validation_plan/"+validationPlanUUID.String()+"/validation",
+		j,
+		nil,
+	)
 }
 
 // RemoveValidationFromPlan removes a validation from a validation plan
-func (c *Conch) RemoveValidationFromPlan(validationPlanUUID fmt.Stringer, validationUUID fmt.Stringer) error {
+func (c *Conch) RemoveValidationFromPlan(
+	validationPlanUUID fmt.Stringer,
+	validationUUID fmt.Stringer,
+) error {
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Delete("/validation_plan/"+validationPlanUUID.String()+"/validation/"+validationUUID.String()).
-		Receive(nil, aerr)
-
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete(
+		"/validation_plan/" +
+			validationPlanUUID.String() +
+			"/validation/" +
+			validationUUID.String(),
+	)
 }
 
 // GetValidationPlanValidations gets the list of validations associated with a validation plan
-func (c *Conch) GetValidationPlanValidations(validationPlanUUID fmt.Stringer) ([]Validation, error) {
+func (c *Conch) GetValidationPlanValidations(
+	validationPlanUUID fmt.Stringer,
+) ([]Validation, error) {
+
 	validations := make([]Validation, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/validation_plan/"+validationPlanUUID.String()+"/validation").
-		Receive(&validations, aerr)
-
-	return validations, c.isHTTPResOk(res, err, aerr)
+	return validations, c.get(
+		"/validation_plan/"+validationPlanUUID.String()+"/validation",
+		&validations,
+	)
 }
 
 // RunDeviceValidation runs a validation against given a device and returns the results
-func (c *Conch) RunDeviceValidation(deviceSerial string, validationUUID fmt.Stringer, body io.Reader) ([]ValidationResult, error) {
+// BUG(sungo): this is taking an io.Reader and trusting upstream to read it and close it. Knock that off.
+func (c *Conch) RunDeviceValidation(
+	deviceSerial string,
+	validationUUID fmt.Stringer,
+	body io.Reader,
+) ([]ValidationResult, error) {
+
 	results := make([]ValidationResult, 0)
 
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+deviceSerial+"/validation/"+validationUUID.String()).
-		Body(body).
-		Receive(&results, aerr)
-
-	return results, c.isHTTPResOk(res, err, aerr)
+	return results, c.post(
+		"/device/"+deviceSerial+"/validation/"+validationUUID.String(),
+		body,
+		&results,
+	)
 }
 
 // RunDeviceValidationPlan runs a validation plan against a given device and returns the results
-func (c *Conch) RunDeviceValidationPlan(deviceSerial string, validationPlanUUID fmt.Stringer, body io.Reader) ([]ValidationResult, error) {
+// BUG(sungo): this is taking an io.Reader and trusting upstream to read it and close it. Knock that off.
+func (c *Conch) RunDeviceValidationPlan(
+	deviceSerial string,
+	validationPlanUUID fmt.Stringer,
+	body io.Reader,
+) ([]ValidationResult, error) {
+
 	results := make([]ValidationResult, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Post("/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String()).
-		Body(body).
-		Receive(&results, aerr)
-
-	return results, c.isHTTPResOk(res, err, aerr)
+	return results, c.post(
+		"/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String(),
+		body,
+		&results,
+	)
 }
 
 // DeviceValidationStates returns the stored validation states for a device
-func (c *Conch) DeviceValidationStates(deviceSerial string) ([]ValidationState, error) {
+func (c *Conch) DeviceValidationStates(
+	deviceSerial string,
+) ([]ValidationState, error) {
+
 	states := make([]ValidationState, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/device/"+deviceSerial+"/validation_state").
-		Receive(&states, aerr)
-
-	return states, c.isHTTPResOk(res, err, aerr)
+	return states, c.get("/device/"+deviceSerial+"/validation_state", &states)
 }
 
 // WorkspaceValidationStates returns the stored validation states for all devices in a workspace
-func (c *Conch) WorkspaceValidationStates(workspaceUUID fmt.Stringer) ([]ValidationState, error) {
+func (c *Conch) WorkspaceValidationStates(
+	workspaceUUID fmt.Stringer,
+) ([]ValidationState, error) {
+
 	states := make([]ValidationState, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().
-		Get("/workspace/"+workspaceUUID.String()+"/validation_state").
-		Receive(&states, aerr)
-
-	return states, c.isHTTPResOk(res, err, aerr)
+	return states, c.get(
+		"/workspace/"+workspaceUUID.String()+"/validation_state",
+		&states,
+	)
 }

@@ -9,28 +9,18 @@ package conch
 import (
 	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/http"
 )
 
 // GetGlobalRackRoles fetches a list of all rack roles in the global domain
 func (c *Conch) GetGlobalRackRoles() ([]GlobalRackRole, error) {
 	r := make([]GlobalRackRole, 0)
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack_role").Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+	return r, c.get("/rack_role", &r)
 }
 
 // GetGlobalRackRole fetches a single rack role in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (*GlobalRackRole, error) {
-	r := &GlobalRackRole{}
-
-	aerr := &APIError{}
-	res, err := c.sling().New().Get("/rack_role/"+id.String()).Receive(&r, aerr)
-
-	return r, c.isHTTPResOk(res, err, aerr)
+func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (r GlobalRackRole, err error) {
+	return r, c.get("/rack_role/"+id.String(), &r)
 }
 
 // SaveGlobalRackRole creates or updates a rack role in the global domain,
@@ -44,10 +34,6 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 		return ErrBadInput
 	}
 
-	var err error
-	var res *http.Response
-	aerr := &APIError{}
-
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 		j := struct {
 			Name     string `json:"name"`
@@ -57,10 +43,10 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 			r.RackSize,
 		}
 
-		res, err = c.sling().New().Post("/rack_role").BodyJSON(j).Receive(&r, aerr)
+		return c.post("/rack_role", j, &r)
 	} else {
 		j := struct {
-			ID       string `json:"id"`
+			ID       string `json:"id"` // BUG(sungo): this is probably wrong
 			Name     string `json:"name"`
 			RackSize int    `json:"rack_size"`
 		}{
@@ -69,16 +55,16 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 			r.RackSize,
 		}
 
-		res, err = c.sling().New().Post("/rack_role/"+r.ID.String()).
-			BodyJSON(j).Receive(&r, aerr)
+		return c.post(
+			"/rack_role/"+r.ID.String(),
+			j,
+			&r,
+		)
 	}
 
-	return c.isHTTPResOk(res, err, aerr)
 }
 
 // DeleteGlobalRackRole deletes a rack role
 func (c *Conch) DeleteGlobalRackRole(id fmt.Stringer) error {
-	aerr := &APIError{}
-	res, err := c.sling().New().Delete("/rack_role/"+id.String()).Receive(nil, aerr)
-	return c.isHTTPResOk(res, err, aerr)
+	return c.httpDelete("/rack_role/" + id.String())
 }
