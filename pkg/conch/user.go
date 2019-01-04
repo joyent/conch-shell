@@ -46,8 +46,7 @@ func (c *Conch) GetUserSettings() (map[string]interface{}, error) {
 // The return is an interface{} because the database structure is a string name
 // and a jsonb data field.  There is no way for this library to know in
 // advanace what's in that data so here there be dragons.
-func (c *Conch) GetUserSetting(key string) (interface{}, error) {
-	var setting interface{}
+func (c *Conch) GetUserSetting(key string) (setting interface{}, err error) {
 	return setting, c.get("/user/me/settings/"+key, &setting)
 }
 

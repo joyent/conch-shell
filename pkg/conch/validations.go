@@ -72,16 +72,21 @@ func (c *Conch) GetValidationPlans() ([]ValidationPlan, error) {
 // GetValidationPlan returns the contents of /validation_plan/:uuid, getting information
 // about a single validation plan
 // BUG(sungo): why is this returning a pointer?
-func (c *Conch) GetValidationPlan(validationPlanUUID fmt.Stringer) (*ValidationPlan, error) {
-	var validationPlan ValidationPlan
-	return &validationPlan, c.get(
+func (c *Conch) GetValidationPlan(
+	validationPlanUUID fmt.Stringer,
+) (*ValidationPlan, error) {
+	var vp ValidationPlan
+
+	return &vp, c.get(
 		"/validation_plan/"+validationPlanUUID.String(),
-		&validationPlan,
+		&vp,
 	)
 }
 
 // CreateValidationPlan creates a new validation plan in Conch
-func (c *Conch) CreateValidationPlan(newValidationPlan ValidationPlan) (ValidationPlan, error) {
+func (c *Conch) CreateValidationPlan(
+	newValidationPlan ValidationPlan,
+) (ValidationPlan, error) {
 
 	j := struct {
 		Name        string `json:"name"`
@@ -95,7 +100,10 @@ func (c *Conch) CreateValidationPlan(newValidationPlan ValidationPlan) (Validati
 }
 
 // AddValidationToPlan associates a validation with a validation plan
-func (c *Conch) AddValidationToPlan(validationPlanUUID fmt.Stringer, validationUUID fmt.Stringer) error {
+func (c *Conch) AddValidationToPlan(
+	validationPlanUUID fmt.Stringer,
+	validationUUID fmt.Stringer,
+) error {
 	j := struct {
 		ID string `json:"id"`
 	}{
@@ -110,7 +118,10 @@ func (c *Conch) AddValidationToPlan(validationPlanUUID fmt.Stringer, validationU
 }
 
 // RemoveValidationFromPlan removes a validation from a validation plan
-func (c *Conch) RemoveValidationFromPlan(validationPlanUUID fmt.Stringer, validationUUID fmt.Stringer) error {
+func (c *Conch) RemoveValidationFromPlan(
+	validationPlanUUID fmt.Stringer,
+	validationUUID fmt.Stringer,
+) error {
 
 	return c.httpDelete(
 		"/validation_plan/" +
@@ -121,7 +132,10 @@ func (c *Conch) RemoveValidationFromPlan(validationPlanUUID fmt.Stringer, valida
 }
 
 // GetValidationPlanValidations gets the list of validations associated with a validation plan
-func (c *Conch) GetValidationPlanValidations(validationPlanUUID fmt.Stringer) ([]Validation, error) {
+func (c *Conch) GetValidationPlanValidations(
+	validationPlanUUID fmt.Stringer,
+) ([]Validation, error) {
+
 	validations := make([]Validation, 0)
 	return validations, c.get(
 		"/validation_plan/"+validationPlanUUID.String()+"/validation",
@@ -130,7 +144,13 @@ func (c *Conch) GetValidationPlanValidations(validationPlanUUID fmt.Stringer) ([
 }
 
 // RunDeviceValidation runs a validation against given a device and returns the results
-func (c *Conch) RunDeviceValidation(deviceSerial string, validationUUID fmt.Stringer, body io.Reader) ([]ValidationResult, error) {
+// BUG(sungo): this is taking an io.Reader and trusting upstream to read it and close it. Knock that off.
+func (c *Conch) RunDeviceValidation(
+	deviceSerial string,
+	validationUUID fmt.Stringer,
+	body io.Reader,
+) ([]ValidationResult, error) {
+
 	results := make([]ValidationResult, 0)
 
 	return results, c.post(
@@ -141,7 +161,13 @@ func (c *Conch) RunDeviceValidation(deviceSerial string, validationUUID fmt.Stri
 }
 
 // RunDeviceValidationPlan runs a validation plan against a given device and returns the results
-func (c *Conch) RunDeviceValidationPlan(deviceSerial string, validationPlanUUID fmt.Stringer, body io.Reader) ([]ValidationResult, error) {
+// BUG(sungo): this is taking an io.Reader and trusting upstream to read it and close it. Knock that off.
+func (c *Conch) RunDeviceValidationPlan(
+	deviceSerial string,
+	validationPlanUUID fmt.Stringer,
+	body io.Reader,
+) ([]ValidationResult, error) {
+
 	results := make([]ValidationResult, 0)
 	return results, c.post(
 		"/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String(),
@@ -151,13 +177,19 @@ func (c *Conch) RunDeviceValidationPlan(deviceSerial string, validationPlanUUID 
 }
 
 // DeviceValidationStates returns the stored validation states for a device
-func (c *Conch) DeviceValidationStates(deviceSerial string) ([]ValidationState, error) {
+func (c *Conch) DeviceValidationStates(
+	deviceSerial string,
+) ([]ValidationState, error) {
+
 	states := make([]ValidationState, 0)
 	return states, c.get("/device/"+deviceSerial+"/validation_state", &states)
 }
 
 // WorkspaceValidationStates returns the stored validation states for all devices in a workspace
-func (c *Conch) WorkspaceValidationStates(workspaceUUID fmt.Stringer) ([]ValidationState, error) {
+func (c *Conch) WorkspaceValidationStates(
+	workspaceUUID fmt.Stringer,
+) ([]ValidationState, error) {
+
 	states := make([]ValidationState, 0)
 	return states, c.get(
 		"/workspace/"+workspaceUUID.String()+"/validation_state",

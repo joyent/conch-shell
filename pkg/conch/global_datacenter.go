@@ -73,8 +73,7 @@ func (c *Conch) GetGlobalDatacenters() ([]GlobalDatacenter, error) {
 
 // GetGlobalDatacenter fetches a single datacenter in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalDatacenter(id fmt.Stringer) (GlobalDatacenter, error) {
-	var d GlobalDatacenter
+func (c *Conch) GetGlobalDatacenter(id fmt.Stringer) (d GlobalDatacenter, err error) {
 	return d, c.get("/dc/"+id.String(), &d)
 }
 

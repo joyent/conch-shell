@@ -19,8 +19,7 @@ func (c *Conch) GetGlobalRackRoles() ([]GlobalRackRole, error) {
 
 // GetGlobalRackRole fetches a single rack role in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (GlobalRackRole, error) {
-	var r GlobalRackRole
+func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (r GlobalRackRole, err error) {
 	return r, c.get("/rack_role/"+id.String(), &r)
 }
 

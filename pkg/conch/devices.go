@@ -232,11 +232,10 @@ func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, gr
 }
 
 // GetDevice returns a Device given a specific serial/id
-func (c *Conch) GetDevice(serial string) (Device, error) {
-	var device Device
-	device.ID = serial
+func (c *Conch) GetDevice(serial string) (d Device, err error) {
+	d.ID = serial
 
-	return c.FillInDevice(device)
+	return c.FillInDevice(d)
 }
 
 // FillInDevice takes an existing device and fills in its data using "/device"
@@ -250,9 +249,8 @@ func (c *Conch) FillInDevice(d Device) (Device, error) {
 
 // GetDeviceLocation fetches the location for a device, via
 // /device/:serial/location
-func (c *Conch) GetDeviceLocation(serial string) (DeviceLocation, error) {
-	var location DeviceLocation
-	return location, c.get("/device/"+serial+"/location", &location)
+func (c *Conch) GetDeviceLocation(serial string) (loc DeviceLocation, err error) {
+	return loc, c.get("/device/"+serial+"/location", &loc)
 }
 
 // GetWorkspaceRacks fetchest the list of racks for a workspace, via
@@ -283,10 +281,7 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 func (c *Conch) GetWorkspaceRack(
 	workspaceUUID fmt.Stringer,
 	rackUUID fmt.Stringer,
-) (Rack, error) {
-
-	var rack Rack
-
+) (rack Rack, err error) {
 	return rack, c.get(
 		"/workspace/"+
 			workspaceUUID.String()+
@@ -298,9 +293,10 @@ func (c *Conch) GetWorkspaceRack(
 
 // GetHardwareProduct fetches a single hardware product via
 // /hardware/product/:uuid
-func (c *Conch) GetHardwareProduct(hardwareProductUUID fmt.Stringer) (HardwareProduct, error) {
-	var prod HardwareProduct
-	return prod, c.get("/hardware_product/"+hardwareProductUUID.String(), &prod)
+func (c *Conch) GetHardwareProduct(
+	hardwareProductUUID fmt.Stringer,
+) (hp HardwareProduct, err error) {
+	return hp, c.get("/hardware_product/"+hardwareProductUUID.String(), &hp)
 }
 
 // GetHardwareProducts fetches a single hardware product via

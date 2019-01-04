@@ -20,9 +20,8 @@ type HardwareVendor struct {
 }
 
 // GetHardwareVendor ...
-func (c *Conch) GetHardwareVendor(name string) (HardwareVendor, error) {
-	var vendor HardwareVendor
-	return vendor, c.get("/hardware_vendor/"+name, &vendor)
+func (c *Conch) GetHardwareVendor(name string) (v HardwareVendor, err error) {
+	return v, c.get("/hardware_vendor/"+name, &v)
 }
 
 // GetHardwareVendors ...

@@ -19,8 +19,7 @@ func (c *Conch) GetGlobalRacks() ([]GlobalRack, error) {
 
 // GetGlobalRack fetches a single rack in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalRack(id fmt.Stringer) (GlobalRack, error) {
-	var r GlobalRack
+func (c *Conch) GetGlobalRack(id fmt.Stringer) (r GlobalRack, err error) {
 	return r, c.get("/rack/"+id.String(), &r)
 }
 

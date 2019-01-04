@@ -19,8 +19,7 @@ func (c *Conch) GetGlobalRooms() ([]GlobalRoom, error) {
 
 // GetGlobalRoom fetches a single room in the global domain, by its
 // UUID
-func (c *Conch) GetGlobalRoom(id fmt.Stringer) (GlobalRoom, error) {
-	var r GlobalRoom
+func (c *Conch) GetGlobalRoom(id fmt.Stringer) (r GlobalRoom, err error) {
 	return r, c.get("/room/"+id.String(), &r)
 }
 
