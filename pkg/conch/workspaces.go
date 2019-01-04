@@ -50,10 +50,8 @@ func (c *Conch) GetWorkspaces() ([]Workspace, error) {
 
 // GetWorkspace returns the contents of /workspace/:uuid, getting information
 // about a single workspace
-// BUG(sungo): why is this returning a pointer
-func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (*Workspace, error) {
-	var workspace Workspace
-	return &workspace, c.get("/workspace/"+workspaceUUID.String(), &workspace)
+func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (w Workspace, e error) {
+	return w, c.get("/workspace/"+workspaceUUID.String(), &w)
 }
 
 // GetSubWorkspaces returns the contents of /workspace/:uuid/child, getting

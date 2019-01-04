@@ -38,7 +38,7 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspace(id)
 		st.Expect(t, err, aerrUnpacked)
-		st.Expect(t, ret, &conch.Workspace{})
+		st.Expect(t, ret, conch.Workspace{})
 	})
 
 	t.Run("GetSubWorkspaces", func(t *testing.T) {
