@@ -60,11 +60,6 @@ func Init(app *cli.Cli) {
 				"List all active validation plans",
 				getValidationPlans,
 			)
-			cmd.Command(
-				"create",
-				"Create a new validation plan",
-				createValidationPlan,
-			)
 		},
 	)
 	app.Command(
@@ -96,17 +91,6 @@ func Init(app *cli.Cli) {
 				"validations",
 				"Show a validation plan's associated validations",
 				showValidationPlanValidations,
-			)
-
-			cmd.Command(
-				"add-validation",
-				"Associate a validation with a validation plan",
-				addValidationToPlan,
-			)
-			cmd.Command(
-				"remove-validation",
-				"Remove an associated validation from a validation plan",
-				removeValidationFromPlan,
 			)
 
 			cmd.Command(
