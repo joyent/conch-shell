@@ -8,52 +8,8 @@ package conch
 
 import (
 	"fmt"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"io"
-	"time"
 )
-
-// Validation represents device validations loaded into Conch
-type Validation struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Version     int       `json:"version"`
-	Description string    `json:"description"`
-	Created     time.Time `json:"created"`
-	Updated     time.Time `json:"updated"`
-}
-
-// ValidationPlan represents an organized association of Validations
-type ValidationPlan struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Created     time.Time `json:"created"`
-}
-
-// ValidationResult is a result of running a validation on a device
-type ValidationResult struct {
-	ID              uuid.UUID `json:"id"`
-	Category        string    `json:"category"`
-	ComponentID     string    `json:"component_id"`
-	DeviceID        string    `json:"device_id"`
-	HardwareProduct uuid.UUID `json:"hardware_product_id"`
-	Hint            string    `json:"hint"`
-	Message         string    `json:"message"`
-	Status          string    `json:"status"`
-	ValidationID    uuid.UUID `json:"validation_id"`
-}
-
-// ValidationState is the result of running a validation plan on a device
-type ValidationState struct {
-	ID               uuid.UUID          `json:"id"`
-	Created          time.Time          `json:"created"`
-	Completed        time.Time          `json:"completed"`
-	DeviceID         string             `json:"device_id"`
-	Results          []ValidationResult `json:"results"`
-	Status           string             `json:"status"`
-	ValidationPlanID uuid.UUID          `json:"validation_plan_id"`
-}
 
 // GetValidations returns the contents of /validation, getting the list of all
 // validations loaded in the system

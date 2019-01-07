@@ -123,4 +123,44 @@ func TestWorkspaceErrors(t *testing.T) {
 		st.Expect(t, err, aerrUnpacked)
 	})
 
+	t.Run("GetWorkspaceDevices", func(t *testing.T) {
+		id := uuid.NewV4()
+
+		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/device").
+			Persist().Reply(400).JSON(aerr)
+		defer gock.Flush()
+
+		ret, err := API.GetWorkspaceDevices(id, false, "g", "h")
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, []conch.Device{})
+
+		ret, err = API.GetWorkspaceDevices(id, true, "g", "h")
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, []conch.Device{})
+	})
+
+	t.Run("GetWorkspaceRacks", func(t *testing.T) {
+		id := uuid.NewV4()
+
+		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/rack").
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetWorkspaceRacks(id)
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, []conch.Rack{})
+	})
+
+	t.Run("GetWorkspaceRack", func(t *testing.T) {
+		id := uuid.NewV4()
+		rID := uuid.NewV4()
+
+		gock.New(API.BaseURL).
+			Get("/workspace/" + id.String() + "/rack/" + rID.String()).
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetWorkspaceRack(id, rID)
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, conch.Rack{})
+	})
+
 }

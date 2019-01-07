@@ -11,34 +11,78 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-// Workspace represents a Conch data partition which allows users to create
-// custom lists of hardware
-type Workspace struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	Role        string    `json:"role"`
-	ParentID    uuid.UUID `json:"parent_id,omitempty"`
+// GetWorkspaceRacks fetchest the list of racks for a workspace, via
+// /workspace/:uuid/rack
+// NOTE: The API currently returns a hash of arrays where the key is the
+// datacenter/az. This routine copies that key into the Datacenter field in the
+// Rack struct.
+func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
+	racks := make([]Rack, 0)
+	j := make(map[string][]Rack)
+
+	if err := c.get("/workspace/"+workspaceUUID.String()+"/rack", &j); err != nil {
+		return racks, err
+	}
+
+	for az, loc := range j {
+		for _, rack := range loc {
+			rack.Datacenter = az
+			racks = append(racks, rack)
+		}
+	}
+
+	return racks, nil
 }
 
-// Room represents a physical area in a datacenter/AZ
-type Room struct {
-	ID         string `json:"id"`
-	AZ         string `json:"az"`
-	Alias      string `json:"alias"`
-	VendorName string `json:"vendor_name"`
+// GetWorkspaceRack fetches a single rack for a workspace, via
+// /workspace/:uuid/rack/:id
+func (c *Conch) GetWorkspaceRack(
+	workspaceUUID fmt.Stringer,
+	rackUUID fmt.Stringer,
+) (rack Rack, err error) {
+	return rack, c.get(
+		"/workspace/"+
+			workspaceUUID.String()+
+			"/rack/"+
+			rackUUID.String(),
+		&rack,
+	)
 }
 
-// WorkspaceAndRole ...
-type WorkspaceAndRole struct {
-	Workspace
-	RoleVia uuid.UUID `json:"role_via"`
-}
+// GetWorkspaceDevices retrieves a list of Devices for the given
+// workspace.
+// Pass true for 'IDsOnly' to get Devices with only the ID field populated
+// Pass a string for 'graduated' to filter devices by graduated value, as per https://conch.joyent.us/doc#getdevices
+// Pass a string for 'health' to filter devices by health value, as per https://conch.joyent.us/doc#getdevices
+func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, graduated string, health string) ([]Device, error) {
 
-// WorkspaceUser ...
-type WorkspaceUser struct {
-	User
-	RoleVia uuid.UUID `json:"role_via,omitempty"`
+	devices := make([]Device, 0)
+
+	opts := struct {
+		IDsOnly   bool   `url:"ids_only,omitempty"`
+		Graduated string `url:"graduated,omitempty"`
+		Health    string `url:"health,omitempty"`
+	}{
+		idsOnly,
+		graduated,
+		health,
+	}
+
+	url := "/workspace/" + workspaceUUID.String() + "/device"
+	if idsOnly {
+		ids := make([]string, 0)
+
+		if err := c.getWithQuery(url, opts, &ids); err != nil {
+			return devices, err
+		}
+
+		for _, v := range ids {
+			device := Device{ID: v}
+			devices = append(devices, device)
+		}
+		return devices, nil
+	}
+	return devices, c.getWithQuery(url, opts, &devices)
 }
 
 // GetWorkspaces returns the contents of /workspace, getting the list of all

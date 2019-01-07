@@ -8,10 +8,12 @@ package conch_test
 
 import (
 	"errors"
-	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
 	"testing"
+
+	"github.com/joyent/conch-shell/pkg/conch"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 func TestHardwareVendorErrors(t *testing.T) {
@@ -61,4 +63,26 @@ func TestHardwareVendorErrors(t *testing.T) {
 		err := API.SaveHardwareVendor(&v)
 		st.Expect(t, err, aerrUnpacked)
 	})
+
+	t.Run("GetHardwareProducts", func(t *testing.T) {
+		gock.New(API.BaseURL).Get("/hardware_product").Reply(400).JSON(aerr)
+
+		ret, err := API.GetHardwareProducts()
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, []conch.HardwareProduct{})
+	})
+
+	t.Run("GetHardwareProduct", func(t *testing.T) {
+		id := uuid.NewV4()
+
+		gock.New(API.BaseURL).
+			Get("/hardware_product/" + id.String()).
+			Reply(400).JSON(aerr)
+
+		ret, err := API.GetHardwareProduct(id)
+		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, ret, conch.HardwareProduct{})
+	})
+
+	// BUG(sungo): a lot of hardware product stuff is totally untested
 }
