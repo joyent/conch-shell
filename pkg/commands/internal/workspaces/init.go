@@ -146,11 +146,6 @@ func Init(app *cli.Cli) {
 				"Get a summary of the health for a single workspace",
 				getHealth,
 			)
-			cmd.Command(
-				"failures",
-				"Get failure data for a single workspace",
-				getFailures,
-			)
 
 			cmd.Command(
 				"add-user add invite",
