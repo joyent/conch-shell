@@ -1,4 +1,4 @@
-// Copyright 2018 Joyent, Inc.
+// Copyright Joyent, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,7 +9,6 @@ package validation
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 
 	"github.com/jawher/mow.cli"
@@ -78,95 +77,6 @@ func showValidationPlanValidations(app *cli.Cmd) {
 			return
 		}
 		validations.renderTable()
-	}
-}
-
-func addValidationToPlan(app *cli.Cmd) {
-	app.Spec = "VALIDATION_ID"
-
-	var validationStrID = app.StringArg("VALIDATION_ID", "", "The ID of the validation to associate with the plan")
-
-	app.Action = func() {
-		validationUUID, err := util.MagicValidationID(*validationStrID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		err = util.API.AddValidationToPlan(validationPlanUUID, validationUUID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		var validations validations
-		validations, err = util.API.GetValidationPlanValidations(validationPlanUUID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		if util.JSON {
-			util.JSONOut(validations)
-			return
-		}
-		validations.renderTable()
-	}
-}
-
-func removeValidationFromPlan(app *cli.Cmd) {
-	app.Spec = "VALIDATION_ID"
-
-	var validationStrID = app.StringArg("VALIDATION_ID", "", "The ID of the validation to remove from the plan")
-
-	app.Action = func() {
-		validationUUID, err := util.MagicValidationID(*validationStrID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		err = util.API.RemoveValidationFromPlan(validationPlanUUID, validationUUID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		var validations validations
-		validations, err = util.API.GetValidationPlanValidations(validationPlanUUID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		if util.JSON {
-			util.JSONOut(validations)
-			return
-		}
-		validations.renderTable()
-	}
-}
-
-func createValidationPlan(app *cli.Cmd) {
-	var (
-		nameArg        = app.StringOpt("name", "", "The name for the new validation plan")
-		descriptionArg = app.StringOpt("description", "", "The description of the validation plan")
-	)
-
-	app.Spec = "--name --description"
-
-	app.Action = func() {
-		validationPlan := conch.ValidationPlan{
-			Name:        *nameArg,
-			Description: *descriptionArg,
-		}
-
-		newPlan, err := util.API.CreateValidationPlan(validationPlan)
-
-		if err != nil {
-			util.Bail(err)
-		}
-
-		if util.JSON {
-			util.JSONOut(newPlan)
-		} else {
-			fmt.Printf("Validation Plan '%s' created with ID '%s'\n", newPlan.Name, newPlan.ID)
-		}
-
 	}
 }
 

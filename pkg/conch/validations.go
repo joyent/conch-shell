@@ -37,54 +37,6 @@ func (c *Conch) GetValidationPlan(
 	)
 }
 
-// CreateValidationPlan creates a new validation plan in Conch
-func (c *Conch) CreateValidationPlan(
-	newValidationPlan ValidationPlan,
-) (ValidationPlan, error) {
-
-	j := struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}{
-		newValidationPlan.Name,
-		newValidationPlan.Description,
-	}
-
-	return newValidationPlan, c.post("/validation_plan", j, &newValidationPlan)
-}
-
-// AddValidationToPlan associates a validation with a validation plan
-func (c *Conch) AddValidationToPlan(
-	validationPlanUUID fmt.Stringer,
-	validationUUID fmt.Stringer,
-) error {
-	j := struct {
-		ID string `json:"id"`
-	}{
-		validationUUID.String(),
-	}
-
-	return c.post(
-		"/validation_plan/"+validationPlanUUID.String()+"/validation",
-		j,
-		nil,
-	)
-}
-
-// RemoveValidationFromPlan removes a validation from a validation plan
-func (c *Conch) RemoveValidationFromPlan(
-	validationPlanUUID fmt.Stringer,
-	validationUUID fmt.Stringer,
-) error {
-
-	return c.httpDelete(
-		"/validation_plan/" +
-			validationPlanUUID.String() +
-			"/validation/" +
-			validationUUID.String(),
-	)
-}
-
 // GetValidationPlanValidations gets the list of validations associated with a validation plan
 func (c *Conch) GetValidationPlanValidations(
 	validationPlanUUID fmt.Stringer,
