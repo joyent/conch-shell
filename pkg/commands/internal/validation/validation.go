@@ -8,7 +8,8 @@
 package validation
 
 import (
-	"bufio"
+	"errors"
+	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -69,10 +70,22 @@ func testValidation(app *cli.Cmd) {
 	app.Spec = "DEVICE_ID"
 
 	app.Action = func() {
-		body := bufio.NewReader(os.Stdin)
+		bodyBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		body := string(bodyBytes)
+		if len(body) <= 1 {
+			util.Bail(errors.New("no device report provided on stdin"))
+		}
+
 		var validationResults validationResults
-		validationResults, err :=
-			util.API.RunDeviceValidation(*deviceSerial, validationUUID, body)
+		validationResults, err = util.API.RunDeviceValidation(
+			*deviceSerial,
+			validationUUID,
+			body,
+		)
 		if err != nil {
 			util.Bail(err)
 		}

@@ -8,7 +8,8 @@
 package validation
 
 import (
-	"bufio"
+	"errors"
+	"io/ioutil"
 	"os"
 
 	"github.com/jawher/mow.cli"
@@ -86,9 +87,22 @@ func testValidationPlan(app *cli.Cmd) {
 	app.Spec = "DEVICE_ID"
 
 	app.Action = func() {
-		body := bufio.NewReader(os.Stdin)
+		bodyBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		body := string(bodyBytes)
+		if len(body) <= 1 {
+			util.Bail(errors.New("no device report provided on stdin"))
+		}
+
 		var validationResults validationResults
-		validationResults, err := util.API.RunDeviceValidationPlan(*deviceSerial, validationPlanUUID, body)
+		validationResults, err = util.API.RunDeviceValidationPlan(
+			*deviceSerial,
+			validationPlanUUID,
+			body,
+		)
 		if err != nil {
 			util.Bail(err)
 		}

@@ -7,8 +7,8 @@
 package conch
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
 )
 
 // GetValidations returns the contents of /validation, getting the list of all
@@ -50,11 +50,10 @@ func (c *Conch) GetValidationPlanValidations(
 }
 
 // RunDeviceValidation runs a validation against given a device and returns the results
-// BUG(sungo): this is taking an io.Reader and trusting upstream to read it and close it. Knock that off.
 func (c *Conch) RunDeviceValidation(
 	deviceSerial string,
 	validationUUID fmt.Stringer,
-	body io.Reader,
+	body string,
 ) ([]ValidationResult, error) {
 
 	results := make([]ValidationResult, 0)
@@ -67,17 +66,23 @@ func (c *Conch) RunDeviceValidation(
 }
 
 // RunDeviceValidationPlan runs a validation plan against a given device and returns the results
-// BUG(sungo): this is taking an io.Reader and trusting upstream to read it and close it. Knock that off.
 func (c *Conch) RunDeviceValidationPlan(
 	deviceSerial string,
 	validationPlanUUID fmt.Stringer,
-	body io.Reader,
+	body string,
 ) ([]ValidationResult, error) {
 
 	results := make([]ValidationResult, 0)
+
+	var j interface{}
+	err := json.Unmarshal([]byte(body), &j)
+	if err != nil {
+		return results, err
+	}
+
 	return results, c.post(
 		"/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String(),
-		body,
+		j,
 		&results,
 	)
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"strings"
 	"testing"
 )
 
@@ -58,7 +57,7 @@ func TestValidationErrors(t *testing.T) {
 		url := "/device/" + dID + "/validation_plan/" + vpID.String()
 
 		gock.New(API.BaseURL).Post(url).Reply(400).JSON(aerr)
-		ret, err := API.RunDeviceValidationPlan(dID, vpID, strings.NewReader("{ }"))
+		ret, err := API.RunDeviceValidationPlan(dID, vpID, "{}")
 		st.Expect(t, err, aerrUnpacked)
 		st.Expect(t, ret, []conch.ValidationResult{})
 	})
@@ -69,7 +68,7 @@ func TestValidationErrors(t *testing.T) {
 		url := "/device/" + dID + "/validation/" + vpID.String()
 
 		gock.New(API.BaseURL).Post(url).Reply(400).JSON(aerr)
-		ret, err := API.RunDeviceValidation(dID, vpID, strings.NewReader("{ }"))
+		ret, err := API.RunDeviceValidation(dID, vpID, "{}")
 		st.Expect(t, err, aerrUnpacked)
 		st.Expect(t, ret, []conch.ValidationResult{})
 	})
