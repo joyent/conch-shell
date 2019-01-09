@@ -19,7 +19,6 @@ vendor
 
 .DS_Store
 
-bin/conch
-bin/conch-mbo
+bin
 
 release

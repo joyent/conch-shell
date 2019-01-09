@@ -56,6 +56,7 @@ type Device struct {
 	Graduated             pgtime.PgTime      `json:"graduated"`
 	HardwareProduct       uuid.UUID          `json:"hardware_product"`
 	Health                string             `json:"health"`
+	Hostname              string             `json:"hostname"`
 	ID                    string             `json:"id"`
 	LastSeen              pgtime.PgTime      `json:"last_seen"`
 	Location              DeviceLocation     `json:"location"`
@@ -69,13 +70,13 @@ type Device struct {
 	Validated             pgtime.PgTime      `json:"validated"`
 	Validations           []ValidationReport `json:"validations"`
 	LatestReport          interface{}        `json:"latest_report"`
-	Disks                 []DeviceDisk       `json:"disks"`
 	LatestReportIsInvalid bool               `json:"latest_report_is_invalid"`
 	InvalidReport         string             `json:"invalid_report"`
+	Disks                 []Disk             `json:"disks"`
 }
 
 // DeviceDisk ...
-type DeviceDisk struct {
+type Disk struct {
 	ID           uuid.UUID     `json:"id"`
 	Created      pgtime.PgTime `json:"created"`
 	Updated      pgtime.PgTime `json:"updated"`
@@ -99,6 +100,18 @@ type DeviceLocation struct {
 	Datacenter            Datacenter            `json:"datacenter"`
 	Rack                  Rack                  `json:"rack"`
 	TargetHardwareProduct HardwareProductTarget `json:"target_hardware_product"`
+}
+
+type ExtendedDevice struct {
+	Device
+	IPMI          string                    `json:"ipmi"`
+	HardwareName  string                    `json:"hardware_name"`
+	SKU           string                    `json:"sku"`
+	Enclosures    map[string]map[int]Disk   `json:"enclosures"`
+	IsGraduated   bool                      `json:"is_graduated"`
+	IsTritonSetup bool                      `json:"is_triton_setup"`
+	IsValidated   bool                      `json:"is_validated"`
+	Validations   []ValidationPlanExecution `json:"validations"`
 }
 
 // GlobalDatacenter represents a datacenter in the global domain
@@ -321,6 +334,12 @@ type ValidationReport struct {
 	Status        int         `json:"status"` // Can use the ValidationReportStatus consts to understand status
 }
 
+type ValidationPlanExecution struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Validations ValidationRuns `json:"validations"`
+}
+
 // ValidationResult is a result of running a validation on a device
 type ValidationResult struct {
 	ID              uuid.UUID `json:"id"`
@@ -332,6 +351,27 @@ type ValidationResult struct {
 	Message         string    `json:"message"`
 	Status          string    `json:"status"`
 	ValidationID    uuid.UUID `json:"validation_id"`
+}
+
+type ValidationRun struct {
+	ID      uuid.UUID          `json:"id"`
+	Name    string             `json:"name"`
+	Passed  bool               `json:"passed"`
+	Results []ValidationResult `json:"results"`
+}
+
+type ValidationRuns []ValidationRun
+
+func (v ValidationRuns) Len() int {
+	return len(v)
+}
+
+func (v ValidationRuns) Swap(i, j int) {
+	v[i], v[j] = v[j], v[i]
+}
+
+func (v ValidationRuns) Less(i, j int) bool {
+	return v[i].Name < v[j].Name
 }
 
 // ValidationState is the result of running a validation plan on a device
