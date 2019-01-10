@@ -7,40 +7,33 @@
 package conch_test
 
 import (
-	"errors"
+	"testing"
+
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"testing"
 )
 
 func TestGlobalRackErrors(t *testing.T) {
-	BuildAPI()
 	gock.Flush()
-
-	aerr := struct {
-		ErrorMsg string `json:"error"`
-	}{"totally broken"}
-	aerrUnpacked := errors.New(aerr.ErrorMsg)
+	defer gock.Flush()
 
 	t.Run("GetGlobalRacks", func(t *testing.T) {
-		gock.New(API.BaseURL).Get("/rack").Persist().Reply(400).JSON(aerr)
-
-		defer gock.Flush()
+		gock.New(API.BaseURL).Get("/rack").Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetGlobalRacks()
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.GlobalRack{})
 	})
 
 	t.Run("GetGlobalRack", func(t *testing.T) {
 		id := uuid.NewV4()
 
-		gock.New(API.BaseURL).Get("/rack/" + id.String()).Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Get("/rack/" + id.String()).Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetGlobalRack(id)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, conch.GlobalRack{})
 	})
 
@@ -51,10 +44,10 @@ func TestGlobalRackErrors(t *testing.T) {
 			Name:             "n",
 		}
 
-		gock.New(API.BaseURL).Post("/rack").Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/rack").Reply(400).JSON(ErrApi)
 
 		err := API.SaveGlobalRack(&r)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("UpdateGlobalRack", func(t *testing.T) {
@@ -66,19 +59,19 @@ func TestGlobalRackErrors(t *testing.T) {
 			Name:             "n",
 		}
 
-		gock.New(API.BaseURL).Post("/rack/" + id.String()).Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/rack/" + id.String()).Reply(400).JSON(ErrApi)
 
 		err := API.SaveGlobalRack(&r)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("DeleteGlobalRack", func(t *testing.T) {
 		id := uuid.NewV4()
 
-		gock.New(API.BaseURL).Delete("/rack/" + id.String()).Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Delete("/rack/" + id.String()).Reply(400).JSON(ErrApi)
 
 		err := API.DeleteGlobalRack(id)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("GetGlobalRackLayout", func(t *testing.T) {
@@ -91,10 +84,10 @@ func TestGlobalRackErrors(t *testing.T) {
 		}
 
 		gock.New(API.BaseURL).Get("/rack/" + id.String() + "/layouts").
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetGlobalRackLayout(r)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.GlobalRackLayoutSlot{})
 	})
 

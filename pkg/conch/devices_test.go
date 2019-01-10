@@ -7,7 +7,6 @@
 package conch_test
 
 import (
-	"errors"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
@@ -15,93 +14,90 @@ import (
 	"testing"
 )
 
-func TestDevicesErrors(t *testing.T) {
-	BuildAPI()
+func TestDevices(t *testing.T) {
 	gock.Flush()
+	defer gock.Flush()
 
-	aerr := struct {
-		ErrorMsg string `json:"error"`
-	}{"totally broken"}
-	aerrUnpacked := errors.New(aerr.ErrorMsg)
+	serial := "test"
+	d := conch.Device{ID: serial}
 
 	t.Run("GetDevice", func(t *testing.T) {
-		serial := "test"
-
-		gock.New(API.BaseURL).Get("/device/" + serial).
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Get("/device/" + serial).Reply(200).JSON(d)
 
 		ret, err := API.GetDevice(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, nil)
 		st.Expect(t, ret, conch.Device{ID: serial})
 	})
 
-	t.Run("FillInDevice", func(t *testing.T) {
+	t.Run("GetDeviceErrors", func(t *testing.T) {
+		gock.New(API.BaseURL).Get("/device/" + serial).Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetDevice(serial)
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, conch.Device{ID: serial})
+	})
+
+	t.Run("FillInDeviceErrors", func(t *testing.T) {
 		serial := "test"
 		d := conch.Device{ID: serial}
 
-		gock.New(API.BaseURL).Get("/device/" + serial).
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Get("/device/" + serial).Reply(400).JSON(ErrApi)
 
 		ret, err := API.FillInDevice(d)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, d)
 	})
 
-	t.Run("GetDeviceLocation", func(t *testing.T) {
+	t.Run("GetDeviceLocationErrors", func(t *testing.T) {
 		serial := "test"
 
-		gock.New(API.BaseURL).Get("/device/" + serial + "/location").
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Get("/device/" + serial + "/location").Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetDeviceLocation(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, conch.DeviceLocation{})
 	})
 
-	t.Run("GraduateDevice", func(t *testing.T) {
+	t.Run("GraduateDeviceErrors", func(t *testing.T) {
 		serial := "test"
-		gock.New(API.BaseURL).Post("/device/" + serial + "/graduate").
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/device/" + serial + "/graduate").Reply(400).JSON(ErrApi)
 
 		err := API.GraduateDevice(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("DeviceTritonReboot", func(t *testing.T) {
+	t.Run("DeviceTritonRebootErrors", func(t *testing.T) {
 		serial := "test"
-		gock.New(API.BaseURL).Post("/device/" + serial + "/triton_reboot").
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/device/" + serial + "/triton_reboot").Reply(400).JSON(ErrApi)
 
 		err := API.DeviceTritonReboot(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("SetDeviceTritonUUID", func(t *testing.T) {
+	t.Run("SetDeviceTritonUUIDErrors", func(t *testing.T) {
 		serial := "test"
 		id := uuid.NewV4()
-		gock.New(API.BaseURL).Post("/device/" + serial + "/triton_uuid").
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/device/" + serial + "/triton_uuid").Reply(400).JSON(ErrApi)
 
 		err := API.SetDeviceTritonUUID(serial, id)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("MarkDeviceTritonSetup", func(t *testing.T) {
+	t.Run("MarkDeviceTritonSetupErrors", func(t *testing.T) {
 		serial := "test"
-		gock.New(API.BaseURL).Post("/device/" + serial + "/triton_setup").
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/device/" + serial + "/triton_setup").Reply(400).JSON(ErrApi)
 
 		err := API.MarkDeviceTritonSetup(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("SetDeviceAssetTag", func(t *testing.T) {
+	t.Run("SetDeviceAssetTagErrors", func(t *testing.T) {
 		serial := "test"
 		tag := "tag"
-		gock.New(API.BaseURL).Post("/device/" + serial + "/asset_tag").
-			Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/device/" + serial + "/asset_tag").Reply(400).JSON(ErrApi)
 
 		err := API.SetDeviceAssetTag(serial, tag)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
+
 }
