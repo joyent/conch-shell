@@ -87,7 +87,7 @@ func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, gr
 
 // GetWorkspaces returns the contents of /workspace, getting the list of all
 // workspaces that the user has access to
-func (c *Conch) GetWorkspaces() ([]Workspace, error) {
+func (c *Conch) GetWorkspaces() (Workspaces, error) {
 	workspaces := make([]Workspace, 0)
 	return workspaces, c.get("/workspace", &workspaces)
 }
@@ -100,8 +100,8 @@ func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (w Workspace, e error) 
 
 // GetSubWorkspaces returns the contents of /workspace/:uuid/child, getting
 // a list of subworkspaces for the given workspace id
-func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) ([]Workspace, error) {
-	workspaces := make([]Workspace, 0)
+func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) (Workspaces, error) {
+	workspaces := make(Workspaces, 0)
 	return workspaces, c.get(
 		"/workspace/"+workspaceUUID.String()+"/child",
 		&workspaces,
