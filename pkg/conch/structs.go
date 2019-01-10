@@ -11,7 +11,6 @@ import (
 	"net/http/cookiejar"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -33,7 +32,6 @@ type Conch struct {
 
 	HTTPClient *http.Client
 	CookieJar  *cookiejar.Jar
-	apiVersion *semver.Version
 }
 
 // Datacenter represents a conch datacenter, aka an AZ

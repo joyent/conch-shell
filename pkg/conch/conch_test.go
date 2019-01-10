@@ -1,29 +1,52 @@
 package conch_test
 
 import (
-	"github.com/joyent/conch-shell/pkg/conch"
-	"gopkg.in/h2non/gock.v1"
+	"errors"
 	"net/http"
-	"net/http/cookiejar"
+	"testing"
+
+	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/nbio/st"
+	"gopkg.in/h2non/gock.v1"
 )
 
-var API *conch.Conch
+var ErrApi = struct {
+	ErrorMsg string `json:"error"`
+}{"totally broken"}
+
+var ErrApiUnpacked = errors.New(ErrApi.ErrorMsg)
+
+var API = &conch.Conch{
+	BaseURL:    "http://localhost",
+	HTTPClient: http.DefaultClient,
+}
 
 func BuildAPI() {
-	cj, _ := cookiejar.New(nil)
+	// BUG(sungo): noop until the whole test suite migrates
+}
 
-	client := &http.Client{
-		Jar:       cj,
-		Transport: &http.Transport{},
-	}
+func TestConch(t *testing.T) {
+	gock.Flush()
+	defer gock.Flush()
 
-	gock.InterceptClient(client)
-	c := &conch.Conch{
-		BaseURL:    "http://localhost:5001",
-		HTTPClient: client,
-	}
-	API = c
+	t.Run("GetVersion", func(t *testing.T) {
 
-	gock.New(c.BaseURL).Get("/version").
-		Reply(200).BodyString("{ \"version\": \"99.99.99\" }")
+		good := struct {
+			Version string `json:"version"`
+		}{"99.99.99"}
+
+		gock.New(API.BaseURL).Get("/version").Reply(200).JSON(good)
+
+		ret, err := API.GetVersion()
+		st.Expect(t, err, nil)
+		st.Expect(t, ret, "99.99.99")
+	})
+
+	t.Run("GetVersionErrors", func(t *testing.T) {
+		gock.New(API.BaseURL).Get("/version").Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetVersion()
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, "")
+	})
 }
