@@ -11,3 +11,17 @@ const (
 	// MinimumAPIVersion sets the earliest API version that we support.
 	MinimumAPIVersion = "2.22.0"
 )
+
+// GetVersion returns the API's version string, via /version
+func (c *Conch) GetVersion() (string, error) {
+	v := struct {
+		Version string `json:"version"`
+	}{}
+
+	err := c.get("/version", &v)
+	if err != nil {
+		return "", err
+	}
+
+	return v.Version, nil
+}
