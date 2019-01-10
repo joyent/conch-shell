@@ -125,4 +125,20 @@ func TestHardwareErrors(t *testing.T) {
 		gock.Flush()
 	})
 
+	t.Run("DeleteHardwareProduct", func(t *testing.T) {
+		gock.New(API.BaseURL).Persist().Delete("/hardware_product").
+			Reply(400).JSON(ErrApi)
+
+		err := API.DeleteHardwareProduct(uuid.NewV4())
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("DeleteHardwareVendor", func(t *testing.T) {
+		gock.New(API.BaseURL).Persist().Delete("/hardware_vendor").
+			Reply(400).JSON(ErrApi)
+
+		err := API.DeleteHardwareVendor("vendor")
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
 }
