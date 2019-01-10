@@ -15,7 +15,7 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-func TestHardwareVendorErrors(t *testing.T) {
+func TestHardwareErrors(t *testing.T) {
 	gock.Flush()
 	defer gock.Flush()
 	name := "hardware vendor"
@@ -77,5 +77,52 @@ func TestHardwareVendorErrors(t *testing.T) {
 		st.Expect(t, ret, conch.HardwareProduct{})
 	})
 
-	// BUG(sungo): a lot of hardware product stuff is totally untested
+	t.Run("SaveHardwareProduct", func(t *testing.T) {
+		gock.New(API.BaseURL).Persist().Post("/hardware_product").
+			MatchType("json").Reply(400).JSON(ErrApi)
+
+		hp := conch.HardwareProduct{}
+		err := API.SaveHardwareProduct(&hp)
+		st.Expect(t, err, conch.ErrBadInput)
+
+		hp.Name = "test"
+		err = API.SaveHardwareProduct(&hp)
+		st.Expect(t, err, conch.ErrBadInput)
+
+		hp.Alias = "test"
+		err = API.SaveHardwareProduct(&hp)
+		st.Expect(t, err, conch.ErrBadInput)
+
+		hp.HardwareVendorID = uuid.NewV4()
+
+		err = API.SaveHardwareProduct(&hp)
+		st.Expect(t, err, ErrApiUnpacked)
+
+		hp.ID = uuid.NewV4()
+
+		err = API.SaveHardwareProduct(&hp)
+		st.Expect(t, err, ErrApiUnpacked)
+
+		gock.Flush()
+	})
+
+	t.Run("SaveHardwareVendor", func(t *testing.T) {
+		gock.New(API.BaseURL).Persist().Post("/hardware_vendor").
+			MatchType("json").Reply(400).JSON(ErrApi)
+
+		hv := conch.HardwareVendor{}
+		err := API.SaveHardwareVendor(&hv)
+		st.Expect(t, err, conch.ErrBadInput)
+
+		hv.Name = "test"
+		err = API.SaveHardwareVendor(&hv)
+		st.Expect(t, err, ErrApiUnpacked)
+
+		hv2 := conch.HardwareVendor{ID: uuid.NewV4()}
+		err = API.SaveHardwareVendor(&hv2)
+		st.Expect(t, err, conch.ErrBadInput)
+
+		gock.Flush()
+	})
+
 }
