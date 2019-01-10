@@ -55,13 +55,19 @@ checksums: ## Build checksums for all release binaries
 	@rm -f release/*.sha256
 	@cd release && find . -type f -iname conch-\* -print0 | xargs -0 -n 1 -I {} sh -c 'shasum -a 256 {} > "{}.sha256"'
 
+.PHONY: staticcheck
+staticcheck: ## Run staticcheck
+	staticcheck ./...
 
 .PHONY: check
-check: ## Ensure that code matchs best practices and run tests
-	@echo "==> Checking for best practices"
-	staticcheck ./...
+check: staticcheck ## Ensure that code matchs best practices and run tests
 	@echo "==> Tests for pkg/conch"
 	@cd pkg/conch && go test -v 
+
+.PHONY: fasttest
+fasttest: staticcheck ## Run staticheck, also go test with -failfast
+	@echo "==> Tests for pkg/conch"
+	@cd pkg/conch && go test -failfast -v 
 
 tools: ## Download and install all dev/code tools
 	@echo "==> Installing dev tools"
