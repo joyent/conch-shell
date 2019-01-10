@@ -21,10 +21,6 @@ var API = &conch.Conch{
 	HTTPClient: http.DefaultClient,
 }
 
-func BuildAPI() {
-	// BUG(sungo): noop until the whole test suite migrates
-}
-
 func TestConch(t *testing.T) {
 	gock.Flush()
 	defer gock.Flush()

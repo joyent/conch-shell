@@ -7,40 +7,33 @@
 package conch_test
 
 import (
-	"errors"
+	"testing"
+
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"testing"
 )
 
 func TestGlobalRoomErrors(t *testing.T) {
-	BuildAPI()
 	gock.Flush()
-
-	aerr := struct {
-		ErrorMsg string `json:"error"`
-	}{"totally broken"}
-	aerrUnpacked := errors.New(aerr.ErrorMsg)
+	defer gock.Flush()
 
 	t.Run("GetGlobalRooms", func(t *testing.T) {
-		gock.New(API.BaseURL).Get("/room").Persist().Reply(400).JSON(aerr)
-
-		defer gock.Flush()
+		gock.New(API.BaseURL).Get("/room").Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetGlobalRooms()
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.GlobalRoom{})
 	})
 
 	t.Run("GetGlobalRoom", func(t *testing.T) {
 		id := uuid.NewV4()
 
-		gock.New(API.BaseURL).Get("/room/" + id.String()).Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Get("/room/" + id.String()).Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetGlobalRoom(id)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, conch.GlobalRoom{})
 	})
 
@@ -52,10 +45,10 @@ func TestGlobalRoomErrors(t *testing.T) {
 			VendorName:   "v",
 		}
 
-		gock.New(API.BaseURL).Post("/room").Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/room").Reply(400).JSON(ErrApi)
 
 		err := API.SaveGlobalRoom(&r)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("UpdateGlobalRoom", func(t *testing.T) {
@@ -69,19 +62,19 @@ func TestGlobalRoomErrors(t *testing.T) {
 			VendorName:   "v",
 		}
 
-		gock.New(API.BaseURL).Post("/room/" + id.String()).Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Post("/room/" + id.String()).Reply(400).JSON(ErrApi)
 
 		err := API.SaveGlobalRoom(&r)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("DeleteGlobalRoom", func(t *testing.T) {
 		id := uuid.NewV4()
 
-		gock.New(API.BaseURL).Delete("/room/" + id.String()).Reply(400).JSON(aerr)
+		gock.New(API.BaseURL).Delete("/room/" + id.String()).Reply(400).JSON(ErrApi)
 
 		err := API.DeleteGlobalRoom(id)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("GetGlobalRoomRacks", func(t *testing.T) {
@@ -96,12 +89,10 @@ func TestGlobalRoomErrors(t *testing.T) {
 		}
 
 		gock.New(API.BaseURL).Get("/room/" + id.String() + "/racks").
-			Persist().Reply(400).JSON(aerr)
-
-		defer gock.Flush()
+			Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetGlobalRoomRacks(r)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.GlobalRack{})
 	})
 

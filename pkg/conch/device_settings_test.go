@@ -7,29 +7,24 @@
 package conch_test
 
 import (
-	"errors"
+	"testing"
+
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
-	"testing"
 )
 
 func TestDeviceSettingsErrors(t *testing.T) {
-	BuildAPI()
 	gock.Flush()
-
-	aerr := struct {
-		ErrorMsg string `json:"error"`
-	}{"totally broken"}
-	aerrUnpacked := errors.New(aerr.ErrorMsg)
+	defer gock.Flush()
 
 	t.Run("GetDeviceSettings", func(t *testing.T) {
 		serial := "test"
 
 		gock.New(API.BaseURL).Get("/device/" + serial + "/settings").
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetDeviceSettings(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, make(map[string]string))
 	})
 
@@ -38,10 +33,10 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		key := "key"
 
 		gock.New(API.BaseURL).Get("/device/" + serial + "/settings/" + key).
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetDeviceSetting(serial, key)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		var setting string
 		st.Expect(t, ret, setting)
 	})
@@ -51,10 +46,10 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		key := "key"
 
 		gock.New(API.BaseURL).Post("/device/" + serial + "/settings/" + key).
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		err := API.SetDeviceSetting(serial, key, "val")
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("DeleteDeviceSetting", func(t *testing.T) {
@@ -62,20 +57,20 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		key := "key"
 
 		gock.New(API.BaseURL).Delete("/device/" + serial + "/settings/" + key).
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		err := API.DeleteDeviceSetting(serial, key)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("GetDeviceTags", func(t *testing.T) {
 		serial := "test"
 
 		gock.New(API.BaseURL).Get("/device/" + serial + "/settings").
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetDeviceTags(serial)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, make(map[string]string))
 	})
 
@@ -84,10 +79,10 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		key := "key"
 
 		gock.New(API.BaseURL).Get("/device/" + serial + "/settings/tag." + key).
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		ret, err := API.GetDeviceTag(serial, key)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 		var setting string
 		st.Expect(t, ret, setting)
 	})
@@ -97,10 +92,10 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		key := "key"
 
 		gock.New(API.BaseURL).Post("/device/" + serial + "/settings/tag." + key).
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		err := API.SetDeviceTag(serial, key, "val")
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("DeleteDeviceTag", func(t *testing.T) {
@@ -108,10 +103,10 @@ func TestDeviceSettingsErrors(t *testing.T) {
 		key := "key"
 
 		gock.New(API.BaseURL).Delete("/device/" + serial + "/settings/tag." + key).
-			Reply(400).JSON(aerr)
+			Reply(400).JSON(ErrApi)
 
 		err := API.DeleteDeviceTag(serial, key)
-		st.Expect(t, err, aerrUnpacked)
+		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 }
