@@ -35,10 +35,6 @@ var (
 	// filled out with enough data.
 	ErrBadInput = errors.New("incomplete data passed to the routine")
 
-	// ErrSemVerParse indicates that a semantic version string could not be
-	// parsed
-	ErrSemVerParse = errors.New("could not parse semantic version string")
-
 	// ErrNotSupported indicates that the API server does not support this
 	// command. This is typically determined via checks on conch.apiVersion
 	ErrNotSupported = errors.New("this function is not supported")

@@ -16,10 +16,8 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/dghubble/sling"
 )
 
@@ -88,24 +86,6 @@ func (c *Conch) sling() *sling.Sling {
 		Client(c.HTTPClient).
 		Base(c.BaseURL).
 		Set("User-Agent", c.UA)
-
-	if c.apiVersion == nil {
-		sem, _ := semver.New(MinimumAPIVersion)
-		c.apiVersion = sem
-
-		body := struct {
-			Version string `json:"version"`
-		}{}
-
-		_, err := s.Get("/version").Receive(&body, nil)
-		if err != nil {
-			return s
-		}
-		apiVer, err := semver.New(strings.TrimLeft(body.Version, "v"))
-		if err == nil {
-			c.apiVersion = apiVer
-		}
-	}
 
 	u, _ := url.Parse(c.BaseURL)
 	if c.JWToken != "" {
