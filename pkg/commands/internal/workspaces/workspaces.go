@@ -27,7 +27,7 @@ func getAll(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-
+		sort.Sort(workspaces)
 		if util.JSON {
 			util.JSONOut(workspaces)
 			return
@@ -445,6 +445,7 @@ func getSubs(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
+		sort.Sort(workspaces)
 
 		if util.JSON {
 			util.JSONOut(workspaces)

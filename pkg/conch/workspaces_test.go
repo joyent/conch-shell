@@ -23,7 +23,7 @@ func TestWorkspaceErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get("/workspace").Reply(400).JSON(ErrApi)
 		ret, err := API.GetWorkspaces()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Workspace{})
+		st.Expect(t, ret, conch.Workspaces{})
 	})
 
 	t.Run("GetWorkspace", func(t *testing.T) {
@@ -43,7 +43,7 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetSubWorkspaces(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Workspace{})
+		st.Expect(t, ret, conch.Workspaces{})
 	})
 
 	t.Run("GetWorkspaceUsers", func(t *testing.T) {

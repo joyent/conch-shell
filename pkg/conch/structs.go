@@ -420,6 +420,20 @@ type Workspace struct {
 	ParentID    uuid.UUID `json:"parent_id,omitempty"`
 }
 
+type Workspaces []Workspace
+
+func (w Workspaces) Len() int {
+	return len(w)
+}
+
+func (w Workspaces) Swap(i, j int) {
+	w[i], w[j] = w[j], w[i]
+}
+
+func (w Workspaces) Less(i, j int) bool {
+	return w[i].Name < w[j].Name
+}
+
 // WorkspaceAndRole ...
 type WorkspaceAndRole struct {
 	Workspace
