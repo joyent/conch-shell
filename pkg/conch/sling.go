@@ -121,11 +121,55 @@ func (c *Conch) get(url string, data interface{}) error {
 }
 
 func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, error) {
+
+	if c.Trace {
+		c.ddp(req)
+	} else {
+		c.debugLog(fmt.Sprintf(
+			"Request: %s %s",
+			req.Method,
+			req.URL,
+		))
+
+		if (req.Method == "POST") && (req.Body != nil) {
+			if read, err := req.GetBody(); err == nil {
+				if bodyBytes, err := ioutil.ReadAll(read); err == nil {
+					c.debugLog(
+						fmt.Sprintf(
+							"  Request Body: %s",
+							string(bodyBytes),
+						),
+					)
+				}
+			}
+		}
+	}
+
 	res, err := c.HTTPClient.Do(req)
 	if (res == nil) || (err != nil) {
 		return res, err
 	}
+
+	if c.Trace {
+		c.ddp(res)
+	}
+
 	defer res.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return res, err
+	}
+
+	if c.Trace {
+		c.ddp(string(bodyBytes))
+	} else {
+		c.debugLog(fmt.Sprintf(
+			"Response: HTTP %d - %s",
+			res.StatusCode,
+			string(bodyBytes),
+		))
+	}
 
 	if res.StatusCode == http.StatusUnauthorized {
 		return res, ErrNotAuthorized
@@ -139,23 +183,26 @@ func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, err
 		return res, ErrDataNotFound
 	}
 
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return res, err
-	}
-
 	// BUG(sungo): an awfully simplistic view of the world
 	if code := res.StatusCode; code >= 200 && code < 300 {
 		if data != nil {
 			// BUG(sungo): do we really want to throw away parse errors?
 			json.Unmarshal(bodyBytes, data)
+
+			if c.Trace {
+				c.ddp(data)
+			}
 		}
 		return res, nil
 	}
+
 	aerr := struct {
 		Error string `json:"error"`
 	}{""}
 	if err := json.Unmarshal(bodyBytes, &aerr); err == nil {
+		if c.Trace {
+			c.ddp(aerr)
+		}
 		return res, errors.New(aerr.Error)
 	}
 

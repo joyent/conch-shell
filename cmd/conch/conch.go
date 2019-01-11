@@ -57,14 +57,20 @@ func main() {
 		configFile      = app.StringOpt("config c", "~/.conch.json", "Path to config file")
 		noVersion       = app.BoolOpt("no-version-check", false, "Skip Github version check")
 		profileOverride = app.StringOpt("profile p", "", "Override the active profile")
+		debugMode       = app.BoolOpt("debug", false, "Debug mode")
+		traceMode       = app.BoolOpt("trace", false, "Trace http requests. Warning: this is super loud")
 	)
 
 	app.Before = func() {
+		util.Debug = *debugMode
+		util.Trace = *traceMode
+
 		if *useJSON {
 			util.JSON = true
 		} else {
 			util.JSON = false
 		}
+
 		expandedPath, err := homedir.Expand(*configFile)
 		if err != nil {
 			util.Bail(err)

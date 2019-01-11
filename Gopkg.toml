@@ -65,6 +65,9 @@
   name = "gopkg.in/h2non/gock.v1"
   version = "1.0.12"
 
+[[constraint]]
+  name = "github.com/davecgh/go-spew"
+  version = "1.1.1"
 
 [prune]
   go-tests = true
