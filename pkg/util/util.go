@@ -41,6 +41,14 @@ var (
 
 	// API is a global Conch API object
 	API *conch.Conch
+
+	// Debug decides if we should put the API in debug mode
+	// Yes, this is a bit of a kludge
+	Debug bool
+
+	// Trace decides if we should trace the HTTP transactions
+	// Yes, this is a bit of a kludge
+	Trace bool
 )
 
 // These variables are provided by the build environment
@@ -107,6 +115,8 @@ func BuildAPI() {
 		BaseURL: ActiveProfile.BaseURL,
 		Session: ActiveProfile.Session,
 		JWToken: ActiveProfile.JWToken,
+		Debug:   Debug,
+		Trace:   Trace,
 	}
 	if UserAgent != "" {
 		API.UA = UserAgent

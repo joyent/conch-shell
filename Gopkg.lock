@@ -26,6 +26,14 @@
   version = "v3.5.1"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:ace1aef6acdf2c4647365dc87c14fb8b71ed8bb0b3ae114ffb216614a24da219"
   name = "github.com/dghubble/sling"
   packages = ["."]
@@ -121,6 +129,7 @@
     "github.com/Bowery/prompt",
     "github.com/DiSiqueira/GoTree",
     "github.com/blang/semver",
+    "github.com/davecgh/go-spew/spew",
     "github.com/dghubble/sling",
     "github.com/jawher/mow.cli",
     "github.com/mitchellh/go-homedir",

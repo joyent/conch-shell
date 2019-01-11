@@ -29,6 +29,8 @@ type Conch struct {
 	UA      string
 	JWToken string
 	Expires int // This will be overwritten by JWT claims
+	Debug   bool
+	Trace   bool
 
 	HTTPClient *http.Client
 	CookieJar  *cookiejar.Jar
