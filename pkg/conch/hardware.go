@@ -83,6 +83,10 @@ func (c *Conch) GetHardwareVendor(name string) (v HardwareVendor, err error) {
 	return v, c.get("/hardware_vendor/"+name, &v)
 }
 
+func (c *Conch) GetHardwareVendorByID(id fmt.Stringer) (v HardwareVendor, err error) {
+	return v, c.get("/hardware_vendor/"+id.String(), &v)
+}
+
 // GetHardwareVendors ...
 func (c *Conch) GetHardwareVendors() ([]HardwareVendor, error) {
 	vendors := make([]HardwareVendor, 0)
