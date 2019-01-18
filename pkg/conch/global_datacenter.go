@@ -35,25 +35,16 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 	if d.Location == "" {
 		return ErrBadInput
 	}
+	j := struct {
+		Vendor     string `json:"vendor"`
+		Region     string `json:"region"`
+		Location   string `json:"location"`
+		VendorName string `json:"vendor_name,omitempty"`
+	}{d.Vendor, d.Region, d.Location, d.VendorName}
 
 	if uuid.Equal(d.ID, uuid.UUID{}) {
-		j := struct {
-			Vendor     string `json:"vendor"`
-			Region     string `json:"region"`
-			Location   string `json:"location"`
-			VendorName string `json:"vendor_name,omitempty"`
-		}{d.Vendor, d.Region, d.Location, d.VendorName}
-
 		return c.post("/dc", j, &d)
 	} else {
-		j := struct {
-			ID         string `json:"id"` // BUG(sungo): this is probably wrong
-			Vendor     string `json:"vendor,omitempty"`
-			Region     string `json:"region,omitempty"`
-			Location   string `json:"location,omitempty"`
-			VendorName string `json:"vendor_name,omitempty"`
-		}{d.ID.String(), d.Vendor, d.Region, d.Location, d.VendorName}
-
 		return c.post("/dc/"+d.ID.String(), j, &d)
 	}
 }
