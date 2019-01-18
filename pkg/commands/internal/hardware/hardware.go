@@ -81,8 +81,18 @@ func getOne(app *cli.Cmd) {
 			util.JSONOut(ret)
 			return
 		}
+		var vendor_name string
 
-		extRet := extendedProduct{&ret, ""} // BUG(sungo): get the vendor name - joyent/conch #596
+		if !uuid.Equal(ret.HardwareVendorID, uuid.UUID{}) {
+			vendor, err := util.API.GetHardwareVendorByID(ret.HardwareVendorID)
+			if err != nil {
+				util.Bail(err)
+			}
+			vendor_name = vendor.Name
+		}
+
+		extRet := extendedProduct{&ret, vendor_name}
+
 		t, err := template.New("hw").Parse(singleHWPTemplate)
 		if err != nil {
 			util.Bail(err)
@@ -161,12 +171,22 @@ func getAll(app *cli.Cmd) {
 		}
 		rows := make([]retRow, 0)
 		for _, r := range ret {
+			var vendor_name string
+
+			if !uuid.Equal(r.HardwareVendorID, uuid.UUID{}) {
+				vendor, err := util.API.GetHardwareVendorByID(r.HardwareVendorID)
+				if err != nil {
+					util.Bail(err)
+				}
+				vendor_name = vendor.Name
+			}
+
 			rows = append(rows, retRow{
 				r.ID.String(),
 				r.Name,
 				r.Alias,
 				r.Prefix,
-				r.HardwareVendorID.String(), // BUG(sungo) fetch the vendor name
+				vendor_name,
 				r.Profile.Purpose,
 			})
 		}
