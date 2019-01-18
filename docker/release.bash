@@ -20,13 +20,11 @@ docker build \
 	-t ${IMAGE_NAME} \
 	--build-arg VERSION=${TAG} \
 	--build-arg VCS_REF=${HASH} \
-	--file Dockerfile . \
+	--file Dockerfile.release . \
 && \
 docker run --rm \
 	--name ${BUILDER}_${BUILDNUMBER} \
 	--mount type=bind,source="${PWD}/release",target="/go/src/github.com/joyent/conch-shell/release" \
-	--entrypoint=make \
-	${IMAGE_NAME} \
-	release checksums \
-&& \
-docker push ${IMAGE_NAME}
+	${IMAGE_NAME};
+
+docker rmi ${IMAGE_NAME}
