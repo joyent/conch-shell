@@ -33,24 +33,16 @@ func (c *Conch) SaveGlobalRoom(r *GlobalRoom) error {
 		return ErrBadInput
 	}
 
-	if uuid.Equal(r.ID, uuid.UUID{}) {
-		j := struct {
-			Datacenter string `json:"datacenter"`
-			AZ         string `json:"az"`
-			Alias      string `json:"alias,omitempty"`
-			VendorName string `json:"vendor_name,omitempty"`
-		}{r.DatacenterID.String(), r.AZ, r.Alias, r.VendorName}
+	j := struct {
+		Datacenter string `json:"datacenter"`
+		AZ         string `json:"az"`
+		Alias      string `json:"alias,omitempty"`
+		VendorName string `json:"vendor_name,omitempty"`
+	}{r.DatacenterID.String(), r.AZ, r.Alias, r.VendorName}
 
+	if uuid.Equal(r.ID, uuid.UUID{}) {
 		return c.post("/room", j, &r)
 	} else {
-		j := struct {
-			ID         string `json:"id"` // BUG(sungo): this is probably wrong
-			Datacenter string `json:"datacenter"`
-			AZ         string `json:"az"`
-			Alias      string `json:"alias,omitempty"`
-			VendorName string `json:"vendor_name,omitempty"`
-		}{r.ID.String(), r.DatacenterID.String(), r.AZ, r.Alias, r.VendorName}
-
 		return c.post("/room/"+r.ID.String(), j, &r)
 	}
 }

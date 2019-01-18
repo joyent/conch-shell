@@ -65,10 +65,7 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 		return c.post("/hardware_product", out, &h)
 	} else {
 		return c.post(
-			"/hardware_product/"+h.ID.String(),
-			out,
-			&h,
-		)
+			"/hardware_product/"+h.ID.String(), out, &h)
 	}
 }
 

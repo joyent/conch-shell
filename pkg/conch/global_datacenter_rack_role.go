@@ -34,32 +34,18 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 		return ErrBadInput
 	}
 
-	if uuid.Equal(r.ID, uuid.UUID{}) {
-		j := struct {
-			Name     string `json:"name"`
-			RackSize int    `json:"rack_size"`
-		}{
-			r.Name,
-			r.RackSize,
-		}
+	j := struct {
+		Name     string `json:"name"`
+		RackSize int    `json:"rack_size"`
+	}{
+		r.Name,
+		r.RackSize,
+	}
 
+	if uuid.Equal(r.ID, uuid.UUID{}) {
 		return c.post("/rack_role", j, &r)
 	} else {
-		j := struct {
-			ID       string `json:"id"` // BUG(sungo): this is probably wrong
-			Name     string `json:"name"`
-			RackSize int    `json:"rack_size"`
-		}{
-			r.ID.String(),
-			r.Name,
-			r.RackSize,
-		}
-
-		return c.post(
-			"/rack_role/"+r.ID.String(),
-			j,
-			&r,
-		)
+		return c.post("/rack_role/"+r.ID.String(), j, &r)
 	}
 
 }

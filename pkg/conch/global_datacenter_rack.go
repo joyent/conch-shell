@@ -36,37 +36,23 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 		return ErrBadInput
 	}
 
+	j := struct {
+		DatacenterRoomID string `json:"datacenter_room_id"`
+		Name             string `json:"name"`
+		RoleID           string `json:"role"`
+		SerialNumber     string `json:"serial_number,omitempty"`
+		AssetTag         string `json:"asset_tag,omitempty"`
+	}{
+		r.DatacenterRoomID.String(),
+		r.Name,
+		r.RoleID.String(),
+		r.SerialNumber,
+		r.AssetTag,
+	}
+
 	if uuid.Equal(r.ID, uuid.UUID{}) {
-
-		j := struct {
-			DatacenterRoomID string `json:"datacenter_room_id"`
-			Name             string `json:"name"`
-			RoleID           string `json:"role"`
-			SerialNumber     string `json:"serial_number,omitempty"`
-			AssetTag         string `json:"asset_tag,omitempty"`
-		}{
-			r.DatacenterRoomID.String(),
-			r.Name,
-			r.RoleID.String(),
-			r.SerialNumber,
-			r.AssetTag,
-		}
-
 		return c.post("/rack", j, &r)
 	} else {
-		j := struct {
-			DatacenterRoomID string `json:"datacenter_room_id"`
-			Name             string `json:"name"`
-			RoleID           string `json:"role"`
-			SerialNumber     string `json:"serial_number,omitempty"`
-			AssetTag         string `json:"asset_tag,omitempty"`
-		}{
-			r.DatacenterRoomID.String(),
-			r.Name,
-			r.RoleID.String(),
-			r.SerialNumber,
-			r.AssetTag,
-		}
 		return c.post("/rack/"+r.ID.String(), j, &r)
 	}
 
