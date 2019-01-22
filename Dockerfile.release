@@ -10,14 +10,12 @@ ENV PATH "/go/bin:${PATH}"
 RUN go get honnef.co/go/tools/cmd/staticcheck
 
 RUN mkdir -p /go/src/github.com/joyent/conch-shell/
-WORKDIR /go/src/github.com/joyent/conch-shell/
 
-ARG VCS_REF="master"
-ARG VERSION="v0.0.0-dirty"
-LABEL org.label-schema.vcs-ref $VCS_REF
-LABEL org.label-schema.version $VERSION 
+ARG BRANCH="master"
 
-COPY . /go/src/github.com/joyent/conch-shell/
+WORKDIR /go/src/github.com/joyent/
+RUN git clone --branch $BRANCH https://github.com/joyent/conch-shell conch-shell
+WORKDIR /go/src/github.com/joyent/conch-shell
 
 ENTRYPOINT ["make" ]
 CMD [ "release", "checksums" ]
