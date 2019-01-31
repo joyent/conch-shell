@@ -40,21 +40,32 @@ ID: {{ .ID }}
     NIC Count: {{ .Profile.NumNics }}
     PSU Total: {{ .Profile.TotalPSU }}{{ if .Profile.NumUSB }}
     USB Count: {{ .Profile.NumUSB }}{{ end }}
+		Raid LUN Count {{ .Profile.RaidLunNum }}
 
     DIMM Count: {{ .Profile.NumDimms }}
     RAM Total:  {{ .Profile.TotalRAM }} GB
-    {{ if .Profile.SASNum }} 
-    SAS Count: {{ .Profile.SASNum }}
-    SAS Size:  {{ .Profile.SizeSAS }}
-    SAS Slots: {{ .Profile.SlotsSAS }}
-    {{ end }}{{ if .Profile.NumSATA }}
-    SATA Count: {{ .Profile.NumSATA }}
-    SATA Size:  {{ .Profile.SizeSATA }}
-    SATA Slots: {{ .Profile.SlotsSATA }}
-    {{end}}{{ if .Profile.NumSSD }}
-    SSD Count: {{ .Profile.NumSSD }}
-    SSD Size:  {{ .Profile.SizeSSD }}
-    SSD Slots: {{ .Profile.SlotsSSD }}
+
+    Drives:
+    {{ if .Profile.SasHddNum }}
+      SAS HDD:
+        Count: {{ .Profile.SasHddNum }}
+        Size:  {{ .Profile.SasHddSize }}
+        Slots: {{ .Profile.SasHddSlots }}
+    {{ end }}{{ if .Profile.SataHddNum }}
+      SATA HDD:
+        Count: {{ .Profile.SataHddNum }}
+        Size:  {{ .Profile.SataHddSize }}
+        Slots: {{ .Profile.SataHddSlots }}
+    {{ end }}{{ if .Profile.SataSsdNum }}
+      SATA SSD:
+        Count: {{ .Profile.SataSsdNum }}
+        Size:  {{ .Profile.SataSsdSize }}
+        Slots: {{ .Profile.SataSsdSlots }}
+    {{ end }}{{ if .Profile.NvmeSsdNum }}
+      NVME SSD:
+        Count: {{ .Profile.NvmeSsdNum }}
+        Size:  {{ .Profile.NvmeSsdSize }}
+        Slots: {{ .Profile.NvmeSsdSlots }}
     {{ end }}{{ if ne .Profile.Zpool.ID.String "00000000-0000-0000-0000-000000000000"}}
     Zpool: {{ .Profile.Zpool.ID }}
       Cache:     {{ .Profile.Zpool.Cache }}

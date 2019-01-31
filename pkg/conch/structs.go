@@ -195,28 +195,37 @@ type HardwareProductTarget struct {
 // intended hardware configuration of a Device, depending on the API endpoint
 // in question
 type HardwareProfile struct {
-	ID           uuid.UUID            `json:"id"`
-	BiosFirmware string               `json:"bios_firmware"`
-	CPUType      string               `json:"cpu_type"`
-	HbaFirmware  string               `json:"hba_firmware"`
-	NumCPU       int                  `json:"cpu_num"`
-	NumDimms     int                  `json:"dimms_num"`
-	NumNics      int                  `json:"nics_num"`
-	NumSATA      int                  `json:"sata_num"`
-	NumSSD       int                  `json:"ssd_num"`
-	NumUSB       int                  `json:"usb_num"`
-	Purpose      string               `json:"purpose"`
-	SASNum       int                  `json:"sas_num"`
-	SizeSAS      int                  `json:"sas_size"`
-	SizeSATA     int                  `json:"sata_size"`
-	SizeSSD      int                  `json:"ssd_size"`
-	SlotsSAS     string               `json:"saas_slots"`
-	SlotsSATA    string               `json:"sata_slots"`
-	SlotsSSD     string               `json:"ssd_slots"`
-	TotalPSU     int                  `json:"psu_total"`
-	TotalRAM     int                  `json:"ram_total"`
-	RackUnit     int                  `json:"rack_unit"`
-	Zpool        HardwareProfileZpool `json:"zpool"`
+	ID           uuid.UUID `json:"id"`
+	BiosFirmware string    `json:"bios_firmware"`
+	CPUType      string    `json:"cpu_type"`
+	HbaFirmware  string    `json:"hba_firmware"`
+	NumCPU       int       `json:"cpu_num"`
+	NumDimms     int       `json:"dimms_num"`
+	NumNics      int       `json:"nics_num"`
+	NumUSB       int       `json:"usb_num"`
+	Purpose      string    `json:"purpose"`
+
+	SasHddNum   int    `json:"sas_hdd_num"`
+	SasHddSize  int    `json:"sas_hdd_size"`
+	SasHddSlots string `json:"sas_hdd_slots"`
+
+	SataHddNum   int    `json:"sata_hdd_num"`
+	SataHddSize  int    `json:"sata_hdd_size"`
+	SataHddSlots string `json:"sata_hdd_slots"`
+
+	SataSsdNum   int    `json:"sata_ssd_num"`
+	SataSsdSize  int    `json:"sata_ssd_size"`
+	SataSsdSlots string `json:"sata_ssd_slots"`
+
+	NvmeSsdNum   int `json:"nvme_ssd_num"`
+	NvmeSsdSize  int `json:"nvme_ssd_size"`
+	NvmeSsdSlots int `json:"nvme_ssd_slots"`
+
+	RaidLunNum int                  `json:"raid_lun_num"`
+	TotalPSU   int                  `json:"psu_total"`
+	TotalRAM   int                  `json:"ram_total"`
+	RackUnit   int                  `json:"rack_unit"`
+	Zpool      HardwareProfileZpool `json:"zpool"`
 }
 
 // HardwareProfileZpool represents the layout of the target device's ZFS zpools
