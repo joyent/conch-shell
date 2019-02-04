@@ -92,9 +92,7 @@ func BuildAPIAndVerifyLogin() {
 	if err := API.VerifyLogin(RefreshTokenTime, false); err != nil {
 		Bail(err)
 	}
-	ActiveProfile.Session = API.Session
-	ActiveProfile.JWToken = API.JWToken
-	ActiveProfile.Expires = API.Expires
+	ActiveProfile.JWT = API.JWT
 	WriteConfig()
 }
 
@@ -113,8 +111,7 @@ func BuildAPI() {
 
 	API = &conch.Conch{
 		BaseURL: ActiveProfile.BaseURL,
-		Session: ActiveProfile.Session,
-		JWToken: ActiveProfile.JWToken,
+		JWT:     ActiveProfile.JWT,
 		Debug:   Debug,
 		Trace:   Trace,
 	}
@@ -385,8 +382,7 @@ func InteractiveForcePasswordChange() {
 		Bail(err)
 	}
 
-	ActiveProfile.Session = API.Session
-	ActiveProfile.JWToken = API.JWToken
+	ActiveProfile.JWT = API.JWT
 
 	WriteConfig()
 }

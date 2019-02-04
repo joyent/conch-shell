@@ -104,9 +104,8 @@ func newProfile(app *cli.Cmd) {
 			util.InteractiveForcePasswordChange()
 		}
 
-		p.Session = util.API.Session
-		p.JWToken = util.API.JWToken
-		p.Expires = util.API.Expires
+		p.JWT = util.API.JWT
+		p.Expires = p.JWT.Expires
 
 		if *workspaceOpt == "" {
 			p.WorkspaceUUID = uuid.UUID{}
@@ -200,9 +199,9 @@ func listProfiles(app *cli.Cmd) {
 					workspaceName = prof.WorkspaceName
 				}
 			}
-			expires := "Unknown"
-			if prof.Expires > 0 {
-				expires = util.TimeStr(time.Unix(int64(prof.Expires), 0))
+			expires := "[relogin]"
+			if !prof.JWT.Expires.IsZero() {
+				expires = util.TimeStr(prof.JWT.Expires)
 			}
 			versionCheck := "Y"
 			if prof.SkipVersionCheck {
@@ -298,17 +297,14 @@ func refreshJWT(app *cli.Cmd) {
 			util.InteractiveForcePasswordChange()
 		}
 
-		util.ActiveProfile.Session = util.API.Session
-		util.ActiveProfile.JWToken = util.API.JWToken
-		util.ActiveProfile.Expires = util.API.Expires
+		util.ActiveProfile.JWT = util.API.JWT
 
 		util.WriteConfig()
 
-		expires := time.Unix(int64(util.API.Expires), 0)
 		if util.JSON {
 			util.JSONOut(struct {
 				Expires time.Time `json:"expires"`
-			}{expires})
+			}{util.API.JWT.Expires})
 
 			return
 		}
@@ -316,7 +312,7 @@ func refreshJWT(app *cli.Cmd) {
 		fmt.Printf(
 			"Auth for profile '%s' now expires at %s\n",
 			util.ActiveProfile.Name,
-			util.TimeStr(expires),
+			util.TimeStr(util.API.JWT.Expires),
 		)
 	}
 }
@@ -366,8 +362,7 @@ func relogin(app *cli.Cmd) {
 			util.InteractiveForcePasswordChange()
 		}
 
-		util.ActiveProfile.Session = util.API.Session
-		util.ActiveProfile.JWToken = util.API.JWToken
+		util.ActiveProfile.JWT = util.API.JWT
 
 		util.WriteConfig()
 		if !util.JSON {

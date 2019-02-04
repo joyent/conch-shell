@@ -15,11 +15,6 @@ var (
 	// reasons
 	ErrLoginFailed = errors.New("login failed")
 
-	// ErrNoSessionData indicates that an auth related error occurred where
-	// either the user did not provide session data or no data was returned
-	// from the API
-	ErrNoSessionData = errors.New("no session data provided")
-
 	// ErrHTTPNotOk indicates that the API returned a non-200 status code that
 	// we don't know how to handle
 	ErrHTTPNotOk = errors.New("non-200 HTTP status code returned")
@@ -49,4 +44,6 @@ var (
 	// password before proceeding. Typically, the existing auth credentials
 	// will continue to work for a few minutes.
 	ErrMustChangePassword = errors.New("password must be changed")
+
+	ErrMalformedJWT = errors.New("JWT is malformed")
 )

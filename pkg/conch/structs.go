@@ -24,16 +24,28 @@ const (
 
 // Conch contains auth and configuration data
 type Conch struct {
-	Session string // DEPRECATED
 	BaseURL string
 	UA      string
-	JWToken string
-	Expires int // This will be overwritten by JWT claims
 	Debug   bool
 	Trace   bool
+	JWT     ConchJWT
 
 	HTTPClient *http.Client
 	CookieJar  *cookiejar.Jar
+}
+
+type ConchJWT struct {
+	Expires time.Time
+
+	Header map[string]interface{}
+	Claims map[string]interface{}
+
+	Token     string
+	Signature string
+}
+
+func (j *ConchJWT) FullToken() string {
+	return j.Token + "." + j.Signature
 }
 
 // Datacenter represents a conch datacenter, aka an AZ

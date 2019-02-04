@@ -15,7 +15,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/cookiejar"
-	"net/url"
 	"time"
 
 	"github.com/dghubble/sling"
@@ -87,24 +86,10 @@ func (c *Conch) sling() *sling.Sling {
 		Base(c.BaseURL).
 		Set("User-Agent", c.UA)
 
-	u, _ := url.Parse(c.BaseURL)
-	if c.JWToken != "" {
-		if c.Expires == 0 {
-			_ = c.recordJWTExpiry
-		}
-
-		s = s.Set("Authorization", "Bearer "+c.JWToken)
-
-	} else if c.Session != "" {
-
-		cookie := &http.Cookie{
-			Name:  "conch",
-			Value: c.Session,
-		}
-		c.CookieJar.SetCookies(
-			u,
-			[]*http.Cookie{cookie},
-		)
+	// BUG(sungo) This is mostly for the config back compat code. Once that's
+	// gone, we can probably just check the expires value
+	if (c.JWT.Token != "") && (c.JWT.Signature != "") {
+		s = s.Set("Authorization", "Bearer "+c.JWT.FullToken())
 	}
 
 	return s
