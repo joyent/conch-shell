@@ -132,19 +132,39 @@ func GetMarkdownTable() (table *tablewriter.Table) {
 
 // Bail is a --json aware way of dying
 func Bail(err error) {
+	var msg string
+
+	switch err {
+	case conch.ErrBadInput:
+		msg = err.Error() + " -- Internal Error. Please file a GHI"
+
+	case conch.ErrNotAuthorized:
+		msg = err.Error() + " -- Running 'profile relogin' might resolve this"
+
+	case conch.ErrMalformedJWT:
+		msg = "The server sent a malformed auth token. Please contact the Conch team"
+
+	case conch.ErrLoginFailed:
+		msg = "Something unexpected happened during authentication. Please run with --debug and contact the Conch team"
+
+	default:
+		msg = err.Error()
+	}
+
 	if JSON {
 		j, _ := json.Marshal(struct {
 			Error   bool   `json:"error"`
 			Message string `json:"message"`
 		}{
 			true,
-			fmt.Sprintf("%v", err),
+			msg,
 		})
 
 		fmt.Println(string(j))
 	} else {
-		fmt.Println(err)
+		fmt.Println(msg)
 	}
+
 	cli.Exit(1)
 }
 
