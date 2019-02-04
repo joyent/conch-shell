@@ -74,7 +74,7 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 	}
 
 	if jwtAuth.Token == "" {
-		return ErrLoginFailed
+		return ErrMalformedJWT
 	}
 
 	signature := ""
@@ -84,7 +84,7 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 		}
 	}
 	if signature == "" {
-		return ErrLoginFailed
+		return ErrMalformedJWT
 	}
 
 	jwt, err := c.ParseJWT(jwtAuth.Token, signature)
@@ -127,7 +127,7 @@ func (c *Conch) Login(user string, password string) error {
 		}
 	}
 	if signature == "" {
-		return ErrLoginFailed
+		return ErrMalformedJWT
 	}
 
 	jwt, err := c.ParseJWT(jwtAuth.Token, signature)
@@ -172,6 +172,10 @@ func (c *Conch) ParseJWT(token string, signature string) (ConchJWT, error) {
 	jwt.Token = token
 	jwt.Signature = signature
 
+	if c.Trace {
+		c.ddp(jwt)
+	}
+
 	bits := strings.Split(token, ".")
 	if len(bits) != 2 {
 		return jwt, ErrMalformedJWT
@@ -179,7 +183,7 @@ func (c *Conch) ParseJWT(token string, signature string) (ConchJWT, error) {
 
 	jwt.Header, err = decodeJWTsegment(bits[0])
 	if err != nil {
-		return jwt, err
+		return jwt, ErrMalformedJWT
 	}
 
 	jwt.Claims, err = decodeJWTsegment(bits[1])
