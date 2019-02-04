@@ -35,7 +35,7 @@ var (
 	ErrNotSupported = errors.New("this function is not supported")
 
 	// ErrNotAuthorized indicates that the API server returned a 401
-	ErrNotAuthorized = errors.New("not authorized for this endpoint")
+	ErrNotAuthorized = errors.New("invalid or expired auth credentials")
 
 	// ErrForbidden indicates that the API server returned a 403
 	ErrForbidden = errors.New("access to this endpoint is forbidden")
