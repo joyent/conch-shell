@@ -28,7 +28,7 @@ var (
 	// ErrBadInput indicates that the user passed incomplete or bad data to a
 	// routine. This typicallly only occurs when a struct parameter isn't
 	// filled out with enough data.
-	ErrBadInput = errors.New("internal error. incomplete data passed to the routine")
+	ErrBadInput = errors.New("incomplete data passed to the routine")
 
 	// ErrNotSupported indicates that the API server does not support this
 	// command. This is typically determined via checks on conch.apiVersion
