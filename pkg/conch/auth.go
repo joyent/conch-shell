@@ -32,17 +32,14 @@ func (c *Conch) RevokeUserTokens(user string) error {
 }
 
 // RevokeOwnTokens revokes all auth tokens for the current user. Login() is
-// required after to generate new tokens. Clears the Session, JWToken, and
+// required after to generate new tokens. Clears the JWT, and
 // Expires attributes
 func (c *Conch) RevokeOwnTokens() error {
 	if err := c.post("/user/me/revoke", nil, nil); err != nil {
 		return err
 	}
 
-	c.Session = ""
-	c.JWToken = ""
-	c.Expires = 0
-
+	c.JWT = ConchJWT{}
 	return nil
 }
 
@@ -56,20 +53,13 @@ func (c *Conch) RevokeOwnTokens() error {
 // If the second parameter is true, a JWT refresh is forced, regardless of any
 // other parameters.
 //
-// NOTE: If the Conch struct contains cookie session data, it will be
-// automatically upgraded to JWT and the Session data will no longer function
 func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 	u, _ := url.Parse(c.BaseURL)
-	if c.JWToken != "" {
-		if err := c.recordJWTExpiry(); err != nil {
-			return ErrLoginFailed
-		}
-	}
 
 	if !forceJWT {
-		if refreshTime > 0 {
-			now := int(time.Now().Unix())
-			if c.Expires-now > refreshTime {
+		if (refreshTime > 0) && !c.JWT.Expires.IsZero() {
+			now := time.Now()
+			if now.Sub(c.JWT.Expires).Seconds() > float64(refreshTime) {
 				return nil
 			}
 		}
@@ -84,7 +74,7 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 	}
 
 	if jwtAuth.Token == "" {
-		return ErrLoginFailed
+		return ErrMalformedJWT
 	}
 
 	signature := ""
@@ -94,22 +84,24 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 		}
 	}
 	if signature == "" {
-		return ErrLoginFailed
+		return ErrMalformedJWT
 	}
 
-	c.JWToken = jwtAuth.Token + "." + signature
-	if err := c.recordJWTExpiry(); err != nil {
-		return ErrLoginFailed
+	jwt, err := c.ParseJWT(jwtAuth.Token, signature)
+	if err != nil {
+		return err
 	}
 
-	c.Session = ""
+	c.JWT = jwt
+
 	return nil
 }
 
 // Login uses the User, as listed in the Conch struct, and the provided
-// password to log into the Conch API and populate the Session entry in the
+// password to log into the Conch API and populate the JWT entry in the
 // Conch struct
 func (c *Conch) Login(user string, password string) error {
+	u, _ := url.Parse(c.BaseURL)
 
 	payload := struct {
 		User     string `json:"user"`
@@ -128,36 +120,22 @@ func (c *Conch) Login(user string, password string) error {
 		return err
 	}
 
-	u, _ := url.Parse(c.BaseURL)
-
-	if jwtAuth.Token != "" {
-		signature := ""
-		for _, cookie := range c.HTTPClient.Jar.Cookies(u) {
-			if cookie.Name == "jwt_sig" {
-				signature = cookie.Value
-			}
-		}
-		if signature == "" {
-			return ErrLoginFailed
-		}
-
-		c.JWToken = jwtAuth.Token + "." + signature
-
-		if err := c.recordJWTExpiry(); err != nil {
-			return ErrLoginFailed
-		}
-
-	} else {
-		for _, cookie := range c.HTTPClient.Jar.Cookies(u) {
-			if cookie.Name == "conch" {
-				c.Session = cookie.Value
-			}
-		}
-
-		if c.Session == "" {
-			return ErrLoginFailed
+	signature := ""
+	for _, cookie := range c.HTTPClient.Jar.Cookies(u) {
+		if cookie.Name == "jwt_sig" {
+			signature = cookie.Value
 		}
 	}
+	if signature == "" {
+		return ErrMalformedJWT
+	}
+
+	jwt, err := c.ParseJWT(jwtAuth.Token, signature)
+	if err != nil {
+		return err
+	}
+
+	c.JWT = jwt
 
 	location, err := res.Location()
 
@@ -174,6 +152,56 @@ func (c *Conch) Login(user string, password string) error {
 	return nil
 }
 
+func decodeJWTsegment(seg string) (map[string]interface{}, error) {
+	var payload map[string]interface{}
+
+	b, err := base64.RawURLEncoding.DecodeString(seg)
+	if err != nil {
+		return payload, err
+	}
+
+	err = json.Unmarshal(b, &payload)
+
+	return payload, err
+}
+
+func (c *Conch) ParseJWT(token string, signature string) (ConchJWT, error) {
+	var jwt ConchJWT
+	var err error
+
+	jwt.Token = token
+	jwt.Signature = signature
+
+	if c.Trace {
+		c.ddp(jwt)
+	}
+
+	bits := strings.Split(token, ".")
+	if len(bits) != 2 {
+		return jwt, ErrMalformedJWT
+	}
+
+	jwt.Header, err = decodeJWTsegment(bits[0])
+	if err != nil {
+		return jwt, ErrMalformedJWT
+	}
+
+	jwt.Claims, err = decodeJWTsegment(bits[1])
+	if err != nil {
+		return jwt, err
+	}
+
+	if c.Trace {
+		c.ddp(jwt)
+	}
+
+	if val, ok := jwt.Claims["exp"]; ok {
+		jwt.Expires = time.Unix(int64(val.(float64)), 0)
+	}
+
+	return jwt, nil
+}
+
 // ChangePassword changes the password for the currently active profile
 func (c *Conch) ChangePassword(password string) error {
 	b := struct {
@@ -182,28 +210,4 @@ func (c *Conch) ChangePassword(password string) error {
 
 	return c.post("/user/me/password", b, nil)
 
-}
-
-func (c *Conch) recordJWTExpiry() error {
-	bits := strings.Split(c.JWToken, ".")
-	if len(bits) != 3 {
-		return ErrLoginFailed
-	}
-
-	b, err := base64.RawURLEncoding.DecodeString(bits[1])
-	if err != nil {
-		return err
-	}
-
-	jp := struct {
-		Exp int `json:"exp"`
-	}{}
-
-	err = json.Unmarshal(b, &jp)
-	if err != nil {
-		return err
-	}
-	c.Expires = jp.Exp
-
-	return nil
 }

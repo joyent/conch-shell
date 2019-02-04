@@ -15,11 +15,6 @@ var (
 	// reasons
 	ErrLoginFailed = errors.New("login failed")
 
-	// ErrNoSessionData indicates that an auth related error occurred where
-	// either the user did not provide session data or no data was returned
-	// from the API
-	ErrNoSessionData = errors.New("no session data provided")
-
 	// ErrHTTPNotOk indicates that the API returned a non-200 status code that
 	// we don't know how to handle
 	ErrHTTPNotOk = errors.New("non-200 HTTP status code returned")
@@ -28,7 +23,7 @@ var (
 	// inidicating that the requested data does not exist or is not available.
 	// NOTE: The API will also return this error if the user is not allowed to
 	// access the data in question.
-	ErrDataNotFound = errors.New("API could not find the data requested")
+	ErrDataNotFound = errors.New("server could not find the data requested")
 
 	// ErrBadInput indicates that the user passed incomplete or bad data to a
 	// routine. This typicallly only occurs when a struct parameter isn't
@@ -40,13 +35,15 @@ var (
 	ErrNotSupported = errors.New("this function is not supported")
 
 	// ErrNotAuthorized indicates that the API server returned a 401
-	ErrNotAuthorized = errors.New("not authorized for this endpoint")
+	ErrNotAuthorized = errors.New("invalid or expired auth credentials")
 
 	// ErrForbidden indicates that the API server returned a 403
-	ErrForbidden = errors.New("access to this endpoint is forbidden")
+	ErrForbidden = errors.New("access to this data is forbidden")
 
 	// ErrMustChangePassword is used to signal that the user must change their
 	// password before proceeding. Typically, the existing auth credentials
 	// will continue to work for a few minutes.
-	ErrMustChangePassword = errors.New("password must be changed")
+	ErrMustChangePassword = errors.New("user must change their password")
+
+	ErrMalformedJWT = errors.New("server sent a malformed auth token")
 )
