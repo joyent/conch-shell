@@ -23,12 +23,12 @@ var (
 	// inidicating that the requested data does not exist or is not available.
 	// NOTE: The API will also return this error if the user is not allowed to
 	// access the data in question.
-	ErrDataNotFound = errors.New("API could not find the data requested")
+	ErrDataNotFound = errors.New("server could not find the data requested")
 
 	// ErrBadInput indicates that the user passed incomplete or bad data to a
 	// routine. This typicallly only occurs when a struct parameter isn't
 	// filled out with enough data.
-	ErrBadInput = errors.New("incomplete data passed to the routine")
+	ErrBadInput = errors.New("internal error. incomplete data passed to the routine")
 
 	// ErrNotSupported indicates that the API server does not support this
 	// command. This is typically determined via checks on conch.apiVersion
@@ -38,12 +38,12 @@ var (
 	ErrNotAuthorized = errors.New("invalid or expired auth credentials")
 
 	// ErrForbidden indicates that the API server returned a 403
-	ErrForbidden = errors.New("access to this endpoint is forbidden")
+	ErrForbidden = errors.New("access to this data is forbidden")
 
 	// ErrMustChangePassword is used to signal that the user must change their
 	// password before proceeding. Typically, the existing auth credentials
 	// will continue to work for a few minutes.
-	ErrMustChangePassword = errors.New("password must be changed")
+	ErrMustChangePassword = errors.New("user must change their password")
 
-	ErrMalformedJWT = errors.New("JWT is malformed")
+	ErrMalformedJWT = errors.New("server sent a malformed auth token")
 )
