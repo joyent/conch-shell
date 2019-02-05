@@ -80,7 +80,6 @@ type MinimalDevice struct {
 	Created   pgtime.PgTime `json:"created"`
 	LastSeen  pgtime.PgTime `json:"last_seen"`
 	Health    string        `json:"health"`
-	Flags     string        `json:"flags"`
 	AZ        string        `json:"az"`
 	Rack      string        `json:"rack"`
 	Graduated pgtime.PgTime `json:"graduated"`
@@ -181,7 +180,6 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 			d.Created,
 			d.LastSeen,
 			d.Health,
-			GenerateDeviceFlags(d),
 			d.Location.Datacenter.Name,
 			d.Location.Rack.Name,
 			d.Validated,
@@ -230,26 +228,27 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 			"Created",
 			"Last Seen",
 			"Health",
-			"Flags",
+			"Validated",
+			"Graduated",
 		})
 	}
 
 	for _, d := range devices {
+		validated := ""
+		if !d.Validated.IsZero() {
+			validated = TimeStr(d.Validated.AsUTC())
+		}
+		graduated := ""
+		if !d.Graduated.IsZero() {
+			graduated = TimeStr(d.Graduated.AsUTC())
+		}
+
 		lastSeen := ""
 		if !d.LastSeen.IsZero() {
 			lastSeen = TimeStr(d.LastSeen.AsUTC())
 		}
 
 		if fullOutput {
-			validated := ""
-			if !d.Validated.IsZero() {
-				validated = TimeStr(d.Validated.AsUTC())
-			}
-			graduated := ""
-			if !d.Graduated.IsZero() {
-				graduated = TimeStr(d.Graduated.AsUTC())
-			}
-
 			table.Append([]string{
 				d.AZ,
 				d.Rack,
@@ -268,31 +267,13 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 				TimeStr(d.Created.AsUTC()),
 				lastSeen,
 				d.Health,
-				d.Flags,
+				validated,
+				graduated,
 			})
 		}
 	}
 
 	return table
-}
-
-// GenerateDeviceFlags is an abstraction to make sure that the 'flags' field
-// for Devices remains uniform
-func GenerateDeviceFlags(d conch.Device) (flags string) {
-	flags = ""
-
-	if !d.Deactivated.IsZero() {
-		flags += "X"
-	}
-
-	if !d.Validated.IsZero() {
-		flags += "v"
-	}
-
-	if !d.Graduated.IsZero() {
-		flags += "g"
-	}
-	return flags
 }
 
 // JSONOut marshals an interface to JSON
