@@ -26,7 +26,7 @@ Health: {{ .D.Health }}
 State:	{{ .D.State }}
 
 Location:
-  Datacenter: {{ .D.Location.Datacenter.Name }}
+  Datacenter: {{ .D.Location.Datacenter.VendorName }} / {{ .D.Location.Datacenter.Name }}
   Rack: {{ .D.Location.Rack.Name }} - RU {{ .D.Location.Rack.Unit }}
 {{ if .D.AssetTag }}
 Asset Tag: {{ .D.AssetTag }}
