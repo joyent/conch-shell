@@ -174,6 +174,19 @@ func Bail(err error) {
 func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 	minimals := make([]MinimalDevice, 0)
 	for _, d := range devices {
+		if fullOutput && d.Location.Rack.Name == "" {
+			// The table renderer only needs the location data so there's no
+			// need to go get a full DetailedDevice with its attendant database
+			// queries.
+			// In my experience, getting the full DetailedDevice doubles this
+			// query time [sungo]
+			loc, err := API.GetDeviceLocation(d.ID)
+			if err != nil {
+				Bail(err)
+			}
+			d.Location = loc
+		}
+
 		minimals = append(minimals, MinimalDevice{
 			d.ID,
 			d.AssetTag,

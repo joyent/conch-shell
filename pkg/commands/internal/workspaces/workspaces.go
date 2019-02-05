@@ -181,18 +181,6 @@ func getDevices(app *cli.Cmd) {
 			return
 		}
 
-		if *fullOutput {
-			filledIn := make([]conch.Device, 0)
-			for _, d := range devices {
-				fullDevice, err := util.API.FillInDevice(d)
-				if err != nil {
-					util.Bail(err)
-				}
-				filledIn = append(filledIn, fullDevice)
-			}
-			devices = filledIn
-		}
-
 		if err := util.DisplayDevices(devices, *fullOutput); err != nil {
 			util.Bail(err)
 		}
