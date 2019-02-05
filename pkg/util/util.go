@@ -75,14 +75,15 @@ func TimeStr(t time.Time) string {
 // MinimalDevice represents a limited subset of Device data, that which we are
 // going to present to the user
 type MinimalDevice struct {
-	ID       string        `json:"id"`
-	AssetTag string        `json:"asset_tag"`
-	Created  pgtime.PgTime `json:"created"`
-	LastSeen pgtime.PgTime `json:"last_seen"`
-	Health   string        `json:"health"`
-	Flags    string        `json:"flags"`
-	AZ       string        `json:"az"`
-	Rack     string        `json:"rack"`
+	ID        string        `json:"id"`
+	AssetTag  string        `json:"asset_tag"`
+	Created   pgtime.PgTime `json:"created"`
+	LastSeen  pgtime.PgTime `json:"last_seen"`
+	Health    string        `json:"health"`
+	AZ        string        `json:"az"`
+	Rack      string        `json:"rack"`
+	Graduated pgtime.PgTime `json:"graduated"`
+	Validated pgtime.PgTime `json:"validated"`
 }
 
 // BuildAPIAndVerifyLogin builds a Conch object using the Config data and calls
@@ -173,15 +174,29 @@ func Bail(err error) {
 func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 	minimals := make([]MinimalDevice, 0)
 	for _, d := range devices {
+		if fullOutput && d.Location.Rack.Name == "" {
+			// The table renderer only needs the location data so there's no
+			// need to go get a full DetailedDevice with its attendant database
+			// queries.
+			// In my experience, getting the full DetailedDevice doubles this
+			// query time [sungo]
+			loc, err := API.GetDeviceLocation(d.ID)
+			if err != nil {
+				Bail(err)
+			}
+			d.Location = loc
+		}
+
 		minimals = append(minimals, MinimalDevice{
 			d.ID,
 			d.AssetTag,
 			d.Created,
 			d.LastSeen,
 			d.Health,
-			GenerateDeviceFlags(d),
 			d.Location.Datacenter.Name,
 			d.Location.Rack.Name,
+			d.Validated,
+			d.Graduated,
 		})
 	}
 
@@ -216,7 +231,8 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 			"Created",
 			"Last Seen",
 			"Health",
-			"Flags",
+			"Validated",
+			"Graduated",
 		})
 	} else {
 		table.SetHeader([]string{
@@ -225,11 +241,21 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 			"Created",
 			"Last Seen",
 			"Health",
-			"Flags",
+			"Validated",
+			"Graduated",
 		})
 	}
 
 	for _, d := range devices {
+		validated := ""
+		if !d.Validated.IsZero() {
+			validated = TimeStr(d.Validated.AsUTC())
+		}
+		graduated := ""
+		if !d.Graduated.IsZero() {
+			graduated = TimeStr(d.Graduated.AsUTC())
+		}
+
 		lastSeen := ""
 		if !d.LastSeen.IsZero() {
 			lastSeen = TimeStr(d.LastSeen.AsUTC())
@@ -244,7 +270,8 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 				TimeStr(d.Created.AsUTC()),
 				lastSeen,
 				d.Health,
-				d.Flags,
+				validated,
+				graduated,
 			})
 		} else {
 			table.Append([]string{
@@ -253,31 +280,13 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 				TimeStr(d.Created.AsUTC()),
 				lastSeen,
 				d.Health,
-				d.Flags,
+				validated,
+				graduated,
 			})
 		}
 	}
 
 	return table
-}
-
-// GenerateDeviceFlags is an abstraction to make sure that the 'flags' field
-// for Devices remains uniform
-func GenerateDeviceFlags(d conch.Device) (flags string) {
-	flags = ""
-
-	if !d.Deactivated.IsZero() {
-		flags += "X"
-	}
-
-	if !d.Validated.IsZero() {
-		flags += "v"
-	}
-
-	if !d.Graduated.IsZero() {
-		flags += "g"
-	}
-	return flags
 }
 
 // JSONOut marshals an interface to JSON
