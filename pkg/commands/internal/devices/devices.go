@@ -45,8 +45,6 @@ Triton UUID:  {{ .D.TritonUUID }}
 `
 
 func getOne(app *cli.Cmd) {
-
-	var fullOutput = app.BoolOpt("full", false, "Provide full data about the devices rather than normal truncated data")
 	app.Action = func() {
 		device, err := util.API.GetDevice(DeviceSerial)
 		if err != nil {
@@ -58,42 +56,33 @@ func getOne(app *cli.Cmd) {
 			return
 		}
 
-		if *fullOutput {
-			t, err := template.New("device").Parse(singleDeviceTemplate)
-			if err != nil {
-				util.Bail(err)
-			}
-			hm := false
-			if uuid.Equal(
-				device.HardwareProduct,
-				device.Location.TargetHardwareProduct.ID,
-			) {
-				hm = true
-			}
-
-			data := struct {
-				D               conch.Device
-				TritonSetup     bool
-				HardwareMatches bool
-				DF              string
-			}{
-				device,
-				!device.TritonSetup.IsZero(),
-				hm,
-				util.DateFormat,
-			}
-
-			if err := t.Execute(os.Stdout, data); err != nil {
-				util.Bail(err)
-			}
-
-			return
+		t, err := template.New("device").Parse(singleDeviceTemplate)
+		if err != nil {
+			util.Bail(err)
+		}
+		hm := false
+		if uuid.Equal(
+			device.HardwareProduct,
+			device.Location.TargetHardwareProduct.ID,
+		) {
+			hm = true
 		}
 
-		devices := make([]conch.Device, 0)
-		devices = append(devices, device)
+		data := struct {
+			D               conch.Device
+			TritonSetup     bool
+			HardwareMatches bool
+			DF              string
+		}{
+			device,
+			!device.TritonSetup.IsZero(),
+			hm,
+			util.DateFormat,
+		}
 
-		_ = util.DisplayDevices(devices, *fullOutput)
+		if err := t.Execute(os.Stdout, data); err != nil {
+			util.Bail(err)
+		}
 	}
 }
 
