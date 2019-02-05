@@ -28,6 +28,7 @@ State:	{{ .D.State }}
 Location:
   Datacenter: {{ .D.Location.Datacenter.VendorName }} / {{ .D.Location.Datacenter.Name }}
   Rack: {{ .D.Location.Rack.Name }} - RU {{ .D.Location.Rack.Unit }}
+    ID: {{ .D.Location.Rack.ID }}
 {{ if .D.AssetTag }}
 Asset Tag: {{ .D.AssetTag }}
 {{ end -}}
