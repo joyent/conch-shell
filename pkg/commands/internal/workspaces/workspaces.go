@@ -463,7 +463,10 @@ func getRelayDevices(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		_ = util.DisplayDevices(devices, *fullOutput)
+
+		if err := util.DisplayDevices(devices, *fullOutput); err != nil {
+			util.Bail(err)
+		}
 	}
 }
 
