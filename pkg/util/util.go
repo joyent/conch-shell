@@ -72,20 +72,6 @@ func TimeStr(t time.Time) string {
 	return t.Local().Format(DateFormat)
 }
 
-// MinimalDevice represents a limited subset of Device data, that which we are
-// going to present to the user
-type MinimalDevice struct {
-	ID        string        `json:"id"`
-	AssetTag  string        `json:"asset_tag"`
-	Created   pgtime.PgTime `json:"created"`
-	LastSeen  pgtime.PgTime `json:"last_seen"`
-	Health    string        `json:"health"`
-	AZ        string        `json:"az"`
-	Rack      string        `json:"rack"`
-	Graduated pgtime.PgTime `json:"graduated"`
-	Validated pgtime.PgTime `json:"validated"`
-}
-
 // BuildAPIAndVerifyLogin builds a Conch object using the Config data and calls
 // VerifyLogin
 func BuildAPIAndVerifyLogin() {
@@ -172,56 +158,62 @@ func Bail(err error) {
 // DisplayDevices is an abstraction to make sure that the output of
 // Devices is uniform, be it tables, json, or full json
 func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
-	minimals := make([]MinimalDevice, 0)
-	for _, d := range devices {
-		if fullOutput && d.Location.Rack.Name == "" {
-			// The table renderer only needs the location data so there's no
-			// need to go get a full DetailedDevice with its attendant database
-			// queries.
-			// In my experience, getting the full DetailedDevice doubles this
-			// query time [sungo]
-			loc, err := API.GetDeviceLocation(d.ID)
-			if err != nil {
-				Bail(err)
+	if fullOutput {
+		filledIn := make([]conch.Device, 0)
+		for _, d := range devices {
+			if d.Location.Rack.Name == "" {
+				// The table renderer only needs the location data so there's no
+				// need to go get a full DetailedDevice with its attendant database
+				// queries.
+				// In my experience, getting the full DetailedDevice doubles this
+				// query time [sungo]
+				loc, err := API.GetDeviceLocation(d.ID)
+				if err != nil {
+					return err
+				}
+				d.Location = loc
 			}
-			d.Location = loc
+			filledIn = append(filledIn, d)
 		}
-
-		minimals = append(minimals, MinimalDevice{
-			d.ID,
-			d.AssetTag,
-			d.Created,
-			d.LastSeen,
-			d.Health,
-			d.Location.Datacenter.Name,
-			d.Location.Rack.Name,
-			d.Validated,
-			d.Graduated,
-		})
+		devices = filledIn
 	}
 
 	if JSON {
-		var j []byte
 		if fullOutput {
-			j, err = json.Marshal(devices)
-		} else {
-			j, err = json.Marshal(minimals)
+			JSONOut(devices)
+			return nil
 		}
-		if err != nil {
-			return err
+
+		// BUG(sungo) for back compat
+		// AZ and Rack were not ported over since they are always zero-value
+		// without fullOutput
+		output := make([]interface{}, 0)
+		for _, d := range devices {
+			output = append(output, struct {
+				ID        string        `json:"id"`
+				AssetTag  string        `json:"asset_tag"`
+				Created   pgtime.PgTime `json:"created"`
+				LastSeen  pgtime.PgTime `json:"last_seen"`
+				Health    string        `json:"health"`
+				Graduated pgtime.PgTime `json:"graduated"`
+				Validated pgtime.PgTime `json:"validated"`
+			}{
+				d.ID,
+				d.AssetTag,
+				d.Created,
+				d.LastSeen,
+				d.Health,
+				d.Graduated,
+				d.Validated,
+			})
 		}
-		fmt.Println(string(j))
+
+		JSONOut(output)
 		return nil
 	}
 
-	TableizeMinimalDevices(minimals, fullOutput, GetMarkdownTable()).Render()
+	table := GetMarkdownTable()
 
-	return nil
-}
-
-// TableizeMinimalDevices is an abstraction to make sure that tables of
-// Devices-turned-MinimalDevices are uniform
-func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tablewriter.Table) *tablewriter.Table {
 	if fullOutput {
 		table.SetHeader([]string{
 			"AZ",
@@ -263,8 +255,8 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 
 		if fullOutput {
 			table.Append([]string{
-				d.AZ,
-				d.Rack,
+				d.Location.Datacenter.Name,
+				d.Location.Rack.Name,
 				d.ID,
 				d.AssetTag,
 				TimeStr(d.Created.AsUTC()),
@@ -286,7 +278,9 @@ func TableizeMinimalDevices(devices []MinimalDevice, fullOutput bool, table *tab
 		}
 	}
 
-	return table
+	table.Render()
+
+	return nil
 }
 
 // JSONOut marshals an interface to JSON

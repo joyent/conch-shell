@@ -15,85 +15,118 @@ import (
 	"text/template"
 
 	"github.com/jawher/mow.cli"
-	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-const singleDeviceTemplate = `
-Serial  {{ .D.ID }}
-Health: {{ .D.Health }}
-State:	{{ .D.State }}
+const extendedDeviceTemplate = `
+Serial: {{ .ID }}
+Hostname: {{.Hostname }}
+Asset Tag: {{ .AssetTag }}
+Health: {{ .Health }}
+System UUID: {{ .SystemUUID }}{{ if .IsTritonSetup }}
+Set up for Triton: {{ .TritonSetup.Local }}
+  - UUID: {{ .TritonUUID }}{{- end }}{{ if .IsGraduated }}
+Graduated: {{ .Graduated.Local }}{{- end }}{{ if .IsValidated }}
+Validated: {{ .Validated.Local }}{{- end }}
+
+IPMI: {{ .IPMI }}{{ if .LatestReportIsInvalid }}
+
+** LATEST REPORT IS INVALID **{{- end }}
 
 Location:
-  Datacenter: {{ .D.Location.Datacenter.VendorName }} / {{ .D.Location.Datacenter.Name }}
-  Rack: {{ .D.Location.Rack.Name }} - RU {{ .D.Location.Rack.Unit }}
-    ID: {{ .D.Location.Rack.ID }}
-{{ if .D.AssetTag }}
-Asset Tag: {{ .D.AssetTag }}
+  Datacenter: {{ .Location.Datacenter.Name }}
+    Vendor:   {{ .Location.Datacenter.VendorName }}
+
+  Rack: {{ .Location.Rack.Name }} 
+    - Role: {{ .Location.Rack.Role }}
+    - RU:   {{ .Location.Rack.Unit }} of {{ .Location.Rack.Size }}
+	- ID:   {{ .Location.Rack.ID }}
+
+Created:      {{ .Created.Local }}
+Last Seen:    {{ .LastSeen.Local }}
+Last Updated: {{ .Updated.Local }}
+
+{{ if .IsTritonSetup }}
+Triton Setup: {{ .TritonSetup.Local }}
+Triton UUID:  {{ .TritonUUID }}
 {{ end -}}
 
-Created:   {{ .D.Created.Local.Format .DF }}
-Last Seen: {{ .D.LastSeen.Local.Format .DF }}
+Hardware:
+  SKU: {{ .SKU }}
+  Name: {{ .HardwareName }}
+{{ if len .Nics }}
+Network Interfaces:{{ range .Nics }}
+  - {{ .IfaceName }}
+    MAC: {{ .MAC }}
+    Vendor: {{ .IfaceVendor }}
+    Type: {{ .IfaceType }}{{if len .PeerSwitch }}
 
-Graduated: {{ .D.Graduated.Local.Format .DF }}
-{{ if .TritonSetup }}
-Triton Setup: {{ .D.TritonSetup.Local.Format .DF }}
-Triton UUID:  {{ .D.TritonUUID }}
-{{ end -}}
-
+    Peer: {{ .PeerSwitch }}
+      Port: {{ .PeerPort }}
+      MAC: {{ .PeerMac }}{{ end }}
+{{ end }}{{- end }}
+{{ if len .Disks }}
+Disks:{{range $name, $slots := .Enclosures}}
+  Enclosure: {{ $name }}{{ range $slots }}
+    Slot: {{ .Slot }}
+        SN:     {{ .SerialNumber }}
+        HBA:    {{ .HBA }}
+        Type:   {{ .DriveType }}
+        Vendor: {{ .Vendor }}
+        Model:  {{ .Model }}
+        Transport: {{ .Transport }}
+        Size:   {{ .Size }}
+        Health: {{ .Health }}
+        Firmware: {{ .Firmware }}
+{{ end }}{{ end }}{{ end }}
+{{ if len .Validations }}
+Validations:{{ range .Validations }}
+  - {{ .Name }}{{ range .Validations }}{{ if .Passed }}
+    - pass: {{ .Name }}{{ else }}
+	- FAIL: {{ .Name }}
+      Results:{{ range .Results }}
+        - {{ .Message }}
+          Category: {{ .Category }}{{- if len .ComponentID }}
+          ComponentID: {{ .ComponentID }}{{ end }}
+          Status: {{ .Status }}
+{{ end }}{{ end }}{{ end }}{{ end }}{{ end }}
 `
 
 func getOne(app *cli.Cmd) {
-
-	var fullOutput = app.BoolOpt("full", false, "Provide full data about the devices rather than normal truncated data")
+	var extended = app.BoolOpt("extended", false, "Only affects JSON output. Alters the device structure to provide better access to disk data and provides access to the most recent validation results")
 	app.Action = func() {
-		device, err := util.API.GetDevice(DeviceSerial)
+		if util.JSON {
+			if *extended {
+				d, err := util.API.GetExtendedDevice(DeviceSerial)
+				if err != nil {
+					util.Bail(err)
+				}
+				util.JSONOut(d)
+				return
+			}
+
+			d, err := util.API.GetDevice(DeviceSerial)
+			if err != nil {
+				util.Bail(err)
+			}
+			util.JSONOut(d)
+			return
+		}
+
+		ed, err := util.API.GetExtendedDevice(DeviceSerial)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		if util.JSON {
-			util.JSONOut(device)
-			return
+		t, err := template.New("extended_device").Parse(extendedDeviceTemplate)
+		if err != nil {
+			util.Bail(err)
 		}
 
-		if *fullOutput {
-			t, err := template.New("device").Parse(singleDeviceTemplate)
-			if err != nil {
-				util.Bail(err)
-			}
-			hm := false
-			if uuid.Equal(
-				device.HardwareProduct,
-				device.Location.TargetHardwareProduct.ID,
-			) {
-				hm = true
-			}
-
-			data := struct {
-				D               conch.Device
-				TritonSetup     bool
-				HardwareMatches bool
-				DF              string
-			}{
-				device,
-				!device.TritonSetup.IsZero(),
-				hm,
-				util.DateFormat,
-			}
-
-			if err := t.Execute(os.Stdout, data); err != nil {
-				util.Bail(err)
-			}
-
-			return
+		if err := t.Execute(os.Stdout, ed); err != nil {
+			util.Bail(err)
 		}
-
-		devices := make([]conch.Device, 0)
-		devices = append(devices, device)
-
-		_ = util.DisplayDevices(devices, *fullOutput)
 	}
 }
 
