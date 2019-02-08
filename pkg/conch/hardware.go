@@ -7,7 +7,9 @@
 package conch
 
 import (
+	"encoding/json"
 	"fmt"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -41,6 +43,19 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 		return ErrBadInput
 	}
 
+	var specification string
+	if h.Specification == nil {
+		specification = ""
+	} else {
+		j, err := json.Marshal(h.Specification)
+
+		if err != nil {
+			return err
+		}
+
+		specification = string(j)
+	}
+
 	out := struct {
 		Name              string `json:"name"`
 		Alias             string `json:"alias"`
@@ -55,7 +70,7 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 		h.Alias,
 		h.Prefix,
 		h.HardwareVendorID.String(),
-		h.Specification,
+		specification,
 		h.SKU,
 		h.GenerationName,
 		h.LegacyProductName,
