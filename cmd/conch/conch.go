@@ -99,10 +99,9 @@ func main() {
 		if *noVersion {
 			checkVersion = false
 		}
-		if util.ActiveProfile != nil {
-			if util.ActiveProfile.SkipVersionCheck {
-				checkVersion = false
-			}
+
+		if cfg.SkipVersionCheck {
+			checkVersion = false
 		}
 
 		if checkVersion {

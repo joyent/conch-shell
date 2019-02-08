@@ -185,7 +185,6 @@ func listProfiles(app *cli.Cmd) {
 			"Workspace Name",
 			"API URL",
 			"Expires",
-			"Version Check",
 		})
 
 		for _, prof := range util.Config.Profiles {
@@ -203,10 +202,6 @@ func listProfiles(app *cli.Cmd) {
 			if !prof.JWT.Expires.IsZero() {
 				expires = util.TimeStr(prof.JWT.Expires)
 			}
-			versionCheck := "Y"
-			if prof.SkipVersionCheck {
-				versionCheck = "N"
-			}
 
 			table.Append([]string{
 				active,
@@ -215,7 +210,6 @@ func listProfiles(app *cli.Cmd) {
 				workspaceName,
 				prof.BaseURL,
 				expires,
-				versionCheck,
 			})
 		}
 		table.Render()
@@ -393,14 +387,24 @@ func changePassword(app *cli.Cmd) {
 
 func enableVersionCheck(app *cli.Cmd) {
 	app.Action = func() {
-		util.ActiveProfile.SkipVersionCheck = false
+		util.Config.SkipVersionCheck = false
 		util.WriteConfig()
 	}
 }
 
 func disableVersionCheck(app *cli.Cmd) {
 	app.Action = func() {
-		util.ActiveProfile.SkipVersionCheck = true
+		util.Config.SkipVersionCheck = true
 		util.WriteConfig()
+	}
+}
+
+func statusVersionCheck(app *cli.Cmd) {
+	app.Action = func() {
+		if util.Config.SkipVersionCheck {
+			fmt.Println("disabled")
+		} else {
+			fmt.Println("enabled")
+		}
 	}
 }
