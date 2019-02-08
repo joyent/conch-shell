@@ -28,23 +28,22 @@ var ErrConfigNoPath = errors.New("no path found in config data")
 // ConchConfig represents the configuration information for the shell, mostly
 // just a profile list
 type ConchConfig struct {
-	Path     string                   `json:"path"`
-	Profiles map[string]*ConchProfile `json:"profiles"`
+	Path             string                   `json:"path"`
+	SkipVersionCheck bool                     `json:"skip_version_check"`
+	Profiles         map[string]*ConchProfile `json:"profiles"`
 }
 
 // ConchProfile is an individual environment, consisting of login data, API
 // settings, and an optional default workspace
 type ConchProfile struct {
-	Name             string         `json:"name"`
-	User             string         `json:"user"`
-	Session          string         `json:"session,omitempty"`
-	WorkspaceUUID    uuid.UUID      `json:"workspace_id"`
-	WorkspaceName    string         `json:"workspace_name"`
-	BaseURL          string         `json:"api_url"`
-	Active           bool           `json:"active"`
-	JWT              conch.ConchJWT `json:"jwt"`
-	Expires          time.Time      `json:"expires,omitempty"`
-	SkipVersionCheck bool           `json:"skip_version_check"`
+	Name          string         `json:"name"`
+	User          string         `json:"user"`
+	WorkspaceUUID uuid.UUID      `json:"workspace_id"`
+	WorkspaceName string         `json:"workspace_name"`
+	BaseURL       string         `json:"api_url"`
+	Active        bool           `json:"active"`
+	JWT           conch.ConchJWT `json:"jwt"`
+	Expires       time.Time      `json:"expires,omitempty"`
 }
 
 // New provides an initialized struct with default values geared towards a
@@ -52,8 +51,9 @@ type ConchProfile struct {
 // "http://localhost:5001".
 func New() (c *ConchConfig) {
 	c = &ConchConfig{
-		Path:     "~/.conch.json",
-		Profiles: make(map[string]*ConchProfile),
+		Path:             "~/.conch.json",
+		Profiles:         make(map[string]*ConchProfile),
+		SkipVersionCheck: false,
 	}
 
 	return c
@@ -115,16 +115,14 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 			}
 
 			pNew := &ConchProfile{
-				Name:             p.Name,
-				User:             p.User,
-				Session:          p.Session,
-				WorkspaceUUID:    p.WorkspaceUUID,
-				WorkspaceName:    p.WorkspaceName,
-				BaseURL:          p.BaseURL,
-				Active:           p.Active,
-				JWT:              jwt,
-				Expires:          time.Unix(p.Expires, 0),
-				SkipVersionCheck: p.SkipVersionCheck,
+				Name:          p.Name,
+				User:          p.User,
+				WorkspaceUUID: p.WorkspaceUUID,
+				WorkspaceName: p.WorkspaceName,
+				BaseURL:       p.BaseURL,
+				Active:        p.Active,
+				JWT:           jwt,
+				Expires:       time.Unix(p.Expires, 0),
 			}
 			c.Profiles[pNew.Name] = pNew
 		}
