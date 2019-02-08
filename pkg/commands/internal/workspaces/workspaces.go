@@ -183,6 +183,30 @@ func getDevices(app *cli.Cmd) {
 			return
 		}
 
+		if *fullOutput {
+			locs := make(map[uuid.UUID]conch.DeviceLocation)
+
+			dLocs := make([]conch.Device, 0)
+
+			for _, d := range devices {
+				if uuid.Equal(d.RackID, uuid.UUID{}) {
+					continue
+				}
+				if loc, ok := locs[d.RackID]; ok {
+					d.Location = loc
+				} else {
+					if loc, err := util.API.GetDeviceLocation(d.ID); err == nil {
+						loc.TargetHardwareProduct = conch.HardwareProductTarget{}
+						locs[loc.Rack.ID] = loc
+						d.Location = loc
+					}
+				}
+
+				dLocs = append(dLocs, d)
+			}
+			devices = dLocs
+		}
+
 		if err := util.DisplayDevices(devices, *fullOutput); err != nil {
 			util.Bail(err)
 		}
