@@ -7,7 +7,6 @@
 package devices
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -331,11 +330,12 @@ func getReport(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		j, err := json.MarshalIndent(d.LatestReport, "", "  ")
-		if err != nil {
-			util.Bail(err)
+
+		if d.LatestReport == nil {
+			fmt.Println("{}")
+			return
 		}
-		fmt.Println(string(j))
+		util.JSONOutIndent(d.LatestReport)
 	}
 }
 
