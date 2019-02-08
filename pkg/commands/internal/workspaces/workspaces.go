@@ -153,6 +153,7 @@ func getDevices(app *cli.Cmd) {
 		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
 		graduated  = app.StringOpt("graduated", "", "Filter by the 'graduated' field")
 		health     = app.StringOpt("health", "", "Filter by the 'health' field")
+		validated  = app.StringOpt("validated", "", "Filter by the 'validated' field")
 	)
 
 	app.Action = func() {
@@ -161,6 +162,7 @@ func getDevices(app *cli.Cmd) {
 			*idsOnly,
 			*graduated,
 			*health,
+			*validated,
 		)
 		if err != nil {
 			util.Bail(err)

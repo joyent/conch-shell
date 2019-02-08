@@ -54,7 +54,13 @@ func (c *Conch) GetWorkspaceRack(
 // Pass true for 'IDsOnly' to get Devices with only the ID field populated
 // Pass a string for 'graduated' to filter devices by graduated value, as per https://conch.joyent.us/doc#getdevices
 // Pass a string for 'health' to filter devices by health value, as per https://conch.joyent.us/doc#getdevices
-func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, graduated string, health string) ([]Device, error) {
+func (c *Conch) GetWorkspaceDevices(
+	workspaceUUID fmt.Stringer,
+	idsOnly bool,
+	graduated string,
+	health string,
+	validated string,
+) ([]Device, error) {
 
 	devices := make([]Device, 0)
 
@@ -62,10 +68,12 @@ func (c *Conch) GetWorkspaceDevices(workspaceUUID fmt.Stringer, idsOnly bool, gr
 		IDsOnly   bool   `url:"ids_only,omitempty"`
 		Graduated string `url:"graduated,omitempty"`
 		Health    string `url:"health,omitempty"`
+		Validated string `url:"validated,omitempty"`
 	}{
 		idsOnly,
 		graduated,
 		health,
+		validated,
 	}
 
 	url := "/workspace/" + workspaceUUID.String() + "/device"

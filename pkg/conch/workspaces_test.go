@@ -124,15 +124,24 @@ func TestWorkspaceErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/device").
 			Persist().Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetWorkspaceDevices(id, false, "g", "h")
+		ret, err := API.GetWorkspaceDevices(id, false, "g", "h", "T")
 		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.Device{})
 
-		ret, err = API.GetWorkspaceDevices(id, true, "g", "h")
+		ret, err = API.GetWorkspaceDevices(id, true, "g", "h", "T")
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, []conch.Device{})
+
+		ret, err = API.GetWorkspaceDevices(id, true, "g", "h", "T")
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, []conch.Device{})
+
+		ret, err = API.GetWorkspaceDevices(id, true, "g", "h", "F")
 		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.Device{})
 
 		gock.Flush()
+
 	})
 
 	t.Run("GetWorkspaceRacks", func(t *testing.T) {
