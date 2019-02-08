@@ -86,6 +86,8 @@ type Device struct {
 	LatestReportIsInvalid bool               `json:"latest_report_is_invalid"`
 	InvalidReport         string             `json:"invalid_report"`
 	Disks                 []Disk             `json:"disks"`
+	RackUnitStart         int                `json:"rack_unit_start`
+	RackID                uuid.UUID          `json:"rack_id"`
 }
 
 // DeviceDisk ...
