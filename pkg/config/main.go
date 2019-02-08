@@ -37,7 +37,6 @@ type ConchConfig struct {
 type ConchProfile struct {
 	Name             string         `json:"name"`
 	User             string         `json:"user"`
-	Session          string         `json:"session,omitempty"`
 	WorkspaceUUID    uuid.UUID      `json:"workspace_id"`
 	WorkspaceName    string         `json:"workspace_name"`
 	BaseURL          string         `json:"api_url"`
@@ -117,7 +116,6 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 			pNew := &ConchProfile{
 				Name:             p.Name,
 				User:             p.User,
-				Session:          p.Session,
 				WorkspaceUUID:    p.WorkspaceUUID,
 				WorkspaceName:    p.WorkspaceName,
 				BaseURL:          p.BaseURL,
