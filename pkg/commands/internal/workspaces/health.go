@@ -51,6 +51,7 @@ func getHealth(app *cli.Cmd) {
 			true,
 			"",
 			"",
+			"",
 		)
 
 		if err != nil {
