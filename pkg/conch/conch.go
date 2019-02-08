@@ -9,7 +9,7 @@ package conch
 
 const (
 	// MinimumAPIVersion sets the earliest API version that we support.
-	MinimumAPIVersion = "2.22.0"
+	MinimumAPIVersion = "2.23.0"
 )
 
 // GetVersion returns the API's version string, via /version
