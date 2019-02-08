@@ -7,6 +7,7 @@
 package conch
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -189,10 +190,54 @@ type HardwareProduct struct {
 	GenerationName    string          `json:"generation_name"`
 	LegacyProductName string          `json:"legacy_product_name"`
 	SKU               string          `json:"sku"`
-	Specification     string          `json:"specification"`
+	Specification     interface{}     `json:"specification"`
 	Profile           HardwareProfile `json:"hardware_product_profile"`
 	Created           pgtime.PgTime   `json:"created"`
 	Updated           pgtime.PgTime   `json:"updated"`
+}
+
+func (h *HardwareProduct) UnmarshalJSON(data []byte) error {
+	r := struct {
+		ID                uuid.UUID       `json:"id"`
+		Name              string          `json:"name"`
+		Alias             string          `json:"alias"`
+		Prefix            string          `json:"prefix"`
+		HardwareVendorID  uuid.UUID       `json:"hardware_vendor_id"`
+		GenerationName    string          `json:"generation_name"`
+		LegacyProductName string          `json:"legacy_product_name"`
+		SKU               string          `json:"sku"`
+		Specification     string          `json:"specification"`
+		Profile           HardwareProfile `json:"hardware_product_profile"`
+		Created           pgtime.PgTime   `json:"created"`
+		Updated           pgtime.PgTime   `json:"updated"`
+	}{}
+
+	if err := json.Unmarshal(data, &r); err != nil {
+		return err
+	}
+
+	h.ID = r.ID
+	h.Name = r.Name
+	h.Alias = r.Alias
+	h.Prefix = r.Prefix
+	h.HardwareVendorID = r.HardwareVendorID
+	h.GenerationName = r.GenerationName
+	h.LegacyProductName = r.LegacyProductName
+	h.SKU = r.SKU
+	h.Profile = r.Profile
+	h.Created = r.Created
+	h.Updated = r.Updated
+
+	if r.Specification == "" {
+		h.Specification = make(map[string]interface{})
+	} else {
+		var s interface{}
+		if err := json.Unmarshal([]byte(r.Specification), &s); err != nil {
+			return err
+		}
+		h.Specification = s
+	}
+	return nil
 }
 
 // HardwareProductTarget represents the HardwareProduct that a device should
