@@ -276,9 +276,9 @@ type HardwareProfile struct {
 	SataSsdSize  int    `json:"sata_ssd_size"`
 	SataSsdSlots string `json:"sata_ssd_slots"`
 
-	NvmeSsdNum   int `json:"nvme_ssd_num"`
-	NvmeSsdSize  int `json:"nvme_ssd_size"`
-	NvmeSsdSlots int `json:"nvme_ssd_slots"`
+	NvmeSsdNum   int    `json:"nvme_ssd_num"`
+	NvmeSsdSize  int    `json:"nvme_ssd_size"`
+	NvmeSsdSlots string `json:"nvme_ssd_slots"`
 
 	RaidLunNum int                  `json:"raid_lun_num"`
 	TotalPSU   int                  `json:"psu_total"`
