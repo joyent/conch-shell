@@ -66,14 +66,6 @@ ID: {{ .ID }}
         Count: {{ .Profile.NvmeSsdNum }}
         Size:  {{ .Profile.NvmeSsdSize }}
         Slots: {{ .Profile.NvmeSsdSlots }}
-    {{ end }}{{ if ne .Profile.Zpool.ID.String "00000000-0000-0000-0000-000000000000"}}
-    Zpool: {{ .Profile.Zpool.ID }}
-      Cache:     {{ .Profile.Zpool.Cache }}
-      Log:       {{ .Profile.Zpool.Log }}
-      Disks Per: {{ .Profile.Zpool.DisksPer }}
-      Spare:     {{ .Profile.Zpool.Spare }}
-      VDEV N:    {{ .Profile.Zpool.VdevN }}
-      VDEV T:    {{ .Profile.Zpool.VdevT }}
     {{ end }}
 `
 

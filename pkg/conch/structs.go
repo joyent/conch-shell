@@ -279,24 +279,10 @@ type HardwareProfile struct {
 	NvmeSsdNum   int    `json:"nvme_ssd_num,omitempty"`
 	NvmeSsdSize  int    `json:"nvme_ssd_size,omitempty"`
 	NvmeSsdSlots string `json:"nvme_ssd_slots,omitempty"`
-
-	RaidLunNum int                  `json:"raid_lun_num,omitempty"`
-	TotalPSU   int                  `json:"psu_total,omitempty"`
-	TotalRAM   int                  `json:"ram_total"`
-	RackUnit   int                  `json:"rack_unit"`
-	Zpool      HardwareProfileZpool `json:"zpool_profile,omitempty"`
-}
-
-// HardwareProfileZpool represents the layout of the target device's ZFS zpools
-type HardwareProfileZpool struct {
-	ID       uuid.UUID `json:"id"`
-	Name     string    `json:"name"`
-	Cache    int       `json:"cache"`
-	Log      int       `json:"log"`
-	DisksPer int       `json:"disks_per"`
-	Spare    int       `json:"spare"`
-	VdevN    int       `json:"vdev_n"`
-	VdevT    string    `json:"vdev_t"`
+	RaidLunNum   int    `json:"raid_lun_num,omitempty"`
+	TotalPSU     int    `json:"psu_total,omitempty"`
+	TotalRAM     int    `json:"ram_total"`
+	RackUnit     int    `json:"rack_unit"`
 }
 
 // HardwareVendor ...
