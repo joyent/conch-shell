@@ -9,10 +9,55 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"sort"
+	"text/template"
 
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
 )
+
+const userProfile = `
+Name: {{.Name}}
+Email: {{.Email}}
+
+Created: {{.Created.Local}}
+Last Login: {{.LastLogin.Local}}
+{{if len .Workspaces}}
+Workspaces:{{ range .Workspaces }}
+  Name: {{.Name}}
+  Role: {{.Role}}
+  Description: {{.Description}}
+{{end}}{{end}}
+
+`
+
+func getProfile(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+	app.Action = func() {
+		profile, err := util.API.GetUserProfile()
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(profile)
+			return
+		}
+
+		sort.Sort(profile.Workspaces)
+
+		t, err := template.New("profile").Parse(userProfile)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if err := t.Execute(os.Stdout, profile); err != nil {
+			util.Bail(err)
+		}
+
+	}
+}
 
 func getSettings(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin

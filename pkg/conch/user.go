@@ -74,3 +74,7 @@ func (c *Conch) GetAllUsers() ([]UserDetailed, error) {
 	u := make([]UserDetailed, 0)
 	return u, c.get("/user", &u)
 }
+
+func (c *Conch) GetUserProfile() (profile UserProfile, err error) {
+	return profile, c.get("/user/me", &profile)
+}
