@@ -56,31 +56,36 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 		specification = string(j)
 	}
 
+	profile := struct {
+		*HardwareProfile
+		ID          omit `json:"id,omitempty"`
+		Created     omit `json:"created,omitempty"`
+		Updated     omit `json:"updated,omitempty"`
+		Deactivated omit `json:"deactivated,omitempty"`
+	}{HardwareProfile: &h.Profile}
+
 	out := struct {
-		Name              string `json:"name"`
-		Alias             string `json:"alias"`
-		Prefix            string `json:"prefix"`
-		HardwareVendorID  string `json:"hardware_vendor_id"`
-		Specification     string `json:"specification,omitempty"`
-		SKU               string `json:"sku"`
-		GenerationName    string `json:"generation_name"`
-		LegacyProductName string `json:"legacy_product_name"`
+		*HardwareProduct
+		ID            omit        `json:"id,omitempty"`
+		Created       omit        `json:"created,omitempty"`
+		Updated       omit        `json:"updated,omitempty"`
+		Deactivated   omit        `json:"deactivated,omitempty"`
+		Specification string      `json:"specification,omitempty"`
+		Profile       interface{} `json:"hardware_product_profile,omitempty"`
 	}{
-		h.Name,
-		h.Alias,
-		h.Prefix,
-		h.HardwareVendorID.String(),
-		specification,
-		h.SKU,
-		h.GenerationName,
-		h.LegacyProductName,
+		HardwareProduct: h,
+		Specification:   specification,
+		Profile:         profile,
 	}
 
 	if uuid.Equal(h.ID, uuid.UUID{}) {
 		return c.post("/hardware_product", out, &h)
 	} else {
 		return c.post(
-			"/hardware_product/"+h.ID.String(), out, &h)
+			"/hardware_product/"+h.ID.String(),
+			out,
+			&h,
+		)
 	}
 }
 
