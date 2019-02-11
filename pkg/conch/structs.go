@@ -372,6 +372,17 @@ type UserDetailed struct {
 	IsAdmin             bool               `json:"is_admin"`
 }
 
+type UserProfile struct {
+	Created             pgtime.PgTime      `json:"created"`
+	Email               string             `json:"email"`
+	ForcePasswordChange bool               `json:"force_password_change"`
+	ID                  uuid.UUID          `json:"id"`
+	LastLogin           pgtime.PgTime      `json:last_login"`
+	Name                string             `json:"name"`
+	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
+	Workspaces          WorkspacesAndRoles `json:"workspaces"`
+}
+
 // Validation represents device validations loaded into Conch
 type Validation struct {
 	ID          uuid.UUID `json:"id"`
@@ -508,6 +519,20 @@ func (w Workspaces) Less(i, j int) bool {
 type WorkspaceAndRole struct {
 	Workspace
 	RoleVia uuid.UUID `json:"role_via"`
+}
+
+type WorkspacesAndRoles []WorkspaceAndRole
+
+func (w WorkspacesAndRoles) Len() int {
+	return len(w)
+}
+
+func (w WorkspacesAndRoles) Swap(i, j int) {
+	w[i], w[j] = w[j], w[i]
+}
+
+func (w WorkspacesAndRoles) Less(i, j int) bool {
+	return w[i].Name < w[j].Name
 }
 
 // WorkspaceUser ...

@@ -86,4 +86,12 @@ func TestUserErrors(t *testing.T) {
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
+	t.Run("GetUserProfile", func(t *testing.T) {
+		gock.New(API.BaseURL).Get("/user/me").Reply(400).JSON(ErrApi)
+		profile, err := API.GetUserProfile()
+
+		st.Expect(t, profile, conch.UserProfile{})
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
 }

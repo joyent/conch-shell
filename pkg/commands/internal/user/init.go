@@ -28,6 +28,12 @@ func Init(app *cli.Cli) {
 			// Everyone has to do that on their own if they way.
 
 			cmd.Command(
+				"profile",
+				"View your Conch profile",
+				getProfile,
+			)
+
+			cmd.Command(
 				"settings",
 				"Get the settings for the current user",
 				getSettings,
