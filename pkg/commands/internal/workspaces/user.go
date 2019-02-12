@@ -15,6 +15,8 @@ func addUser(app *cli.Cmd) {
 	)
 
 	app.Spec = "EMAIL [OPTIONS]"
+	app.LongDesc = `In Days Gone By, one could create a new user while adding them to a workspace.
+Those days are behind us. New users must now be created via the 'admin user' interface.`
 
 	app.Action = func() {
 		var role string
