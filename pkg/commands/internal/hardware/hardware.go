@@ -40,7 +40,7 @@ ID: {{ .ID }}
     NIC Count: {{ .Profile.NumNics }}
     PSU Total: {{ .Profile.TotalPSU }}{{ if .Profile.NumUSB }}
     USB Count: {{ .Profile.NumUSB }}{{ end }}
-		Raid LUN Count {{ .Profile.RaidLunNum }}
+      Raid LUN Count {{ .Profile.RaidLunNum }}
 
     DIMM Count: {{ .Profile.NumDimms }}
     RAM Total:  {{ .Profile.TotalRAM }} GB
