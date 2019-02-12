@@ -7,15 +7,17 @@
 package hardware
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"text/template"
+
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"io/ioutil"
-	"os"
-	"text/template"
 )
 
 const singleHWPTemplate = `
@@ -40,7 +42,7 @@ ID: {{ .ID }}
     NIC Count: {{ .Profile.NumNics }}
     PSU Total: {{ .Profile.TotalPSU }}{{ if .Profile.NumUSB }}
     USB Count: {{ .Profile.NumUSB }}{{ end }}
-		Raid LUN Count {{ .Profile.RaidLunNum }}
+      Raid LUN Count {{ .Profile.RaidLunNum }}
 
     DIMM Count: {{ .Profile.NumDimms }}
     RAM Total:  {{ .Profile.TotalRAM }} GB
@@ -66,16 +68,68 @@ ID: {{ .ID }}
         Count: {{ .Profile.NvmeSsdNum }}
         Size:  {{ .Profile.NvmeSsdSize }}
         Slots: {{ .Profile.NvmeSsdSlots }}
-    {{ end }}{{ if ne .Profile.Zpool.ID.String "00000000-0000-0000-0000-000000000000"}}
-    Zpool: {{ .Profile.Zpool.ID }}
-      Cache:     {{ .Profile.Zpool.Cache }}
-      Log:       {{ .Profile.Zpool.Log }}
-      Disks Per: {{ .Profile.Zpool.DisksPer }}
-      Spare:     {{ .Profile.Zpool.Spare }}
-      VDEV N:    {{ .Profile.Zpool.VdevN }}
-      VDEV T:    {{ .Profile.Zpool.VdevT }}
     {{ end }}
 `
+
+func generateDumpableProduct(p conch.HardwareProduct) interface{} {
+	// This is all to unhide empty fields marked 'omitempty' in the main
+	// struct
+	profile := p.Profile
+	dumpProfile := struct {
+		*conch.HardwareProfile
+		HbaFirmware  string `json:"hba_firmware"`
+		NvmeSsdNum   int    `json:"nvme_ssd_num"`
+		NvmeSsdSize  int    `json:"nvme_ssd_size"`
+		NvmeSsdSlots string `json:"nvme_ssd_slots"`
+		RaidLunNum   int    `json:"raid_lun_num"`
+		SataHddNum   int    `json:"sata_hdd_num"`
+		SataHddSize  int    `json:"sata_hdd_size"`
+		SataHddSlots string `json:"sata_hdd_slots"`
+		SataSsdNum   int    `json:"sata_ssd_num"`
+		SataSsdSize  int    `json:"sata_ssd_size"`
+		SataSsdSlots string `json:"sata_ssd_slots"`
+		TotalPSU     int    `json:"psu_total"`
+
+		ID bool `json:"id,omitempty"`
+	}{
+		HardwareProfile: &profile,
+		HbaFirmware:     profile.HbaFirmware,
+		NvmeSsdNum:      profile.NvmeSsdNum,
+		NvmeSsdSize:     profile.NvmeSsdSize,
+		NvmeSsdSlots:    profile.NvmeSsdSlots,
+		RaidLunNum:      profile.RaidLunNum,
+		SataHddNum:      profile.SataHddNum,
+		SataHddSize:     profile.SataHddSize,
+		SataHddSlots:    profile.SataHddSlots,
+		SataSsdNum:      profile.SataSsdNum,
+		SataSsdSize:     profile.SataSsdSize,
+		SataSsdSlots:    profile.SataSsdSlots,
+		TotalPSU:        profile.TotalPSU,
+	}
+
+	dumpStruct := struct {
+		*conch.HardwareProduct
+		Prefix            string      `json:"prefix"`
+		GenerationName    string      `json:"generation_name"`
+		LegacyProductName string      `json:"legacy_product_name"`
+		SKU               string      `json:"sku"`
+		Profile           interface{} `json:"hardware_product_profile"`
+
+		Specification bool `json:"specification,omitempty"`
+		Created       bool `json:"created,omitempty"`
+		Updated       bool `json:"updated,omitempty"`
+		ID            bool `json:"id,omitempty"`
+	}{
+		HardwareProduct:   &p,
+		Prefix:            p.Prefix,
+		GenerationName:    p.GenerationName,
+		LegacyProductName: p.LegacyProductName,
+		SKU:               p.SKU,
+		Profile:           dumpProfile,
+	}
+
+	return dumpStruct
+}
 
 func getOne(app *cli.Cmd) {
 	app.Action = func() {
@@ -374,5 +428,170 @@ func updateOne(app *cli.Cmd) {
 			util.JSONOut(ret)
 			return
 		}
+	}
+}
+
+func dumpTemplate(cmd *cli.Cmd) {
+	// My kingdom for comments in JSON
+
+	cmd.LongDesc = `This is a JSON template for a hardware product, including its hardware profile.
+It is used in creating a new hardware product and profile. If you need to update a product and profile, see "conch hardware product :id import".
+
+The specification field of the hardware product is explicitly not supported here since dedicated commands exist to deal with those.
+
+JSON does not allow comments so the following is an example with the required fields marked clearly.
+
+{
+     "name": "",  # REQUIRED
+     "alias": "", # REQUIRED
+     "hardware_vendor_id": "00000000-0000-0000-0000-000000000000", # REQUIRED - see "conch hardware vendors"
+     "prefix": "",
+     "generation_name": "",
+     "legacy_product_name": "",
+     "sku": "",
+     "hardware_product_profile": {
+          "bios_firmware": "", # REQUIRED
+          "cpu_type": "",      # REQUIRED
+          "cpu_num": 0,        # REQUIRED
+          "dimms_num": 0,      # REQUIRED
+          "nics_num": 0,       # REQUIRED
+          "usb_num": 0,        # REQUIRED
+          "purpose": "",       # REQUIRED
+          "ram_total": 0,      # REQUIRED
+          "rack_unit": 0,      # REQUIRED
+          "sas_hdd_num": 0,
+          "sas_hdd_size": 0,
+          "sas_hdd_slots": "",
+          "hba_firmware": "",
+          "nvme_ssd_num": 0,
+          "nvme_ssd_size": 0,
+          "nvme_ssd_slots": "",
+          "raid_lun_num": 0,
+          "sata_hdd_num": 0,
+          "sata_hdd_size": 0,
+          "sata_hdd_slots": "",
+          "sata_ssd_num": 0,
+          "sata_ssd_size": 0,
+          "sata_ssd_slots": "",
+          "psu_total": 0
+     }
+}
+
+`
+	cmd.Action = func() {
+		util.JSONOutIndent(generateDumpableProduct(conch.HardwareProduct{}))
+	}
+}
+
+func verifyHardwareProduct(p conch.HardwareProduct) {
+	if p.Name == "" {
+		util.Bail(errors.New("'name' field is required"))
+	}
+
+	if p.Alias == "" {
+		util.Bail(errors.New("'alias' field is required"))
+	}
+
+	if uuid.Equal(p.HardwareVendorID, uuid.UUID{}) {
+		util.Bail(errors.New("'hardware_vendor_id' field is required"))
+	}
+
+}
+
+func importNewProductJson(app *cli.Cmd) {
+	var (
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the data source. '-' indicates STDIN")
+	)
+	app.Spec = "FILE"
+	app.Action = func() {
+		var b []byte
+		var err error
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+		if len(string(b)) <= 1 {
+			util.Bail(errors.New("no data provided"))
+		}
+
+		p := conch.HardwareProduct{}
+
+		if err := json.Unmarshal(b, &p); err != nil {
+			util.Bail(err)
+		}
+
+		verifyHardwareProduct(p)
+
+		if err := util.API.SaveHardwareProduct(&p); err != nil {
+			util.Bail(err)
+		}
+
+		ret, err := util.API.GetHardwareProduct(p.ID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.JSONOutIndent(ret)
+
+	}
+}
+
+func importChangedProductJson(app *cli.Cmd) {
+	var (
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the data source. '-' indicates STDIN")
+	)
+	app.Spec = "FILE"
+	app.Action = func() {
+
+		p, err := util.API.GetHardwareProduct(ProductUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		var b []byte
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+		if len(string(b)) <= 1 {
+			util.Bail(errors.New("no data provided"))
+		}
+
+		id := p.ID
+		if err := json.Unmarshal(b, &p); err != nil {
+			util.Bail(err)
+		}
+		p.ID = id
+
+		verifyHardwareProduct(p)
+
+		if err := util.API.SaveHardwareProduct(&p); err != nil {
+			util.Bail(err)
+		}
+
+		ret, err := util.API.GetHardwareProduct(p.ID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.JSONOutIndent(generateDumpableProduct(ret))
+
+	}
+}
+func exportProductJson(cmd *cli.Cmd) {
+	cmd.Action = func() {
+		p, err := util.API.GetHardwareProduct(ProductUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		util.JSONOutIndent(generateDumpableProduct(p))
 	}
 }

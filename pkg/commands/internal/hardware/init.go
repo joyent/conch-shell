@@ -50,6 +50,17 @@ func Init(app *cli.Cli) {
 						createOne,
 					)
 
+					cmd.Command(
+						"template",
+						"Dumping a JSON template for a hardware product. Used in creating a new product and profile",
+						dumpTemplate,
+					)
+
+					cmd.Command(
+						"import",
+						"Import a JSON file that defines a new hardware product",
+						importNewProductJson,
+					)
 				},
 			)
 
@@ -89,6 +100,18 @@ func Init(app *cli.Cli) {
 						"update up",
 						"Update a hardware product",
 						updateOne,
+					)
+
+					cmd.Command(
+						"export",
+						"Dump the JSON representation of a hardware product and profile. Intended for use with 'import'",
+						exportProductJson,
+					)
+
+					cmd.Command(
+						"import",
+						"Update an existing hardware product and profile using a JSON file",
+						importChangedProductJson,
 					)
 
 				},

@@ -187,11 +187,11 @@ type HardwareProduct struct {
 	ID                uuid.UUID       `json:"id"`
 	Name              string          `json:"name"`
 	Alias             string          `json:"alias"`
-	Prefix            string          `json:"prefix"`
+	Prefix            string          `json:"prefix,omitempty"`
 	HardwareVendorID  uuid.UUID       `json:"hardware_vendor_id"`
-	GenerationName    string          `json:"generation_name"`
-	LegacyProductName string          `json:"legacy_product_name"`
-	SKU               string          `json:"sku"`
+	GenerationName    string          `json:"generation_name,omitempty"`
+	LegacyProductName string          `json:"legacy_product_name,omitempty"`
+	SKU               string          `json:"sku,omitempty"`
 	Specification     interface{}     `json:"specification"`
 	Profile           HardwareProfile `json:"hardware_product_profile"`
 	Created           pgtime.PgTime   `json:"created"`
@@ -257,46 +257,32 @@ type HardwareProfile struct {
 	ID           uuid.UUID `json:"id"`
 	BiosFirmware string    `json:"bios_firmware"`
 	CPUType      string    `json:"cpu_type"`
-	HbaFirmware  string    `json:"hba_firmware"`
+	HbaFirmware  string    `json:"hba_firmware,omitempty"`
 	NumCPU       int       `json:"cpu_num"`
 	NumDimms     int       `json:"dimms_num"`
 	NumNics      int       `json:"nics_num"`
 	NumUSB       int       `json:"usb_num"`
 	Purpose      string    `json:"purpose"`
 
-	SasHddNum   int    `json:"sas_hdd_num"`
-	SasHddSize  int    `json:"sas_hdd_size"`
-	SasHddSlots string `json:"sas_hdd_slots"`
+	SasHddNum   int    `json:"sas_hdd_num,omitempty"`
+	SasHddSize  int    `json:"sas_hdd_size,omitempty"`
+	SasHddSlots string `json:"sas_hdd_slots,omitempty"`
 
-	SataHddNum   int    `json:"sata_hdd_num"`
-	SataHddSize  int    `json:"sata_hdd_size"`
-	SataHddSlots string `json:"sata_hdd_slots"`
+	SataHddNum   int    `json:"sata_hdd_num,omitempty"`
+	SataHddSize  int    `json:"sata_hdd_size,omitempty"`
+	SataHddSlots string `json:"sata_hdd_slots,omitempty"`
 
-	SataSsdNum   int    `json:"sata_ssd_num"`
-	SataSsdSize  int    `json:"sata_ssd_size"`
-	SataSsdSlots string `json:"sata_ssd_slots"`
+	SataSsdNum   int    `json:"sata_ssd_num,omitempty"`
+	SataSsdSize  int    `json:"sata_ssd_size,omitempty"`
+	SataSsdSlots string `json:"sata_ssd_slots,omitempty"`
 
-	NvmeSsdNum   int `json:"nvme_ssd_num"`
-	NvmeSsdSize  int `json:"nvme_ssd_size"`
-	NvmeSsdSlots int `json:"nvme_ssd_slots"`
-
-	RaidLunNum int                  `json:"raid_lun_num"`
-	TotalPSU   int                  `json:"psu_total"`
-	TotalRAM   int                  `json:"ram_total"`
-	RackUnit   int                  `json:"rack_unit"`
-	Zpool      HardwareProfileZpool `json:"zpool"`
-}
-
-// HardwareProfileZpool represents the layout of the target device's ZFS zpools
-type HardwareProfileZpool struct {
-	ID       uuid.UUID `json:"id"`
-	Name     string    `json:"name"`
-	Cache    int       `json:"cache"`
-	Log      int       `json:"log"`
-	DisksPer int       `json:"disks_per"`
-	Spare    int       `json:"spare"`
-	VdevN    int       `json:"vdev_n"`
-	VdevT    string    `json:"vdev_t"`
+	NvmeSsdNum   int    `json:"nvme_ssd_num,omitempty"`
+	NvmeSsdSize  int    `json:"nvme_ssd_size,omitempty"`
+	NvmeSsdSlots string `json:"nvme_ssd_slots,omitempty"`
+	RaidLunNum   int    `json:"raid_lun_num,omitempty"`
+	TotalPSU     int    `json:"psu_total,omitempty"`
+	TotalRAM     int    `json:"ram_total"`
+	RackUnit     int    `json:"rack_unit"`
 }
 
 // HardwareVendor ...
