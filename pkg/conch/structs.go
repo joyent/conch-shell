@@ -264,9 +264,9 @@ type HardwareProfile struct {
 	NumUSB       int       `json:"usb_num"`
 	Purpose      string    `json:"purpose"`
 
-	SasHddNum   int    `json:"sas_hdd_num"`
-	SasHddSize  int    `json:"sas_hdd_size"`
-	SasHddSlots string `json:"sas_hdd_slots"`
+	SasHddNum   int    `json:"sas_hdd_num,omitempty"`
+	SasHddSize  int    `json:"sas_hdd_size,omitempty"`
+	SasHddSlots string `json:"sas_hdd_slots,omitempty"`
 
 	SataHddNum   int    `json:"sata_hdd_num,omitempty"`
 	SataHddSize  int    `json:"sata_hdd_size,omitempty"`
