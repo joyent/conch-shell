@@ -7,6 +7,7 @@ package relay
 
 import (
 	"errors"
+	"regexp"
 	"sort"
 	"strconv"
 
@@ -97,28 +98,44 @@ func (s sortRelaysByUpdated) Less(i, j int) bool {
 
 func findRelaysByName(app *cli.Cmd) {
 	var (
-		relays = app.StringsArg("RELAYS", nil, "List of relay names")
+		relays = app.StringsArg("RELAYS", nil, "List of regular expressions to match against relay IDs")
+		andOpt = app.BoolOpt("and", false, "Match the list as a logical AND")
 	)
 
-	app.Spec = "RELAYS..."
+	app.Spec = "[OPTIONS] RELAYS..."
+	app.LongDesc = `
+Takes a list of regular expressions and matches those against the IDs of all known relays.
+
+The default behavior is to match as a logical OR but this behavior can be changed by providing the --and flag
+
+For instance:
+
+* "conch relay find drd" will find all relays with 'drd' in their ID. For perl folks, this is essentially 'm/drd/'
+* "conch relay find '^ams-'" will find all relays with IDs that begin with 'ams-'
+* "conch relay find drd '^ams-' will find all relays with IDs that contain 'drd' OR begin with 'ams-'
+* "conch relay find --and drd '^ams-' will find all relays with IDs that contain 'drd' AND begin with '^ams-'`
 
 	app.Action = func() {
 		if *relays == nil {
-			util.Bail(errors.New("please provide a list of relay names"))
+			util.Bail(errors.New("please provide a list of regular expressions"))
 		}
 
 		// If a user for some strange reason gives us a relay name of "", the
 		// cli lib will pass it on to us. That name is obviously useless so
 		// let's filter it out.
-		relayNames := make([]string, 0)
-		for _, name := range *relays {
-			if name == "" {
+		relayREs := make([]*regexp.Regexp, 0)
+		for _, matcher := range *relays {
+			if matcher == "" {
 				continue
 			}
-			relayNames = append(relayNames, name)
+			re, err := regexp.Compile(matcher)
+			if err != nil {
+				util.Bail(err)
+			}
+			relayREs = append(relayREs, re)
 		}
-		if len(relayNames) == 0 {
-			util.Bail(errors.New("please provide a list of relay names"))
+		if len(relayREs) == 0 {
+			util.Bail(errors.New("please provide a list of regular expressions"))
 		}
 
 		relays, err := util.API.GetAllRelays()
@@ -128,10 +145,20 @@ func findRelaysByName(app *cli.Cmd) {
 
 		keepers := make(sortRelaysByUpdated, 0)
 		for _, relay := range relays {
-			for _, name := range relayNames {
-				if relay.ID == name {
+			matched := 0
+			for _, re := range relayREs {
+				if re.MatchString(relay.ID) {
+					if *andOpt {
+						matched++
+					} else {
+						keepers = append(keepers, relay)
+						continue
+					}
+				}
+			}
+			if *andOpt {
+				if matched == len(relayREs) {
 					keepers = append(keepers, relay)
-					continue
 				}
 			}
 		}
