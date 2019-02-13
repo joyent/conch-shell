@@ -515,3 +515,25 @@ func searchByTag(app *cli.Cmd) {
 		outputDevices(devices, *idsOnly, *fullOutput)
 	}
 }
+
+func searchByHostname(app *cli.Cmd) {
+	var (
+		valueOpt = app.StringArg("HOSTNAME", "", "Hostname")
+
+		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
+		fullOutput = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
+	)
+
+	app.Spec = "HOSTNAME [OPTIONS]"
+
+	app.Action = func() {
+		devices, err := util.API.GetDevicesByField(
+			"hostname",
+			*valueOpt,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
+		outputDevices(devices, *idsOnly, *fullOutput)
+	}
+}

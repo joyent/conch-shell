@@ -7,8 +7,10 @@
 package conch
 
 import (
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"fmt"
 	"sort"
+
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 // GetDevice returns a Device given a specific serial/id
@@ -203,4 +205,9 @@ func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
 	}
 
 	return j["ipaddr"], nil
+}
+
+func (c *Conch) GetDevicesByField(key string, value string) (d Devices, err error) {
+	url := fmt.Sprintf("/device?%s=%s", key, value)
+	return d, c.get(url, &d)
 }

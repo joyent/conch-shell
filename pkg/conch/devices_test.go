@@ -100,4 +100,15 @@ func TestDevices(t *testing.T) {
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
+	t.Run("GetDevicesByField", func(t *testing.T) {
+		var d conch.Devices
+
+		gock.New(API.BaseURL).Get("/device").MatchParam("hostname", "bar").
+			Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetDevicesByField("hostname", "bar")
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, d)
+	})
+
 }
