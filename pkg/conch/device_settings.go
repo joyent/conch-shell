@@ -161,7 +161,6 @@ func (c *Conch) DeleteDeviceTag(deviceID string, key string) error {
 
 func (c *Conch) GetDevicesBySetting(key string, value string) (d Devices, err error) {
 	url := fmt.Sprintf("/device?%s=%s", key, value)
-	fmt.Println(url)
 	return d, c.get(url, &d)
 }
 
