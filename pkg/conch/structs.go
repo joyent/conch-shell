@@ -90,6 +90,20 @@ type Device struct {
 	RackID                uuid.UUID          `json:"rack_id"`
 }
 
+type Devices []Device
+
+func (d Devices) Len() int {
+	return len(d)
+}
+
+func (d Devices) Swap(i, j int) {
+	d[i], d[j] = d[j], d[i]
+}
+
+func (d Devices) Less(i, j int) bool {
+	return d[i].ID < d[j].ID
+}
+
 // DeviceDisk ...
 type Disk struct {
 	ID           uuid.UUID     `json:"id"`

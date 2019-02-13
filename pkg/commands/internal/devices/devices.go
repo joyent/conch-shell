@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -418,5 +419,99 @@ func deleteTag(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
+	}
+}
+
+func outputDevices(devices conch.Devices, idsOnly bool, fullOutput bool) {
+	sort.Sort(devices)
+
+	if idsOnly {
+		ids := make([]string, 0)
+		if util.JSON {
+			for _, d := range devices {
+				ids = append(ids, d.ID)
+			}
+			util.JSONOut(ids)
+			return
+		}
+		for _, d := range devices {
+			fmt.Println(d.ID)
+		}
+		return
+	}
+
+	if fullOutput {
+		locs := make(map[uuid.UUID]conch.DeviceLocation)
+
+		dLocs := make([]conch.Device, 0)
+
+		for _, d := range devices {
+			if uuid.Equal(d.RackID, uuid.UUID{}) {
+				continue
+			}
+			if loc, ok := locs[d.RackID]; ok {
+				d.Location = loc
+			} else {
+				if loc, err := util.API.GetDeviceLocation(d.ID); err == nil {
+					loc.TargetHardwareProduct = conch.HardwareProductTarget{}
+					locs[loc.Rack.ID] = loc
+					d.Location = loc
+				}
+			}
+
+			dLocs = append(dLocs, d)
+		}
+		devices = dLocs
+	}
+
+	if err := util.DisplayDevices(devices, fullOutput); err != nil {
+		util.Bail(err)
+	}
+
+}
+
+func searchBySetting(app *cli.Cmd) {
+	var (
+		keyOpt   = app.StringArg("KEY", "", "Setting name")
+		valueOpt = app.StringArg("VALUE", "", "Setting Value")
+
+		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
+		fullOutput = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
+	)
+
+	app.Spec = "KEY VALUE [OPTIONS]"
+
+	app.Action = func() {
+		devices, err := util.API.GetDevicesBySetting(
+			*keyOpt,
+			*valueOpt,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
+		outputDevices(devices, *idsOnly, *fullOutput)
+	}
+}
+
+func searchByTag(app *cli.Cmd) {
+	var (
+		keyOpt   = app.StringArg("KEY", "", "Setting name")
+		valueOpt = app.StringArg("VALUE", "", "Setting Value")
+
+		idsOnly    = app.BoolOpt("ids-only", false, "Only retrieve device IDs")
+		fullOutput = app.BoolOpt("full", false, "When --ids-only is *not* used, provide additional data about the devices rather than normal truncated data. Note: this slows things down immensely")
+	)
+
+	app.Spec = "KEY VALUE [OPTIONS]"
+
+	app.Action = func() {
+		devices, err := util.API.GetDevicesByTag(
+			*keyOpt,
+			*valueOpt,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
+		outputDevices(devices, *idsOnly, *fullOutput)
 	}
 }

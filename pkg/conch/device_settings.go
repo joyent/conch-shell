@@ -7,6 +7,7 @@
 package conch
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -156,4 +157,15 @@ func (c *Conch) DeleteDeviceTag(deviceID string, key string) error {
 	}
 
 	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
+}
+
+func (c *Conch) GetDevicesBySetting(key string, value string) (d Devices, err error) {
+	url := fmt.Sprintf("/device?%s=%s", key, value)
+	fmt.Println(url)
+	return d, c.get(url, &d)
+}
+
+func (c *Conch) GetDevicesByTag(key string, value string) (Devices, error) {
+	return c.GetDevicesBySetting("tag."+key, value)
+
 }

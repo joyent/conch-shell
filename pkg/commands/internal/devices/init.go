@@ -25,6 +25,32 @@ var DeviceTagName string
 // Init loads up all the device related commands
 func Init(app *cli.Cli) {
 	app.Command(
+		"devices ds",
+		"Commands for dealing with multiple devices",
+		func(cmd *cli.Cmd) {
+			cmd.Before = util.BuildAPIAndVerifyLogin
+
+			cmd.Command(
+				"search s",
+				"Search for devices",
+				func(cmd *cli.Cmd) {
+					cmd.Command(
+						"setting",
+						"Search for devices by exact setting value",
+						searchBySetting,
+					)
+					cmd.Command(
+						"tag",
+						"Search for devices by exact tag value",
+						searchByTag,
+					)
+
+				},
+			)
+		},
+	)
+
+	app.Command(
 		"device d",
 		"Commands for dealing with a single device",
 		func(cmd *cli.Cmd) {
