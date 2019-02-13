@@ -6,6 +6,7 @@
 package relay
 
 import (
+	"errors"
 	"sort"
 	"strconv"
 
@@ -92,4 +93,78 @@ func (s sortRelaysByUpdated) Swap(i, j int) {
 
 func (s sortRelaysByUpdated) Less(i, j int) bool {
 	return s[i].Updated.Before(s[j].Updated.Time)
+}
+
+func findRelaysByName(app *cli.Cmd) {
+	var (
+		relays = app.StringsArg("RELAYS", nil, "List of relay names")
+	)
+
+	app.Spec = "RELAYS..."
+
+	app.Action = func() {
+		if *relays == nil {
+			util.Bail(errors.New("please provide a list of relay names"))
+		}
+
+		// If a user for some strange reason gives us a relay name of "", the
+		// cli lib will pass it on to us. That name is obviously useless so
+		// let's filter it out.
+		relayNames := make([]string, 0)
+		for _, name := range *relays {
+			if name == "" {
+				continue
+			}
+			relayNames = append(relayNames, name)
+		}
+		if len(relayNames) == 0 {
+			util.Bail(errors.New("please provide a list of relay names"))
+		}
+
+		relays, err := util.API.GetAllRelays()
+		if err != nil {
+			util.Bail(err)
+		}
+
+		keepers := make(sortRelaysByUpdated, 0)
+		for _, relay := range relays {
+			for _, name := range relayNames {
+				if relay.ID == name {
+					keepers = append(keepers, relay)
+					continue
+				}
+			}
+		}
+		sort.Sort(keepers)
+
+		if util.JSON {
+			util.JSONOut(keepers)
+			return
+		}
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"ID",
+			"Alias",
+			"IP Addr",
+			"SSH Port",
+			"Version",
+			"Created",
+			"Updated",
+		})
+
+		for _, r := range keepers {
+			table.Append([]string{
+				r.ID,
+				r.Alias,
+				r.IPAddr,
+				strconv.Itoa(r.SSHPort),
+				r.Version,
+				util.TimeStr(r.Created.Time),
+				util.TimeStr(r.Updated.Time),
+			})
+		}
+
+		table.Render()
+	}
 }

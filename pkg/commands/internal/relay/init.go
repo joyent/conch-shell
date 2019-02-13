@@ -42,7 +42,21 @@ func Init(app *cli.Cli) {
 	)
 	app.Command(
 		"relays rs",
-		"See a list of all known relays",
-		getAllRelays,
+		"Commands for dealing with all relays",
+		func(cmd *cli.Cmd) {
+			cmd.Before = util.BuildAPIAndVerifyLogin
+
+			cmd.Command(
+				"get",
+				"Get a list of all relays",
+				getAllRelays,
+			)
+
+			cmd.Command(
+				"find",
+				"Find relays by name",
+				findRelaysByName,
+			)
+		},
 	)
 }
