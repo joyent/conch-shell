@@ -9,6 +9,7 @@ package conch_test
 import (
 	"testing"
 
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
 )
@@ -107,6 +108,28 @@ func TestDeviceSettingsErrors(t *testing.T) {
 
 		err := API.DeleteDeviceTag(serial, key)
 		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("GetDevicesBySetting", func(t *testing.T) {
+		var d conch.Devices
+
+		gock.New(API.BaseURL).Get("/device").MatchParam("foo", "bar").
+			Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetDevicesBySetting("foo", "bar")
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, d)
+	})
+
+	t.Run("GetDevicesByTag", func(t *testing.T) {
+		var d conch.Devices
+
+		gock.New(API.BaseURL).Get("/device").MatchParam("tag.foo", "bar").
+			Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetDevicesByTag("foo", "bar")
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, d)
 	})
 
 }
