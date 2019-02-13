@@ -1,11 +1,14 @@
 package workspaces
 
 import (
+	"errors"
 	"fmt"
+	"net/mail"
+
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
 	uuid "gopkg.in/satori/go.uuid.v1"
-	"net/mail"
 )
 
 func addUser(app *cli.Cmd) {
@@ -15,6 +18,8 @@ func addUser(app *cli.Cmd) {
 	)
 
 	app.Spec = "EMAIL [OPTIONS]"
+	app.LongDesc = `In Days Gone By, one could create a new user while adding them to a workspace.
+Those days are behind us. New users must now be created via the 'admin user' interface.`
 
 	app.Action = func() {
 		var role string
@@ -58,6 +63,10 @@ func addUser(app *cli.Cmd) {
 			email,
 			role,
 		)
+
+		if err == conch.ErrDataNotFound {
+			util.Bail(errors.New("data not found. Likely, the user does not exist. See --help for next steps"))
+		}
 
 		if err != nil {
 			util.Bail(err)
