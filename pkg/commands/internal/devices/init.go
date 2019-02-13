@@ -39,10 +39,17 @@ func Init(app *cli.Cli) {
 						"Search for devices by exact setting value",
 						searchBySetting,
 					)
+
 					cmd.Command(
 						"tag",
 						"Search for devices by exact tag value",
 						searchByTag,
+					)
+
+					cmd.Command(
+						"hostname",
+						"Search for devices by exact hostname",
+						searchByHostname,
 					)
 
 				},
