@@ -537,3 +537,83 @@ func searchByHostname(app *cli.Cmd) {
 		outputDevices(devices, *idsOnly, *fullOutput)
 	}
 }
+
+const validationsTemplate = `
+{{ range . }}
+- {{ .Plan.Name }}
+  Description: {{ .Plan.Description }}
+  Status: {{ .Status }}
+  Results: {{ range .BetterResults }}
+    - {{ .Validation.Name }}
+      Status: {{ .Status }}
+      Category: {{ .Category }}{{- if len .ComponentID }}
+      ComponentID: {{ .ComponentID }}{{ end }}
+      Message: {{ .Message }}
+{{ end }}{{ end }}
+`
+
+func getValidationStates(app *cli.Cmd) {
+
+	app.Action = func() {
+		validationStates, err := util.API.DeviceValidationStates(DeviceSerial)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOutIndent(validationStates)
+			return
+		}
+
+		type validationResult struct {
+			conch.ValidationResult
+			Validation conch.Validation
+		}
+
+		type resultState struct {
+			conch.ValidationState
+			BetterResults []validationResult
+			Plan          conch.ValidationPlan
+		}
+
+		results := make([]resultState, 0)
+
+		for _, state := range validationStates {
+			plan, err := util.API.GetValidationPlan(state.ValidationPlanID)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			betterResults := make([]validationResult, 0)
+
+			for _, result := range state.Results {
+				validation, err := util.API.GetValidation(result.ValidationID)
+				if err != nil {
+					util.Bail(err)
+				}
+
+				betterResults = append(betterResults, validationResult{
+					result,
+					validation,
+				})
+			}
+
+			results = append(results, resultState{
+				state,
+				betterResults,
+				plan,
+			})
+
+		}
+
+		t, err := template.New("validations").Parse(validationsTemplate)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if err := t.Execute(os.Stdout, results); err != nil {
+			util.Bail(err)
+		}
+
+	}
+}

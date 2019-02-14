@@ -157,6 +157,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"validations",
+				"Show the results of the latest validation runs for this device",
+				getValidationStates,
+			)
+
+			cmd.Command(
 				"report",
 				"Get the latest recorded device report as JSON",
 				getReport,
