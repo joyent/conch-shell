@@ -287,6 +287,8 @@ func (b slotByRackUnitStart) Less(i, j int) bool {
 }
 
 func getRack(app *cli.Cmd) {
+	app.LongDesc = "The validation status in this command does *not* correspond to the 'validated' properly of a device. Rather, the app retrieves the real validation status."
+
 	app.Action = func() {
 		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, RackUUID)
 		if err != nil {
@@ -325,6 +327,7 @@ Rack ID:   %s
 		table.SetHeader([]string{
 			"RU",
 			"Occupied",
+			"Validated",
 			"Name",
 			"Alias",
 			"Vendor",
@@ -334,6 +337,7 @@ Rack ID:   %s
 
 		for _, slot := range rack.Slots {
 			occupied := "X"
+			validated := "?"
 
 			occupantID := ""
 			occupantHealth := ""
@@ -342,11 +346,26 @@ Rack ID:   %s
 				occupied = "+"
 				occupantID = slot.Occupant.ID
 				occupantHealth = slot.Occupant.Health
+
+				vstates, err := util.API.DeviceValidationStates(slot.Occupant.ID)
+				if err != nil {
+					util.Bail(err)
+				}
+
+				if len(vstates) > 0 {
+					validated = "+"
+					for _, vstate := range vstates {
+						if vstate.Status != "pass" {
+							validated = "X"
+						}
+					}
+				}
 			}
 
 			table.Append([]string{
 				strconv.Itoa(slot.RackUnitStart),
 				occupied,
+				validated,
 				slot.Name,
 				slot.Alias,
 				slot.Vendor,
