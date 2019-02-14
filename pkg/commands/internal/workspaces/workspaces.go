@@ -298,14 +298,19 @@ func getRack(app *cli.Cmd) {
 			return
 		}
 
+		workspace, err := util.API.GetWorkspace(WorkspaceUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
 		fmt.Printf(`
 Workspace: %s
-Rack ID:   %s
 Name: %s
 Role: %s
 Datacenter: %s
+Rack ID:   %s
 `,
-			WorkspaceUUID.String(),
+			workspace.Name,
 			RackUUID.String(),
 			rack.Name,
 			rack.Role,
