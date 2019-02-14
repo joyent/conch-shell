@@ -287,10 +287,6 @@ func (b slotByRackUnitStart) Less(i, j int) bool {
 }
 
 func getRack(app *cli.Cmd) {
-	var (
-		slotDetail = app.BoolOpt("slots", false, "Show details about each rack slot")
-	)
-
 	app.Action = func() {
 		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, RackUUID)
 		if err != nil {
@@ -316,47 +312,45 @@ Datacenter: %s
 			rack.Datacenter,
 		)
 
-		if *slotDetail {
-			fmt.Println()
+		fmt.Println()
 
-			sort.Sort(slotByRackUnitStart(rack.Slots))
+		sort.Sort(slotByRackUnitStart(rack.Slots))
 
-			table := util.GetMarkdownTable()
-			table.SetHeader([]string{
-				"RU",
-				"Occupied",
-				"Name",
-				"Alias",
-				"Vendor",
-				"Occupied By",
-				"Health",
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"RU",
+			"Occupied",
+			"Name",
+			"Alias",
+			"Vendor",
+			"Occupied By",
+			"Health",
+		})
+
+		for _, slot := range rack.Slots {
+			occupied := "X"
+
+			occupantID := ""
+			occupantHealth := ""
+
+			if slot.Occupant.ID != "" {
+				occupied = "+"
+				occupantID = slot.Occupant.ID
+				occupantHealth = slot.Occupant.Health
+			}
+
+			table.Append([]string{
+				strconv.Itoa(slot.RackUnitStart),
+				occupied,
+				slot.Name,
+				slot.Alias,
+				slot.Vendor,
+				occupantID,
+				occupantHealth,
 			})
 
-			for _, slot := range rack.Slots {
-				occupied := "X"
-
-				occupantID := ""
-				occupantHealth := ""
-
-				if slot.Occupant.ID != "" {
-					occupied = "+"
-					occupantID = slot.Occupant.ID
-					occupantHealth = slot.Occupant.Health
-				}
-
-				table.Append([]string{
-					strconv.Itoa(slot.RackUnitStart),
-					occupied,
-					slot.Name,
-					slot.Alias,
-					slot.Vendor,
-					occupantID,
-					occupantHealth,
-				})
-
-			}
-			table.Render()
 		}
+		table.Render()
 	}
 }
 
