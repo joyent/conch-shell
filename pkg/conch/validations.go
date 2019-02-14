@@ -17,6 +17,9 @@ func (c *Conch) GetValidations() ([]Validation, error) {
 	validations := make([]Validation, 0)
 	return validations, c.get("/validation", &validations)
 }
+func (c *Conch) GetValidation(id fmt.Stringer) (v Validation, err error) {
+	return v, c.get("/validation/"+id.String(), &v)
+}
 
 // GetValidationPlans returns the contents of /validation_plan, getting the
 // list of all validations plans loaded in the system
