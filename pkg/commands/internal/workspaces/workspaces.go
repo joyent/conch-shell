@@ -7,7 +7,11 @@
 package workspaces
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -18,6 +22,27 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
+
+type rackAssignedSlot struct {
+	RackUnitStart       int    `json:"ru_start"`
+	HardwareProductName string `json:"hardware_product_name"`
+	DeviceID            string `json:"device_id"`
+}
+
+type rackAssignments []rackAssignedSlot
+
+func (r rackAssignments) Len() int {
+	return len(r)
+}
+func (r rackAssignments) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r rackAssignments) Less(i, j int) bool {
+	return r[i].RackUnitStart > r[j].RackUnitStart
+}
+
+/******/
 
 func getAll(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
@@ -509,5 +534,92 @@ func deleteRack(app *cli.Cmd) {
 		if err := util.API.DeleteRackFromWorkspace(WorkspaceUUID, RackUUID); err != nil {
 			util.Bail(err)
 		}
+	}
+}
+
+func assignRack(app *cli.Cmd) {
+	var (
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the data source. '-' indicates STDIN")
+	)
+	app.Spec = "FILE"
+	app.Action = func() {
+		var b []byte
+		var err error
+
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+		if len(string(b)) <= 1 {
+			util.Bail(errors.New("no data provided"))
+		}
+
+		a := make(rackAssignments, 0)
+		if err := json.Unmarshal(b, &a); err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(a)
+
+		keepers := make(rackAssignments, 0)
+		for _, slot := range a {
+			if slot.DeviceID != "" {
+				keepers = append(keepers, slot)
+			}
+		}
+
+		if len(keepers) == 0 {
+			util.Bail(errors.New("no devices found. no changes to make"))
+		}
+
+		assignments := make(conch.WorkspaceRackLayoutAssignments)
+
+		for _, keeper := range keepers {
+			assignments[keeper.DeviceID] = keeper.RackUnitStart
+		}
+
+		if err := util.API.AssignDevicesToRackSlots(
+			WorkspaceUUID,
+			RackUUID,
+			assignments,
+		); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func assignmentsRack(app *cli.Cmd) {
+	app.Action = func() {
+		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, RackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		if (len(rack.Slots) == 1) && (rack.Slots[0].RackUnitStart == 0) {
+			util.Bail(errors.New("rack has no layout"))
+		}
+
+		a := make(rackAssignments, 0)
+		for _, slot := range rack.Slots {
+			if slot.Occupant.ID == "" {
+				a = append(a, rackAssignedSlot{
+					RackUnitStart:       slot.RackUnitStart,
+					HardwareProductName: slot.Name,
+				})
+				continue
+			}
+
+			a = append(a, rackAssignedSlot{
+				RackUnitStart:       slot.RackUnitStart,
+				HardwareProductName: slot.Name,
+				DeviceID:            slot.Occupant.ID,
+			})
+		}
+
+		sort.Sort(a)
+
+		util.JSONOutIndent(a)
 	}
 }

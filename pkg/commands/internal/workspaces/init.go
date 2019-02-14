@@ -103,6 +103,18 @@ func Init(app *cli.Cli) {
 					cmd.Spec = "ID"
 
 					cmd.Command(
+						"assign",
+						"Assign devices to slots in this rack using JSON artifacts",
+						assignRack,
+					)
+
+					cmd.Command(
+						"assignments",
+						"Dump a JSON extract of the devices assigned to this rack's slots. Intended for use with 'assign'",
+						assignmentsRack,
+					)
+
+					cmd.Command(
 						"get",
 						"Get details about a single rack in a workspace",
 						getRack,
