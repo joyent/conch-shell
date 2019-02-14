@@ -281,18 +281,27 @@ func rackExportLayout(cmd *cli.Cmd) {
 		}
 
 		var output importLayout
-
-		for _, l := range existingLayout {
-			hw, err := util.API.GetHardwareProduct(l.ProductID)
-			if err != nil {
-				util.Bail(err)
-			}
+		if len(existingLayout) == 0 {
 			output = append(output, importLayoutSlot{
-				RUStart:      l.RUStart,
-				ProductID:    hw.ID,
-				ProductName:  hw.Name,
-				ProductAlias: hw.Alias,
+				RUStart:      0,
+				ProductID:    uuid.UUID{},
+				ProductName:  "Product Name",
+				ProductAlias: "Product Alias",
 			})
+		} else {
+
+			for _, l := range existingLayout {
+				hw, err := util.API.GetHardwareProduct(l.ProductID)
+				if err != nil {
+					util.Bail(err)
+				}
+				output = append(output, importLayoutSlot{
+					RUStart:      l.RUStart,
+					ProductID:    hw.ID,
+					ProductName:  hw.Name,
+					ProductAlias: hw.Alias,
+				})
+			}
 		}
 
 		util.JSONOutIndent(output)

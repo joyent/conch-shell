@@ -198,3 +198,15 @@ func (c *Conch) AddUserToWorkspace(workspaceUUID fmt.Stringer, user string, role
 func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string) error {
 	return c.httpDelete("/workspace/" + workspaceUUID.String() + "/user/email=" + email)
 }
+
+func (c *Conch) AssignDevicesToRackSlots(
+	workspaceID fmt.Stringer,
+	rackID fmt.Stringer,
+	assignments WorkspaceRackLayoutAssignments,
+) error {
+	return c.post(
+		"/workspace/"+workspaceID.String()+"/rack/"+rackID.String()+"/layout",
+		assignments,
+		nil,
+	)
+}

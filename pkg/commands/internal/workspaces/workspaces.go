@@ -7,7 +7,11 @@
 package workspaces
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -18,6 +22,27 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
+
+type rackAssignedSlot struct {
+	RackUnitStart       int    `json:"ru_start"`
+	HardwareProductName string `json:"hardware_product_name"`
+	DeviceID            string `json:"device_id"`
+}
+
+type rackAssignments []rackAssignedSlot
+
+func (r rackAssignments) Len() int {
+	return len(r)
+}
+func (r rackAssignments) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r rackAssignments) Less(i, j int) bool {
+	return r[i].RackUnitStart > r[j].RackUnitStart
+}
+
+/******/
 
 func getAll(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
@@ -262,9 +287,7 @@ func (b slotByRackUnitStart) Less(i, j int) bool {
 }
 
 func getRack(app *cli.Cmd) {
-	var (
-		slotDetail = app.BoolOpt("slots", false, "Show details about each rack slot")
-	)
+	app.LongDesc = "The validation status in this command does *not* correspond to the 'validated' properly of a device. Rather, the app retrieves the real validation status."
 
 	app.Action = func() {
 		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, RackUUID)
@@ -277,61 +300,81 @@ func getRack(app *cli.Cmd) {
 			return
 		}
 
+		workspace, err := util.API.GetWorkspace(WorkspaceUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
 		fmt.Printf(`
 Workspace: %s
-Rack ID:   %s
 Name: %s
 Role: %s
 Datacenter: %s
+Rack ID:   %s
 `,
-			WorkspaceUUID.String(),
+			workspace.Name,
 			RackUUID.String(),
 			rack.Name,
 			rack.Role,
 			rack.Datacenter,
 		)
 
-		if *slotDetail {
-			fmt.Println()
+		fmt.Println()
 
-			sort.Sort(slotByRackUnitStart(rack.Slots))
+		sort.Sort(slotByRackUnitStart(rack.Slots))
 
-			table := util.GetMarkdownTable()
-			table.SetHeader([]string{
-				"RU",
-				"Occupied",
-				"Name",
-				"Alias",
-				"Vendor",
-				"Occupied By",
-				"Health",
-			})
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{
+			"RU",
+			"Occupied",
+			"Validated",
+			"Name",
+			"Alias",
+			"Vendor",
+			"Occupied By",
+			"Health",
+		})
 
-			for _, slot := range rack.Slots {
-				occupied := "X"
+		for _, slot := range rack.Slots {
+			occupied := "X"
+			validated := "?"
 
-				occupantID := ""
-				occupantHealth := ""
+			occupantID := ""
+			occupantHealth := ""
 
-				if slot.Occupant.ID != "" {
-					occupied = "+"
-					occupantID = slot.Occupant.ID
-					occupantHealth = slot.Occupant.Health
+			if slot.Occupant.ID != "" {
+				occupied = "+"
+				occupantID = slot.Occupant.ID
+				occupantHealth = slot.Occupant.Health
+
+				vstates, err := util.API.DeviceValidationStates(slot.Occupant.ID)
+				if err != nil {
+					util.Bail(err)
 				}
 
-				table.Append([]string{
-					strconv.Itoa(slot.RackUnitStart),
-					occupied,
-					slot.Name,
-					slot.Alias,
-					slot.Vendor,
-					occupantID,
-					occupantHealth,
-				})
-
+				if len(vstates) > 0 {
+					validated = "+"
+					for _, vstate := range vstates {
+						if vstate.Status != "pass" {
+							validated = "X"
+						}
+					}
+				}
 			}
-			table.Render()
+
+			table.Append([]string{
+				strconv.Itoa(slot.RackUnitStart),
+				occupied,
+				validated,
+				slot.Name,
+				slot.Alias,
+				slot.Vendor,
+				occupantID,
+				occupantHealth,
+			})
+
 		}
+		table.Render()
 	}
 }
 
@@ -509,5 +552,92 @@ func deleteRack(app *cli.Cmd) {
 		if err := util.API.DeleteRackFromWorkspace(WorkspaceUUID, RackUUID); err != nil {
 			util.Bail(err)
 		}
+	}
+}
+
+func assignRack(app *cli.Cmd) {
+	var (
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the data source. '-' indicates STDIN")
+	)
+	app.Spec = "FILE"
+	app.Action = func() {
+		var b []byte
+		var err error
+
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+		if len(string(b)) <= 1 {
+			util.Bail(errors.New("no data provided"))
+		}
+
+		a := make(rackAssignments, 0)
+		if err := json.Unmarshal(b, &a); err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(a)
+
+		keepers := make(rackAssignments, 0)
+		for _, slot := range a {
+			if slot.DeviceID != "" {
+				keepers = append(keepers, slot)
+			}
+		}
+
+		if len(keepers) == 0 {
+			util.Bail(errors.New("no devices found. no changes to make"))
+		}
+
+		assignments := make(conch.WorkspaceRackLayoutAssignments)
+
+		for _, keeper := range keepers {
+			assignments[keeper.DeviceID] = keeper.RackUnitStart
+		}
+
+		if err := util.API.AssignDevicesToRackSlots(
+			WorkspaceUUID,
+			RackUUID,
+			assignments,
+		); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func assignmentsRack(app *cli.Cmd) {
+	app.Action = func() {
+		rack, err := util.API.GetWorkspaceRack(WorkspaceUUID, RackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		if (len(rack.Slots) == 1) && (rack.Slots[0].RackUnitStart == 0) {
+			util.Bail(errors.New("rack has no layout"))
+		}
+
+		a := make(rackAssignments, 0)
+		for _, slot := range rack.Slots {
+			if slot.Occupant.ID == "" {
+				a = append(a, rackAssignedSlot{
+					RackUnitStart:       slot.RackUnitStart,
+					HardwareProductName: slot.Name,
+				})
+				continue
+			}
+
+			a = append(a, rackAssignedSlot{
+				RackUnitStart:       slot.RackUnitStart,
+				HardwareProductName: slot.Name,
+				DeviceID:            slot.Occupant.ID,
+			})
+		}
+
+		sort.Sort(a)
+
+		util.JSONOutIndent(a)
 	}
 }
