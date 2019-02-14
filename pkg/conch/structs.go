@@ -540,3 +540,11 @@ type WorkspaceUser struct {
 	User
 	RoleVia uuid.UUID `json:"role_via,omitempty"`
 }
+
+/* This is a piece of fun from /workspace/:id/rack/:id/layout
+The payload looks like:
+{ "my-device-id": 47 }
+
+Where '47' is the rack unit start for the device
+*/
+type WorkspaceRackLayoutAssignments map[string]int
