@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/cookiejar"
+	"strings"
 	"time"
 
 	"github.com/joyent/conch-shell/pkg/pgtime"
@@ -372,6 +373,19 @@ type User struct {
 	RoleVia uuid.UUID `json:"role_via,omitempty"`
 }
 
+type Users []User
+
+func (u Users) Len() int {
+	return len(u)
+}
+func (u Users) Swap(i, j int) {
+	u[i], u[j] = u[j], u[i]
+}
+
+func (u Users) Less(i, j int) bool {
+	return strings.ToLower(u[i].Name) < strings.ToLower(u[j].Name)
+}
+
 // UserDetailed ...
 type UserDetailed struct {
 	ID                  uuid.UUID          `json:"id"`
@@ -383,6 +397,19 @@ type UserDetailed struct {
 	ForcePasswordChange bool               `json:"force_password_change"`
 	Workspaces          []WorkspaceAndRole `json:"workspaces,omitempty"`
 	IsAdmin             bool               `json:"is_admin"`
+}
+
+type UsersDetailed []UserDetailed
+
+func (u UsersDetailed) Len() int {
+	return len(u)
+}
+func (u UsersDetailed) Swap(i, j int) {
+	u[i], u[j] = u[j], u[i]
+}
+
+func (u UsersDetailed) Less(i, j int) bool {
+	return strings.ToLower(u[i].Name) < strings.ToLower(u[j].Name)
 }
 
 type UserProfile struct {

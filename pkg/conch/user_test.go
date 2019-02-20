@@ -82,7 +82,7 @@ func TestUserErrors(t *testing.T) {
 	t.Run("GetAllUsers", func(t *testing.T) {
 		gock.New(API.BaseURL).Get("/user").Reply(400).JSON(ErrApi)
 		users, err := API.GetAllUsers()
-		st.Expect(t, users, make([]conch.UserDetailed, 0))
+		st.Expect(t, users, make(conch.UsersDetailed, 0))
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
