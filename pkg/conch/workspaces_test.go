@@ -126,19 +126,19 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspaceDevices(id, false, "g", "h", "T")
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Device{})
+		st.Expect(t, ret, conch.Devices{})
 
 		ret, err = API.GetWorkspaceDevices(id, true, "g", "h", "T")
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Device{})
+		st.Expect(t, ret, conch.Devices{})
 
 		ret, err = API.GetWorkspaceDevices(id, true, "g", "h", "T")
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Device{})
+		st.Expect(t, ret, conch.Devices{})
 
 		ret, err = API.GetWorkspaceDevices(id, true, "g", "h", "F")
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Device{})
+		st.Expect(t, ret, conch.Devices{})
 
 		gock.Flush()
 
