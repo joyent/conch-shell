@@ -320,15 +320,15 @@ type Nic struct {
 
 // Rack represents a physical rack
 type Rack struct {
-	ID           uuid.UUID  `json:"id"`
-	Name         string     `json:"name"`
-	Role         string     `json:"role"`
-	Unit         int        `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
-	Size         int        `json:"size"`
-	Datacenter   string     `json:"datacenter"`
-	Slots        []RackSlot `json:"slots,omitempty"`
-	SerialNumber string     `json:"serial_number"`
-	AssetTag     string     `json:"asset_tag"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Role         string    `json:"role"`
+	Unit         int       `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
+	Size         int       `json:"size"`
+	Datacenter   string    `json:"datacenter"`
+	Slots        RackSlots `json:"slots,omitempty"`
+	SerialNumber string    `json:"serial_number"`
+	AssetTag     string    `json:"asset_tag"`
 }
 
 // RackSlot represents a physical slot in a physical Rack
@@ -340,6 +340,19 @@ type RackSlot struct {
 	Vendor        string    `json:"vendor"`
 	Occupant      Device    `json:"occupant"`
 	RackUnitStart int       `json:"rack_unit_start"`
+}
+
+type RackSlots []RackSlot
+
+func (r RackSlots) Len() int {
+	return len(r)
+}
+func (r RackSlots) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r RackSlots) Less(i, j int) bool {
+	return r[i].RackUnitStart > r[j].RackUnitStart
 }
 
 // Room represents a physical area in a datacenter/AZ
