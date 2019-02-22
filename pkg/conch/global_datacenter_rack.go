@@ -64,7 +64,7 @@ func (c *Conch) DeleteGlobalRack(id fmt.Stringer) error {
 }
 
 // GetGlobalRackLayout fetches the layout entries for a rack in the global domain
-func (c *Conch) GetGlobalRackLayout(r GlobalRack) ([]GlobalRackLayoutSlot, error) {
+func (c *Conch) GetGlobalRackLayout(r GlobalRack) (GlobalRackLayoutSlots, error) {
 	rs := make([]GlobalRackLayoutSlot, 0)
 	return rs, c.get("/rack/"+r.ID.String()+"/layouts", &rs)
 }

@@ -177,6 +177,19 @@ type GlobalRackLayoutSlot struct {
 	RUStart   int       `json:"ru_start"`
 }
 
+type GlobalRackLayoutSlots []GlobalRackLayoutSlot
+
+func (g GlobalRackLayoutSlots) Len() int {
+	return len(g)
+}
+func (g GlobalRackLayoutSlots) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
+
+func (g GlobalRackLayoutSlots) Less(i, j int) bool {
+	return g[i].RUStart > g[j].RUStart
+}
+
 // GlobalRackRole represents a rack role in the global domain
 type GlobalRackRole struct {
 	ID       uuid.UUID `json:"id"`

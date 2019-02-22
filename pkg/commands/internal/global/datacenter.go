@@ -274,7 +274,7 @@ func dcAllTheThingsTree(app *cli.Cmd) {
 					util.Bail(err)
 				}
 
-				sort.Sort(byRUStart(ls))
+				sort.Sort(ls)
 				for _, layout := range ls {
 					var hw conch.HardwareProduct
 

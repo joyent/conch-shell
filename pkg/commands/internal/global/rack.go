@@ -203,19 +203,6 @@ func rackDelete(app *cli.Cmd) {
 	}
 }
 
-type byRUStart []conch.GlobalRackLayoutSlot
-
-func (b byRUStart) Len() int {
-	return len(b)
-}
-func (b byRUStart) Swap(i, j int) {
-	b[i], b[j] = b[j], b[i]
-}
-
-func (b byRUStart) Less(i, j int) bool {
-	return b[i].RUStart > b[j].RUStart
-}
-
 func rackLayout(app *cli.Cmd) {
 	app.Action = func() {
 		r, err := util.API.GetGlobalRack(GRackUUID)
@@ -240,7 +227,7 @@ func rackLayout(app *cli.Cmd) {
 			"RU Start",
 		})
 
-		sort.Sort(byRUStart(rs))
+		sort.Sort(rs)
 
 		for _, r := range rs {
 			prod, err := util.API.GetHardwareProduct(r.ProductID)

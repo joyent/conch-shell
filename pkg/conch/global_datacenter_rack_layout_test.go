@@ -24,7 +24,7 @@ func TestGlobalRackLayoutSlotErrors(t *testing.T) {
 
 		ret, err := API.GetGlobalRackLayoutSlots()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalRackLayoutSlot{})
+		st.Expect(t, ret, conch.GlobalRackLayoutSlots{})
 	})
 
 	t.Run("GetGlobalRackLayoutSlot", func(t *testing.T) {
