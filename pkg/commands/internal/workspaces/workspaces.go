@@ -275,19 +275,6 @@ func getRacks(app *cli.Cmd) {
 	}
 }
 
-type slotByRackUnitStart []conch.RackSlot
-
-func (b slotByRackUnitStart) Len() int {
-	return len(b)
-}
-func (b slotByRackUnitStart) Swap(i, j int) {
-	b[i], b[j] = b[j], b[i]
-}
-
-func (b slotByRackUnitStart) Less(i, j int) bool {
-	return b[i].RackUnitStart > b[j].RackUnitStart
-}
-
 func getRack(app *cli.Cmd) {
 	app.LongDesc = "The validation status in this command does *not* correspond to the 'validated' properly of a device. Rather, the app retrieves the real validation status."
 
@@ -323,7 +310,7 @@ Rack ID:   %s
 
 		fmt.Println()
 
-		sort.Sort(slotByRackUnitStart(rack.Slots))
+		sort.Sort(rack.Slots)
 
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{
