@@ -295,17 +295,18 @@ func getRack(app *cli.Cmd) {
 		}
 
 		fmt.Printf(`
-Workspace: %s
+Workspace:  %s
+Datacenter: %s
+
 Name: %s
 Role: %s
-Datacenter: %s
-Rack ID:   %s
+Rack ID: %s
 `,
 			workspace.Name,
-			RackUUID.String(),
+			rack.Datacenter,
 			rack.Name,
 			rack.Role,
-			rack.Datacenter,
+			rack.ID,
 		)
 
 		fmt.Println()
