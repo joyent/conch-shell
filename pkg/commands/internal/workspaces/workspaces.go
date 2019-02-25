@@ -193,6 +193,8 @@ func getDevices(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
+		sort.Sort(devices)
+
 		if *idsOnly {
 			ids := make([]string, 0)
 			if util.JSON {
