@@ -14,41 +14,7 @@ import (
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
-	"strconv"
 )
-
-func layoutGetAll(app *cli.Cmd) {
-	app.Action = func() {
-		rs, err := util.API.GetGlobalRackLayoutSlots()
-		if err != nil {
-			util.Bail(err)
-		}
-
-		if util.JSON {
-			util.JSONOut(rs)
-			return
-		}
-		table := util.GetMarkdownTable()
-		table.SetHeader([]string{
-			"ID",
-			"Rack ID",
-			"Product ID",
-			"RU Start",
-		})
-
-		for _, r := range rs {
-			table.Append([]string{
-				r.ID.String(),
-				r.RackID.String(),
-				r.ProductID.String(),
-				strconv.Itoa(r.RUStart),
-			})
-		}
-
-		table.Render()
-	}
-
-}
 
 func layoutGet(app *cli.Cmd) {
 	app.Action = func() {

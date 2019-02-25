@@ -300,11 +300,6 @@ func Init(app *cli.Cli) {
 				"layouts ls",
 				"Operate on all rack layouts",
 				func(rs *cli.Cmd) {
-					rs.Command(
-						"get",
-						"Get all layouts",
-						layoutGetAll,
-					)
 
 					rs.Command(
 						"create",
