@@ -12,7 +12,7 @@ import (
 )
 
 // GetGlobalRackLayoutSlots fetches a list of all rack layouts in the global domain
-func (c *Conch) GetGlobalRackLayoutSlots() ([]GlobalRackLayoutSlot, error) {
+func (c *Conch) GetGlobalRackLayoutSlots() (GlobalRackLayoutSlots, error) {
 	r := make([]GlobalRackLayoutSlot, 0)
 	return r, c.get("/layout", &r)
 }

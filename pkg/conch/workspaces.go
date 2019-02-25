@@ -60,7 +60,7 @@ func (c *Conch) GetWorkspaceDevices(
 	graduated string,
 	health string,
 	validated string,
-) ([]Device, error) {
+) (Devices, error) {
 
 	devices := make([]Device, 0)
 

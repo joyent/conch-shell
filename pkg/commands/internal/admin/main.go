@@ -8,6 +8,7 @@ package admin
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
@@ -23,6 +24,8 @@ func listAllUsers(app *cli.Cmd) {
 			util.JSONOut(users)
 			return
 		}
+
+		sort.Sort(users)
 
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{

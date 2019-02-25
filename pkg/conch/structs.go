@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/cookiejar"
+	"strings"
 	"time"
 
 	"github.com/joyent/conch-shell/pkg/pgtime"
@@ -176,6 +177,19 @@ type GlobalRackLayoutSlot struct {
 	RUStart   int       `json:"ru_start"`
 }
 
+type GlobalRackLayoutSlots []GlobalRackLayoutSlot
+
+func (g GlobalRackLayoutSlots) Len() int {
+	return len(g)
+}
+func (g GlobalRackLayoutSlots) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
+
+func (g GlobalRackLayoutSlots) Less(i, j int) bool {
+	return g[i].RUStart > g[j].RUStart
+}
+
 // GlobalRackRole represents a rack role in the global domain
 type GlobalRackRole struct {
 	ID       uuid.UUID `json:"id"`
@@ -320,15 +334,15 @@ type Nic struct {
 
 // Rack represents a physical rack
 type Rack struct {
-	ID           uuid.UUID  `json:"id"`
-	Name         string     `json:"name"`
-	Role         string     `json:"role"`
-	Unit         int        `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
-	Size         int        `json:"size"`
-	Datacenter   string     `json:"datacenter"`
-	Slots        []RackSlot `json:"slots,omitempty"`
-	SerialNumber string     `json:"serial_number"`
-	AssetTag     string     `json:"asset_tag"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Role         string    `json:"role"`
+	Unit         int       `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
+	Size         int       `json:"size"`
+	Datacenter   string    `json:"datacenter"`
+	Slots        RackSlots `json:"slots,omitempty"`
+	SerialNumber string    `json:"serial_number"`
+	AssetTag     string    `json:"asset_tag"`
 }
 
 // RackSlot represents a physical slot in a physical Rack
@@ -340,6 +354,19 @@ type RackSlot struct {
 	Vendor        string    `json:"vendor"`
 	Occupant      Device    `json:"occupant"`
 	RackUnitStart int       `json:"rack_unit_start"`
+}
+
+type RackSlots []RackSlot
+
+func (r RackSlots) Len() int {
+	return len(r)
+}
+func (r RackSlots) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r RackSlots) Less(i, j int) bool {
+	return r[i].RackUnitStart > r[j].RackUnitStart
 }
 
 // Room represents a physical area in a datacenter/AZ
@@ -359,6 +386,19 @@ type User struct {
 	RoleVia uuid.UUID `json:"role_via,omitempty"`
 }
 
+type Users []User
+
+func (u Users) Len() int {
+	return len(u)
+}
+func (u Users) Swap(i, j int) {
+	u[i], u[j] = u[j], u[i]
+}
+
+func (u Users) Less(i, j int) bool {
+	return strings.ToLower(u[i].Name) < strings.ToLower(u[j].Name)
+}
+
 // UserDetailed ...
 type UserDetailed struct {
 	ID                  uuid.UUID          `json:"id"`
@@ -370,6 +410,19 @@ type UserDetailed struct {
 	ForcePasswordChange bool               `json:"force_password_change"`
 	Workspaces          []WorkspaceAndRole `json:"workspaces,omitempty"`
 	IsAdmin             bool               `json:"is_admin"`
+}
+
+type UsersDetailed []UserDetailed
+
+func (u UsersDetailed) Len() int {
+	return len(u)
+}
+func (u UsersDetailed) Swap(i, j int) {
+	u[i], u[j] = u[j], u[i]
+}
+
+func (u UsersDetailed) Less(i, j int) bool {
+	return strings.ToLower(u[i].Name) < strings.ToLower(u[j].Name)
 }
 
 type UserProfile struct {

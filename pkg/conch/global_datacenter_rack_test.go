@@ -88,7 +88,7 @@ func TestGlobalRackErrors(t *testing.T) {
 
 		ret, err := API.GetGlobalRackLayout(r)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalRackLayoutSlot{})
+		st.Expect(t, ret, conch.GlobalRackLayoutSlots{})
 	})
 
 }

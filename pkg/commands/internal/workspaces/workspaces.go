@@ -193,6 +193,8 @@ func getDevices(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
+		sort.Sort(devices)
+
 		if *idsOnly {
 			ids := make([]string, 0)
 			if util.JSON {
@@ -273,19 +275,6 @@ func getRacks(app *cli.Cmd) {
 	}
 }
 
-type slotByRackUnitStart []conch.RackSlot
-
-func (b slotByRackUnitStart) Len() int {
-	return len(b)
-}
-func (b slotByRackUnitStart) Swap(i, j int) {
-	b[i], b[j] = b[j], b[i]
-}
-
-func (b slotByRackUnitStart) Less(i, j int) bool {
-	return b[i].RackUnitStart > b[j].RackUnitStart
-}
-
 func getRack(app *cli.Cmd) {
 	app.LongDesc = "The validation status in this command does *not* correspond to the 'validated' properly of a device. Rather, the app retrieves the real validation status."
 
@@ -306,22 +295,23 @@ func getRack(app *cli.Cmd) {
 		}
 
 		fmt.Printf(`
-Workspace: %s
+Workspace:  %s
+Datacenter: %s
+
 Name: %s
 Role: %s
-Datacenter: %s
-Rack ID:   %s
+Rack ID: %s
 `,
 			workspace.Name,
-			RackUUID.String(),
+			rack.Datacenter,
 			rack.Name,
 			rack.Role,
-			rack.Datacenter,
+			rack.ID,
 		)
 
 		fmt.Println()
 
-		sort.Sort(slotByRackUnitStart(rack.Slots))
+		sort.Sort(rack.Slots)
 
 		table := util.GetMarkdownTable()
 		table.SetHeader([]string{

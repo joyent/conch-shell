@@ -70,8 +70,8 @@ func (c *Conch) ResetUserPassword(email string) error {
 
 // GetAllUsers retrieves a list of all users, if the user has the right
 // permissions, in the system. Returns UserDetailed structs
-func (c *Conch) GetAllUsers() ([]UserDetailed, error) {
-	u := make([]UserDetailed, 0)
+func (c *Conch) GetAllUsers() (UsersDetailed, error) {
+	u := make(UsersDetailed, 0)
 	return u, c.get("/user", &u)
 }
 
