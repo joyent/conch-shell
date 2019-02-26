@@ -73,7 +73,7 @@ Those days are behind us. New users must now be created via the 'admin user' int
 		}
 
 		if !util.JSON {
-			fmt.Println("User " + email + "has been added to workspace " + WorkspaceUUID.String() + " and they have been informed via email")
+			fmt.Println("User " + email + " has been added to workspace " + WorkspaceUUID.String() + " and they have been informed via email")
 		}
 	}
 }
