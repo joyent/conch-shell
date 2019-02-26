@@ -6,6 +6,12 @@
 
 package conch
 
+import (
+	"fmt"
+
+	uuid "gopkg.in/satori/go.uuid.v1"
+)
+
 // GetUserSettings returns the results of /user/me/settings
 // The return is a map[string]interface{} because the database structure is a
 // string name and a jsonb data field.  There is no way for this library to
@@ -84,4 +90,41 @@ func (c *Conch) GetAllUsers() (UsersDetailed, error) {
 
 func (c *Conch) GetUserProfile() (profile UserProfile, err error) {
 	return profile, c.get("/user/me", &profile)
+}
+
+func (c *Conch) GetUser(id uuid.UUID) (user UserDetailed, err error) {
+	return user, c.get("/user/"+id.String(), &user)
+}
+
+func (c *Conch) GetUserByEmail(email string) (user UserDetailed, err error) {
+	return user, c.get("/user/email="+email, &user)
+}
+
+// UpdateUser updates properties of a user. No workspace permissions are
+// changed.
+// The 'userID' argument is required
+// The 'email' argument is optional
+// The 'name' argument is optional
+// The 'isAdmin' argument sets the user to be an admin. Defaults to false.
+func (c *Conch) UpdateUser(
+	userID uuid.UUID,
+	email string,
+	name string,
+	isAdmin bool,
+) error {
+	if uuid.Equal(userID, uuid.UUID{}) {
+		return ErrBadInput
+	}
+
+	u := struct {
+		Email   string `json:"email,omitempty"`
+		Name    string `json:"name,omitempty"`
+		IsAdmin bool   `json:"is_admin"`
+	}{email, name, isAdmin}
+
+	return c.post(
+		fmt.Sprintf("/user/%s", userID.String()),
+		u,
+		nil,
+	)
 }
