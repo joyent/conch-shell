@@ -8,9 +8,10 @@
 package admin
 
 import (
+	"net/mail"
+
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
-	"net/mail"
 )
 
 // UserEmail contains the email address of the user being operated on in
@@ -44,8 +45,6 @@ func Init(app *cli.Cli) {
 
 					cmd.Spec = "USER"
 
-					// BUG(sungo): When conch api 2.17 goes to production, we
-					// can verify that the user exists. joyent/conch#341
 					cmd.Before = func() {
 						address, err := mail.ParseAddress(*userIDStr)
 						if err != nil {
@@ -53,6 +52,12 @@ func Init(app *cli.Cli) {
 						}
 						UserEmail = address.Address
 					}
+
+					cmd.Command(
+						"get",
+						"Get the basic info about a user",
+						getUser,
+					)
 
 					cmd.Command(
 						"revoke",
@@ -76,6 +81,24 @@ func Init(app *cli.Cli) {
 						"reset",
 						"Reset the password for the user",
 						resetUserPassword,
+					)
+
+					cmd.Command(
+						"update",
+						"Update properties of the user",
+						updateUser,
+					)
+
+					cmd.Command(
+						"promote",
+						"Promote the user to system admin",
+						promoteUser,
+					)
+
+					cmd.Command(
+						"demote",
+						"Demote the user to a regular user",
+						demoteUser,
 					)
 
 				},

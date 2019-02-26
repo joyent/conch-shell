@@ -408,7 +408,7 @@ type UserDetailed struct {
 	LastLogin           pgtime.PgTime      `json:"last_login"`
 	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
 	ForcePasswordChange bool               `json:"force_password_change"`
-	Workspaces          []WorkspaceAndRole `json:"workspaces,omitempty"`
+	Workspaces          WorkspacesAndRoles `json:"workspaces,omitempty"`
 	IsAdmin             bool               `json:"is_admin"`
 }
 
