@@ -106,6 +106,13 @@ func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (w Workspace, e error) 
 	return w, c.get("/workspace/"+workspaceUUID.String(), &w)
 }
 
+// GetWorkspaceByName returns the contents of /workspace/:name, getting
+// information about a single workspace
+func (c *Conch) GetWorkspaceByName(name string) (w Workspace, e error) {
+
+	return w, c.get("/workspace/"+name, &w)
+}
+
 // GetSubWorkspaces returns the contents of /workspace/:uuid/child, getting
 // a list of subworkspaces for the given workspace id
 func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) (Workspaces, error) {
