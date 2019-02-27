@@ -7,6 +7,8 @@
 package update
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/blang/semver"
 	"github.com/jawher/mow.cli"
@@ -65,47 +68,103 @@ func selfUpdate(cmd *cli.Cmd) {
 		sem := semver.MustParse(util.Version)
 		if !*force {
 			if gh.SemVer.LTE(sem) {
-				fmt.Println("Already at the latest release")
-				return
+				util.Bail(fmt.Errorf(
+					"no upgrade required. We are at version %s which is better than %s",
+					sem,
+					gh.SemVer,
+				))
 			}
 		}
-		fmt.Printf(
-			"=> Attempting to upgrade from %s to %s...\n",
-			sem,
-			gh.SemVer,
-		)
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"Attempting to upgrade from %s to %s...\n",
+				sem,
+				gh.SemVer,
+			)
 
-		fmt.Printf("===> Detected OS to be '%s' and arch to be '%s'\n", runtime.GOOS, runtime.GOARCH)
+			fmt.Fprintf(
+				os.Stderr,
+				"Detected OS to be '%s' and arch to be '%s'\n",
+				runtime.GOOS,
+				runtime.GOARCH,
+			)
+		}
+
+		// What platform are we on?
 		lookingFor := fmt.Sprintf("conch-%s-%s", runtime.GOOS, runtime.GOARCH)
 		downloadURL := ""
 
+		// Is this a supported platform
 		for _, a := range gh.Assets {
 			if a.Name == lookingFor {
 				downloadURL = a.BrowserDownloadURL
 			}
 		}
+
 		if downloadURL == "" {
-			fmt.Println("XX Could not find an appropriate binary")
-			return
+			util.Bail(fmt.Errorf(
+				"could not find an appropriate binary for %s-%s",
+				runtime.GOOS,
+				runtime.GOARCH,
+			))
 		}
-		fmt.Printf("===> Found new binary URL: %s\n", downloadURL)
-		fmt.Println("=====> Downloading binary...")
-		resp, err := http.Get(downloadURL)
+		/// Download the binary
+		conchBin, err := updaterDownloadFile(downloadURL)
 		if err != nil {
 			util.Bail(err)
 		}
-		if resp.StatusCode != 200 {
-			fmt.Printf("XX Could not download binary (status %d)\n", resp.StatusCode)
-			return
-		}
 
-		newBinary, err := ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
+		/// Verify checksum
+
+		// This assumes our build system is being sensible about file names.
+		// At time of writing, it is.
+		shaURL := downloadURL + ".sha256"
+		shaBin, err := updaterDownloadFile(shaURL)
 		if err != nil {
 			util.Bail(err)
 		}
-		fmt.Println("=====> Done.")
 
+		// The checksum file looks like "thisisahexstring ./conch-os-arch"
+		bits := strings.Split(string(shaBin[:]), " ")
+		remoteSum := bits[0]
+
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"Server-side SHA256 sum: %s\n",
+				remoteSum,
+			)
+		}
+
+		h := sha256.New()
+		h.Write(conchBin)
+		sum := hex.EncodeToString(h.Sum(nil))
+
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"SHA256 sum of downloaded binary: %s\n",
+				sum,
+			)
+		}
+
+		if sum == remoteSum {
+			if !util.JSON {
+				fmt.Fprintf(
+					os.Stderr,
+					"SHA256 checksums match\n",
+				)
+			}
+		} else {
+			util.Bail(fmt.Errorf(
+				"!!! SHA of downloaded file does not match the provided SHA sum: '%s' != '%s'",
+				sum,
+				remoteSum,
+			))
+		}
+
+		/// Write out the binary
 		binPath, err := os.Executable()
 		if err != nil {
 			util.Bail(err)
@@ -115,24 +174,82 @@ func selfUpdate(cmd *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		fmt.Printf("==> Detected local binary path: %s\n", fullPath)
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"Detected local binary path: %s\n",
+				fullPath,
+			)
+		}
 		existingStat, err := os.Lstat(fullPath)
 		if err != nil {
 			util.Bail(err)
 		}
+		// On sensible operating systems, we can't open and write to our
+		// own binary, because it's in use. We can, however, move a file
+		// into that place.
 
 		newPath := fmt.Sprintf("%s-%s", fullPath, gh.SemVer)
-		fmt.Printf("==> Writing to temp file '%s'...\n", newPath)
-		if err := ioutil.WriteFile(newPath, newBinary, existingStat.Mode()); err != nil {
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"Writing to temp file '%s'\n",
+				newPath,
+			)
+		}
+		if err := ioutil.WriteFile(newPath, conchBin, existingStat.Mode()); err != nil {
 			util.Bail(err)
 		}
 
-		fmt.Printf("==> Renaming '%s' to '%s'\n", newPath, fullPath)
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"Renaming '%s' to '%s'\n",
+				newPath,
+				fullPath,
+			)
+		}
+
 		if err := os.Rename(newPath, fullPath); err != nil {
 			util.Bail(err)
 		}
 
-		fmt.Println("=> Done.")
+		if !util.JSON {
+			fmt.Fprintf(
+				os.Stderr,
+				"Successfully upgraded from %s to %s\n",
+				sem,
+				gh.SemVer,
+			)
+		}
 
 	}
+}
+
+func updaterDownloadFile(downloadURL string) (data []byte, err error) {
+	if !util.JSON {
+		fmt.Fprintf(
+			os.Stderr,
+			"Downloading '%s'\n",
+			downloadURL,
+		)
+	}
+
+	resp, err := http.Get(downloadURL)
+	if err != nil {
+		return data, err
+	}
+
+	if resp.StatusCode != 200 {
+		return data, fmt.Errorf(
+			"could not download '%s' (status %d)",
+			downloadURL,
+			resp.StatusCode,
+		)
+	}
+
+	data, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	return data, err
 }
