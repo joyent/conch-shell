@@ -520,6 +520,18 @@ type ValidationState struct {
 // WorkspaceRelays ...
 type WorkspaceRelays []WorkspaceRelay
 
+func (w WorkspaceRelays) Len() int {
+	return len(w)
+}
+
+func (w WorkspaceRelays) Swap(i, j int) {
+	w[i], w[j] = w[j], w[i]
+}
+
+func (w WorkspaceRelays) Less(i, j int) bool {
+	return w[i].Updated.Before(w[j].Updated.Time)
+}
+
 // WorkspaceRelay represents a Conch Relay unit, a physical piece of hardware that
 // mediates Livesys interactions in the field
 type WorkspaceRelay struct {

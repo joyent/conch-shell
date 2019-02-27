@@ -30,7 +30,7 @@ func (c *Conch) GetActiveWorkspaceRelays(
 }
 
 // GetWorkspaceRelays returns all Relays associated with the given workspace
-func (c *Conch) GetWorkspaceRelays(workspaceUUID fmt.Stringer) ([]WorkspaceRelay, error) {
+func (c *Conch) GetWorkspaceRelays(workspaceUUID fmt.Stringer) (WorkspaceRelays, error) {
 	relays := make([]WorkspaceRelay, 0)
 
 	url := "/workspace/" + workspaceUUID.String() + "/relay"
@@ -77,7 +77,7 @@ func (c *Conch) RegisterRelay(r WorkspaceRelay) error {
 
 // GetAllRelays uses the /relay endpoint to get a list of all
 // relays, but without their assigned devices.
-func (c *Conch) GetAllRelays() ([]WorkspaceRelay, error) {
+func (c *Conch) GetAllRelays() (WorkspaceRelays, error) {
 	relays := make([]WorkspaceRelay, 0)
 	return relays, c.get("/relay?no_devices=1", &relays)
 }
