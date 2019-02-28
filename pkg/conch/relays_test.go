@@ -27,7 +27,7 @@ func TestRelayErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspaceRelays(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.WorkspaceRelay{})
+		st.Expect(t, ret, conch.WorkspaceRelays{})
 	})
 
 	t.Run("RegisterRelay", func(t *testing.T) {
@@ -47,7 +47,7 @@ func TestRelayErrors(t *testing.T) {
 
 		ret, err := API.GetAllRelays()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.WorkspaceRelay{})
+		st.Expect(t, ret, conch.WorkspaceRelays{})
 	})
 
 }
