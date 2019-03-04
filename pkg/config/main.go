@@ -12,7 +12,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -107,7 +106,6 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 			jwt := conch.ConchJWT{}
 
 			bits := strings.Split(p.JWT, ".")
-			fmt.Println(bits)
 			if len(bits) == 3 {
 				token := bits[0] + "." + bits[1]
 				sig := bits[2]
