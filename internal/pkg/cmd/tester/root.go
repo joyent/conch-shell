@@ -129,6 +129,12 @@ func initFlags() {
 		"Trace mode. This is super loud",
 	)
 
+	flag.String(
+		"interval",
+		"1 hour",
+		"Interval for the database query. Resolves to \"now() - interval '1 hour'\"",
+	)
+
 	viper.SetConfigName("conch_tester")
 	viper.AddConfigPath("/etc")
 	viper.AddConfigPath("/usr/local/etc")
