@@ -117,6 +117,18 @@ func initFlags() {
 		"Database password",
 	)
 
+	flag.Bool(
+		"debug",
+		false,
+		"Debug mode",
+	)
+
+	flag.Bool(
+		"trace",
+		false,
+		"Trace mode. This is super loud",
+	)
+
 	viper.SetConfigName("conch_tester")
 	viper.AddConfigPath("/etc")
 	viper.AddConfigPath("/usr/local/etc")
@@ -129,4 +141,7 @@ func initFlags() {
 	flag.Parse()
 
 	viper.ReadInConfig()
+
+	Debug = viper.GetBool("debug")
+	Trace = viper.GetBool("trace")
 }

@@ -7,9 +7,10 @@
 package tester
 
 import (
-	"fmt"
-	"github.com/davecgh/go-spew/spew"
+	"log"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // Debug triggers lots and lots of output to stderr for use in debugging
@@ -32,14 +33,14 @@ func DDP(v interface{}) {
 // TraceLog prints a string to stderr *if* the Trace flag is set
 func TraceLog(out string) {
 	if Trace {
-		fmt.Fprintln(os.Stderr, out)
+		log.Println(out)
 	}
 }
 
 // DebugLog prints a string to stderr *if* the Debug flag is set
 func DebugLog(out string) {
 	if Debug {
-		fmt.Fprintln(os.Stderr, out)
+		log.Println(out)
 	}
 }
 
@@ -58,4 +59,6 @@ func init() {
 		SortKeys:                true,
 		DisablePointerAddresses: true,
 	}
+
+	log.SetOutput(os.Stderr)
 }
