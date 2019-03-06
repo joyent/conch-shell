@@ -107,25 +107,21 @@ func (c *Conch) get(url string, data interface{}) error {
 
 func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, error) {
 
-	if c.Trace {
-		c.ddp(req)
-	} else {
-		c.debugLog(fmt.Sprintf(
-			"Request: %s %s",
-			req.Method,
-			req.URL,
-		))
+	c.debugLog(fmt.Sprintf(
+		"Request: %s %s",
+		req.Method,
+		req.URL,
+	))
 
-		if (req.Method == "POST") && (req.Body != nil) {
-			if read, err := req.GetBody(); err == nil {
-				if bodyBytes, err := ioutil.ReadAll(read); err == nil {
-					c.debugLog(
-						fmt.Sprintf(
-							"  Request Body: %s",
-							string(bodyBytes),
-						),
-					)
-				}
+	if (req.Method == "POST") && (req.Body != nil) {
+		if read, err := req.GetBody(); err == nil {
+			if bodyBytes, err := ioutil.ReadAll(read); err == nil {
+				c.debugLog(
+					fmt.Sprintf(
+						"  Request Body: %s",
+						string(bodyBytes),
+					),
+				)
 			}
 		}
 	}
@@ -133,10 +129,6 @@ func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, err
 	res, err := c.HTTPClient.Do(req)
 	if (res == nil) || (err != nil) {
 		return res, err
-	}
-
-	if c.Trace {
-		c.ddp(res)
 	}
 
 	defer res.Body.Close()
