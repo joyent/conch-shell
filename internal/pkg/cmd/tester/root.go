@@ -8,22 +8,22 @@ package tester
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
+	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/util"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
-// These variables are provided by the build environment
-var (
-	BuildTime string
-	GitRev    string
-	BuildHost string
-)
-
 const Version = "v0.0.1"
+
+var (
+	API *conch.Conch
+)
 
 var (
 	rootCmd = &cobra.Command{
@@ -47,15 +47,16 @@ func Execute() {
 
 func init() {
 	initFlags()
+	buildAPI()
 
-	UserAgent = fmt.Sprintf("conch tester %s-%s", Version, GitRev)
+	UserAgent = fmt.Sprintf("conch tester %s-%s", Version, util.GitRev)
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Display version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			buildTime := BuildTime
-			t, err := strconv.ParseInt(BuildTime, 10, 64)
+			buildTime := util.BuildTime
+			t, err := strconv.ParseInt(util.BuildTime, 10, 64)
 			if err == nil {
 				buildTime = TimeStr(time.Unix(t, 0))
 			}
@@ -66,12 +67,27 @@ func init() {
 					"  Build Time: %s\n"+
 					"  Build Host: %s\n",
 				rootCmd.Version,
-				GitRev,
+				util.GitRev,
 				buildTime,
-				BuildHost,
+				util.BuildHost,
 			)
 		},
 	})
+}
+
+func buildAPI() {
+	API = &conch.Conch{BaseURL: viper.GetString("conch_api")}
+	err := API.Login(
+		viper.GetString("conch_user"),
+		viper.GetString("conch_password"),
+	)
+
+	if err != nil {
+		log.Fatalf("error logging into %s : %s", viper.GetString("conch_api"), err)
+	}
+	API.Debug = viper.GetBool("debug")
+	API.Trace = viper.GetBool("trace")
+
 }
 
 func initFlags() {

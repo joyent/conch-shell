@@ -81,9 +81,6 @@ help: ## Display this help message
 	@grep -E '^[a-zA-Z_.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 
-T_FLAGS_PATH=github.com/joyent/conch-shell/internal/pkg/cmd/tester
-T_BUILD_ARGS = -ldflags="-X ${T_FLAGS_PATH}.BuildHost=${BUILD_WHO} -X ${T_FLAGS_PATH}.BuildTime=${CONCH_BUILD_TIME} -X ${T_FLAGS_PATH}.GitRev=${CONCH_GIT_REV}"
-
 bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor fasttest ## Build bin/tester
 	@echo "==> building bin/tester"
 	go build ${T_BUILD_ARGS} -o bin/tester cmd/tester/main.go
