@@ -28,6 +28,22 @@ func (c *Conch) debugLog(out string) {
 	}
 }
 
+// traceLog prints a string to stderr *if* the Trace flag is set
+func (c *Conch) traceLog(out string) {
+	if c.Trace {
+		fmt.Fprintln(os.Stderr, out)
+	}
+}
+
+// traceLogDDP is a convenience function for printing a data structure with a
+// message, *if* the Trace flag is set
+func (c *Conch) traceLogDDP(out string, v interface{}) {
+	if c.Trace {
+		c.traceLog(out)
+		c.ddp(v)
+	}
+}
+
 // debugLogDDP is a convenience function for printing a data structure with a
 // message, *if* the Debug flag is set
 //lint:ignore U1000 sure this will get used later

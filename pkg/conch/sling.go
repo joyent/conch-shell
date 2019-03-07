@@ -116,7 +116,7 @@ func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, err
 	if (req.Method == "POST") && (req.Body != nil) {
 		if read, err := req.GetBody(); err == nil {
 			if bodyBytes, err := ioutil.ReadAll(read); err == nil {
-				c.debugLog(
+				c.traceLog(
 					fmt.Sprintf(
 						"  Request Body: %s",
 						string(bodyBytes),
@@ -139,13 +139,20 @@ func (c *Conch) httpDo(req *http.Request, data interface{}) (*http.Response, err
 	}
 
 	if c.Trace {
-		c.ddp(string(bodyBytes))
-	} else {
-		c.debugLog(fmt.Sprintf(
-			"Response: HTTP %d - %s",
-			res.StatusCode,
+		c.traceLogDDP(
+			fmt.Sprintf(
+				"Response: HTTP %d",
+				res.StatusCode,
+			),
 			string(bodyBytes),
-		))
+		)
+	} else {
+		c.debugLog(
+			fmt.Sprintf(
+				"Response: HTTP %d",
+				res.StatusCode,
+			),
+		)
 	}
 
 	if res.StatusCode == http.StatusUnauthorized {
