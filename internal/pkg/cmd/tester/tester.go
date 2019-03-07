@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joyent/conch-shell/pkg/util"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,20 +34,6 @@ type Report struct {
 }
 
 type Reports []Report
-
-type queryRow struct {
-	deviceID string
-	reportID uuid.UUID
-	report   string
-	created  time.Time
-}
-type queryRows []queryRow
-
-type resultRow struct {
-	deviceID string
-	pass     bool
-	reason   string
-}
 
 /************************/
 
@@ -100,11 +85,12 @@ func nonbindingTest(cmd *cobra.Command, args []string) {
 		version,
 	))
 
-	reports := parseReports(extractReportsFromDB())
+	reports := extractReportsFromDB()
 
-	for serial, report := range reports {
+	for i, report := range reports {
+		log.Info(fmt.Sprintf("Processing entry %d of %d", i, len(reports)))
 
-		_, err := API.GetDevice(serial)
+		_, err := API.GetDevice(report.DeviceSerial)
 		if err != nil {
 			failMe(report)
 			continue
@@ -160,80 +146,55 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 		version,
 	))
 
-	results := extractReportsFromDB()
+	reports := extractReportsFromDB()
 
 	/**
 	*** Submit reports to the API
 	**/
 
 	log.Info("Submitting reports")
-	submitted := make([]*resultRow, 0)
 
-	for i, result := range results {
-		log.Info(fmt.Sprintf("Processing entry %d of %d", i, len(results)))
+	for i, report := range reports {
+		log.Info(fmt.Sprintf("Processing entry %d of %d", i, len(reports)))
+		report.Exists = true
 
-		status := &resultRow{result.deviceID, false, ""}
-		submitted = append(submitted, status)
-
-		state, err := API.SubmitDeviceReport(result.deviceID, result.report)
+		state, err := API.SubmitDeviceReport(report.DeviceSerial, report.Raw)
 
 		if err != nil {
-			status.pass = false
-			status.reason = err.Error()
-
-			log.WithFields(log.Fields{
-				"error":  status.reason,
-				"device": result.deviceID,
-			}).Warn("error in device report submission")
+			report.Reasons = append(report.Reasons, err.Error())
+			failMe(report)
 
 			continue
 		}
-		if state.State.Status == "pass" {
-			status.pass = true
+		report.ValidationPlanID = state.Plan.ID
+		report.ValidationPlanName = state.Plan.Name
 
-		} else {
-			status.pass = false
-
-			msg := fmt.Sprintf("Validation plan '%s' failed:\n", state.Plan.Name)
-
+		if state.State.Status != "pass" {
 			for _, r := range state.Results {
 				if r.Result.Status != "pass" {
-					submsg := fmt.Sprintf(
-						"- %s : %s : %s\n   %s\n",
-						r.Validation.Name,
-						r.Result.Category,
-						r.Result.Status,
-						r.Result.Message,
+					report.Reasons = append(
+						report.Reasons,
+						fmt.Sprintf(
+							"- %s : %s : %s\n   %s\n",
+							r.Validation.Name,
+							r.Result.Category,
+							r.Result.Status,
+							r.Result.Message,
+						),
 					)
-
-					msg = msg + submsg
 				}
 			}
 
-			status.reason = msg
+			failMe(report)
 		}
 	}
-	DDP(submitted)
-
-	table := util.GetMarkdownTable()
-	table.SetHeader([]string{"Device", "Status", "Reason"})
-
-	for _, s := range submitted {
-		status := "FAIL"
-		if s.pass {
-			status = "pass"
-		}
-		table.Append([]string{s.deviceID, status, s.reason})
-	}
-	table.Render()
-
 }
 
 /**
 *** Grab reports from the database
 *** Eventually this should be an API endpoint
 **/
-func extractReportsFromDB() queryRows {
+func extractReportsFromDB() Reports {
 	log.Debug("Attempting database connection")
 	connStr := fmt.Sprintf(
 		"user=%s password=%s host=%s dbname=%s sslmode=disable",
@@ -267,7 +228,14 @@ func extractReportsFromDB() queryRows {
 	}
 	defer rows.Close()
 
-	results := make(queryRows, 0)
+	type queryRow struct {
+		deviceID string
+		reportID uuid.UUID
+		report   string
+		created  time.Time
+	}
+
+	results := make([]queryRow, 0)
 
 	for rows.Next() {
 		var row queryRow
@@ -284,7 +252,8 @@ func extractReportsFromDB() queryRows {
 	}
 	rows.Close()
 
-	resultsWithReports := make(queryRows, 0)
+	reports := make(Reports, 0)
+
 	for _, row := range results {
 		sql = fmt.Sprintf(
 			"select report from device_report where id = '%s'",
@@ -304,50 +273,38 @@ func extractReportsFromDB() queryRows {
 				log.Fatal(err)
 			}
 
-			resultsWithReports = append(resultsWithReports, row)
+			report := Report{
+				DeviceSerial:       row.deviceID,
+				ValidationPlanID:   ServerPlanID,
+				ValidationPlanName: ServerPlanName,
+				Raw:                row.report,
+			}
+
+			if err := json.Unmarshal([]byte(row.report), &report.Parsed); err != nil {
+				log.Printf(
+					"Report for device '%s' failed to parse: %s",
+					row.deviceID,
+					err.Error(),
+				)
+				continue
+			}
+
+			if val, ok := report.Parsed["device_type"]; ok {
+				deviceType := val.(string)
+				if deviceType == "switch" {
+					report.ValidationPlanID = SwitchPlanID
+					report.ValidationPlanName = SwitchPlanName
+				}
+			}
+
+			reports = append(reports, report)
 		}
 	}
 
-	log.Info(fmt.Sprintf("Found %d device reports to submit", len(resultsWithReports)))
+	log.Info(fmt.Sprintf("Found %d device reports to submit", len(reports)))
 
 	log.Debug("Closing database connection")
 	db.Close()
-
-	return resultsWithReports
-}
-
-func parseReports(q queryRows) map[string]Report {
-	reports := make(map[string]Report)
-
-	for _, row := range q {
-		log.Debug("Parsing " + row.deviceID)
-
-		report := Report{
-			DeviceSerial:       row.deviceID,
-			ValidationPlanID:   ServerPlanID,
-			ValidationPlanName: ServerPlanName,
-			Raw:                row.report,
-		}
-
-		if err := json.Unmarshal([]byte(row.report), &report.Parsed); err != nil {
-			log.Printf(
-				"Report for device '%s' failed to parse: %s",
-				row.deviceID,
-				err.Error(),
-			)
-			continue
-		}
-
-		if val, ok := report.Parsed["device_type"]; ok {
-			deviceType := val.(string)
-			if deviceType == "switch" {
-				report.ValidationPlanID = SwitchPlanID
-				report.ValidationPlanName = SwitchPlanName
-			}
-		}
-
-		reports[report.DeviceSerial] = report
-	}
 
 	return reports
 }
