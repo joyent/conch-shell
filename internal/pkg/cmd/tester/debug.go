@@ -11,45 +11,17 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/spf13/viper"
 )
-
-// Debug triggers lots and lots of output to stderr for use in debugging
-var Debug bool
-
-// Trace causes the API struct to activate http tracing
-var Trace bool
 
 // DDP pretty prints a structure to stderr
 // See Data::Printer in perl for the origin of the name.
 func DDP(v interface{}) {
-	if Trace {
+	if viper.GetBool("trace") {
 		spew.Fdump(
 			os.Stderr,
 			v,
 		)
-	}
-}
-
-// TraceLog prints a string to stderr *if* the Trace flag is set
-func TraceLog(out string) {
-	if Trace {
-		log.Println(out)
-	}
-}
-
-// DebugLog prints a string to stderr *if* the Debug flag is set
-func DebugLog(out string) {
-	if Debug {
-		log.Println(out)
-	}
-}
-
-// TraceLogDDP is a convenience function for printing a data structure with a
-// message, *if* the Trace flag is set
-func TraceLogDDP(out string, v interface{}) {
-	if Trace {
-		TraceLog(out)
-		DDP(v)
 	}
 }
 

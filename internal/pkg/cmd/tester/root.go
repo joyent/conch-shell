@@ -8,27 +8,35 @@ package tester
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-const Version = "v0.0.1"
+const (
+	ServerPlanName = "Conch v1 Legacy Plan: Server"
+	SwitchPlanName = "Conch v1 Legacy Plan: Switch"
+)
 
 var (
-	API *conch.Conch
+	UserAgent    string
+	API          *conch.Conch
+	ServerPlanID uuid.UUID
+	SwitchPlanID uuid.UUID
+	Validations  map[uuid.UUID]conch.Validation
 )
 
 var (
 	rootCmd = &cobra.Command{
 		Use:     "tester",
-		Version: Version,
+		Version: util.Version,
 		Short:   "tester is a tool to test the conch api using recent device reports, given a database connection",
 	}
 )
@@ -41,15 +49,16 @@ func Root() *cobra.Command {
 // Execute gets this party started
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		Bail(err)
+		log.Fatal(err)
 	}
 }
 
 func init() {
 	initFlags()
 	buildAPI()
+	prepEnv()
 
-	UserAgent = fmt.Sprintf("conch tester %s-%s", Version, util.GitRev)
+	UserAgent = fmt.Sprintf("conch %s-%s / API Tester", util.Version, util.GitRev)
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -58,15 +67,15 @@ func init() {
 			buildTime := util.BuildTime
 			t, err := strconv.ParseInt(util.BuildTime, 10, 64)
 			if err == nil {
-				buildTime = TimeStr(time.Unix(t, 0))
+				buildTime = util.TimeStr(time.Unix(t, 0))
 			}
 
 			fmt.Printf(
-				"Conch API Tester %s\n"+
+				"Conch %s - API Tester\n"+
 					"  Git Revision: %s\n"+
 					"  Build Time: %s\n"+
 					"  Build Host: %s\n",
-				rootCmd.Version,
+				util.Version,
 				util.GitRev,
 				buildTime,
 				util.BuildHost,
@@ -145,10 +154,22 @@ func initFlags() {
 		"Trace mode. This is super loud",
 	)
 
+	flag.Bool(
+		"verbose",
+		false,
+		"Verbose logging. Less chatty than debug or trace.",
+	)
+
 	flag.String(
 		"interval",
 		"1 hour",
 		"Interval for the database query. Resolves to \"now() - interval '1 hour'\"",
+	)
+
+	flag.Bool(
+		"json",
+		false,
+		"Log in json format",
 	)
 
 	viper.SetConfigName("conch_tester")
@@ -164,6 +185,50 @@ func initFlags() {
 
 	viper.ReadInConfig()
 
-	Debug = viper.GetBool("debug")
-	Trace = viper.GetBool("trace")
+	if viper.GetBool("trace") {
+		log.SetLevel(log.TraceLevel)
+	} else if viper.GetBool("debug") {
+		log.SetLevel(log.DebugLevel)
+	} else if viper.GetBool("verbose") {
+		log.SetLevel(log.InfoLevel)
+	} else {
+		log.SetLevel(log.WarnLevel)
+	}
+
+	if viper.GetBool("json") {
+		log.SetFormatter(&log.JSONFormatter{})
+	}
+}
+
+func prepEnv() {
+	// Find the IDs for the One True Plans
+	plans, err := API.GetValidationPlans()
+	if err != nil {
+		log.Fatalf("error getting validation plans: %s", err)
+	}
+	for _, plan := range plans {
+		if plan.Name == ServerPlanName {
+			ServerPlanID = plan.ID
+		} else if plan.Name == SwitchPlanName {
+			SwitchPlanID = plan.ID
+		}
+	}
+	if uuid.Equal(SwitchPlanID, uuid.UUID{}) {
+		log.Fatalf("failed to find validation plan '%s'", SwitchPlanName)
+	}
+
+	if uuid.Equal(ServerPlanID, uuid.UUID{}) {
+		log.Fatalf("failed to find validation plan '%s'", ServerPlanName)
+	}
+
+	// Build a cache of Validation names and details
+	Validations = make(map[uuid.UUID]conch.Validation)
+	v, err := API.GetValidations()
+	if err != nil {
+		log.Fatalf("error getting list of validations: '%s'", err)
+	}
+	for _, validation := range v {
+		Validations[validation.ID] = validation
+	}
+
 }

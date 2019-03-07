@@ -83,6 +83,6 @@ help: ## Display this help message
 
 bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor fasttest ## Build bin/tester
 	@echo "==> building bin/tester"
-	go build ${T_BUILD_ARGS} -o bin/tester cmd/tester/main.go
+	go build ${BUILD_ARGS} -o bin/tester cmd/tester/main.go
 
 
