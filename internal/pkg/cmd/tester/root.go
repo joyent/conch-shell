@@ -37,7 +37,31 @@ var (
 	rootCmd = &cobra.Command{
 		Use:     "tester",
 		Version: util.Version,
-		Short:   "tester is a tool to test the conch api using recent device reports, given a database connection",
+		Short:   "tester is a tool to test the conch api using device reports",
+		Long: `
+Tester provides the ability to test a Conch API server using device reports. 
+
+The app looks for the config file 'conch_tester.yml' in /etc, /usr/local/etc, and '.'. Options can be provided via the environment (eg 'CONCH_TESTER_DEBUG') or on the command line.
+
+The option list can be a bit intimidating but the app has a few different modes, regardless of the subcommand.
+
+* CLI Logging, in order of precedence: --verbose, --debug, --trace [1]
+
+* JSON Logging, on the CLI: --json [1]
+
+* Pull reports from the database: --db_host, --db_name, --db_user, --db_password
+** Optional: --interval, --limit
+
+* Pull reports from a directory of *.json files: --from_directory, --data_directory
+
+* Log to MatterMost: --mattermost, --mattermost_webhook
+
+* The API to test: --conch_api, --conch_user, --conch_password
+
+
+[1] All logs go to STDERR
+
+`,
 	}
 )
 
