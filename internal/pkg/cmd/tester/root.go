@@ -172,6 +172,12 @@ func initFlags() {
 		"Log in json format",
 	)
 
+	flag.Int(
+		"limit",
+		20,
+		"Submit a maximum of this many reports",
+	)
+
 	viper.SetConfigName("conch_tester")
 	viper.AddConfigPath("/etc")
 	viper.AddConfigPath("/usr/local/etc")

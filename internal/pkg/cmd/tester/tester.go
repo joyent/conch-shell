@@ -216,9 +216,28 @@ func extractReportsFromDB() Reports {
 
 	log.Debug("Database connection was successful")
 
-	sql := fmt.Sprintf(
-		"select distinct on (device_id) device_id, created, device_report_id from validation_state where created > now() - interval '%s' and status = 'pass'",
+	sql := fmt.Sprintf(`select
+	device_id,
+	created,
+	device_report_id
+	from (
+		select
+			device_id,
+			device_report_id,
+			created,
+			row_number() over (
+				partition by device_id order by created desc
+			) as result_num
+			from validation_state 
+			where
+				created > now() - interval '%s'
+				and status = 'pass'
+	) foo
+	where result_num = 1
+	order by random()
+	limit %d;`,
 		viper.GetString("interval"),
+		viper.GetInt("limit"),
 	)
 	log.Trace(sql)
 
