@@ -10,11 +10,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/dghubble/sling"
 	_ "github.com/lib/pq"
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -25,6 +28,7 @@ var FailedCount = 0
 
 type Report struct {
 	ID                 uuid.UUID
+	FileName           string
 	Raw                string
 	DeviceSerial       string
 	ValidationPlanID   uuid.UUID
@@ -138,10 +142,6 @@ func failMe(r Report, destructive bool) {
 						Value: r.DeviceSerial,
 					},
 					{
-						Title: "Report ID",
-						Value: r.ID.String(),
-					},
-					{
 						Title: "Validation Plan",
 						Value: r.ValidationPlanName,
 					},
@@ -159,6 +159,24 @@ func failMe(r Report, destructive bool) {
 		},
 	}
 
+	if r.FileName != "" {
+		payload.Attachments[0].Fields = append(
+			payload.Attachments[0].Fields,
+			mmField{
+				Title: "File Name",
+				Value: r.FileName,
+			},
+		)
+	} else if !uuid.Equal(r.ID, uuid.UUID{}) {
+		payload.Attachments[0].Fields = append(
+			payload.Attachments[0].Fields,
+			mmField{
+				Title: "Report ID",
+				Value: r.ID.String(),
+			},
+		)
+	}
+
 	sendToMM(payload)
 }
 
@@ -173,13 +191,14 @@ func nonbindingTest(cmd *cobra.Command, args []string) {
 		version,
 	))
 
-	reports := extractReportsFromDB()
+	reports := extractReports()
 
 	for i, report := range reports {
 		log.Info(fmt.Sprintf("Processing entry %d of %d", i, len(reports)))
 
 		_, err := API.GetDevice(report.DeviceSerial)
 		if err != nil {
+			report.Reasons = append(report.Reasons, fmt.Sprintf("%s", err))
 			failMe(report, false)
 			continue
 		}
@@ -250,7 +269,7 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 		version,
 	))
 
-	reports := extractReportsFromDB()
+	reports := extractReports()
 
 	/**
 	*** Submit reports to the API
@@ -304,6 +323,74 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 	sendToMM(mmPayload{
 		Text: msg,
 	})
+}
+
+func extractReports() Reports {
+	if viper.GetBool("from_directory") {
+		return extractReportsFromDirectory()
+	} else {
+		return extractReportsFromDB()
+	}
+}
+
+func extractReportsFromDirectory() Reports {
+	log.Debug("Looking for reports in " + viper.GetString("data_directory"))
+
+	expandedPath, err := homedir.Expand(viper.GetString("data_directory"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jsonFiles, err := filepath.Glob(fmt.Sprintf("%s/*.json", expandedPath))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(jsonFiles) == 0 {
+		log.Fatalf("no device reports found in %s", expandedPath)
+	}
+
+	log.Debug(fmt.Sprintf("Found %d reports", len(jsonFiles)))
+
+	reports := make(Reports, 0)
+
+	for _, j := range jsonFiles {
+		jsonBytes, err := ioutil.ReadFile(j)
+		if err != nil {
+			log.Warn(err)
+		}
+
+		report := Report{
+			ValidationPlanID:   ServerPlanID,
+			ValidationPlanName: ServerPlanName,
+			Raw:                string(jsonBytes),
+			FileName:           j,
+		}
+
+		if err := json.Unmarshal([]byte(report.Raw), &report.Parsed); err != nil {
+			log.Warnf(
+				"Report '%s' failed to parse: %s",
+				j,
+				err.Error(),
+			)
+			continue
+		}
+
+		if val, ok := report.Parsed["device_type"]; ok {
+			deviceType := val.(string)
+			if deviceType == "switch" {
+				report.ValidationPlanID = SwitchPlanID
+				report.ValidationPlanName = SwitchPlanName
+			}
+		}
+
+		if val, ok := report.Parsed["serial_number"]; ok {
+			report.DeviceSerial = val.(string)
+		}
+
+		reports = append(reports, report)
+	}
+	return reports
 }
 
 /**
@@ -404,6 +491,9 @@ func extractReportsFromDB() Reports {
 }
 
 func sendToMM(payload mmPayload) {
+	if !viper.GetBool("mattermost") {
+		return
+	}
 	_, err := sling.New().Set("User-Agent", UserAgent).
 		Post(viper.GetString("mattermost_webhook")).
 		BodyJSON(payload).

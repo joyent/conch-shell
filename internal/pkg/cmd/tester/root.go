@@ -190,6 +190,18 @@ func initFlags() {
 		"Alert failures to mattermost",
 	)
 
+	flag.Bool(
+		"from_directory",
+		false,
+		"Use reports from a directory, rather than the database",
+	)
+
+	flag.String(
+		"data_directory",
+		"",
+		"A directory full of device reports",
+	)
+
 	viper.SetConfigName("conch_tester")
 	viper.AddConfigPath("/etc")
 	viper.AddConfigPath("/usr/local/etc")
@@ -220,6 +232,12 @@ func initFlags() {
 	if viper.GetBool("mattermost") {
 		if viper.GetString("mattermost_webhook") == "" {
 			log.Fatal("Please provide the mattermost_webhook parameter")
+		}
+	}
+
+	if viper.GetBool("from_directory") {
+		if viper.GetString("data_directory") == "" {
+			log.Fatal("Please provide the data_directory parameter")
 		}
 	}
 }
