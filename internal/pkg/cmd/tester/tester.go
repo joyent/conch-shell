@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
@@ -23,6 +22,7 @@ import (
 var FailedCount = 0
 
 type Report struct {
+	ID                 uuid.UUID
 	Raw                string
 	DeviceSerial       string
 	ValidationPlanID   uuid.UUID
@@ -62,6 +62,7 @@ func failMe(r Report) {
 
 	logger := log.WithFields(log.Fields{
 		"device":               r.DeviceSerial,
+		"report_id":            r.ID,
 		"validation_plan_name": r.ValidationPlanName,
 		"server":               viper.GetString("conch_api"),
 	})
@@ -217,14 +218,13 @@ func extractReportsFromDB() Reports {
 	log.Debug("Database connection was successful")
 
 	sql := fmt.Sprintf(`select
-	device_id,
-	created,
-	device_report_id
+	foo.device_id,
+	foo.device_report_id,
+	dr.report
 	from (
 		select
 			device_id,
 			device_report_id,
-			created,
 			row_number() over (
 				partition by device_id order by created desc
 			) as result_num
@@ -233,6 +233,7 @@ func extractReportsFromDB() Reports {
 				created > now() - interval '%s'
 				and status = 'pass'
 	) foo
+	join device_report dr on dr.id = foo.device_report_id
 	where result_num = 1
 	order by random()
 	limit %d;`,
@@ -247,78 +248,38 @@ func extractReportsFromDB() Reports {
 	}
 	defer rows.Close()
 
-	type queryRow struct {
-		deviceID string
-		reportID uuid.UUID
-		report   string
-		created  time.Time
-	}
-
-	results := make([]queryRow, 0)
-
-	for rows.Next() {
-		var row queryRow
-
-		if err := rows.Scan(&row.deviceID, &row.created, &row.reportID); err != nil {
-			log.Fatal(err)
-		}
-
-		results = append(results, row)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-	rows.Close()
-
 	reports := make(Reports, 0)
 
-	for _, row := range results {
-		sql = fmt.Sprintf(
-			"select report from device_report where id = '%s'",
-			row.reportID,
-		)
-		log.Trace(sql)
+	for rows.Next() {
+		report := Report{
+			ValidationPlanID:   ServerPlanID,
+			ValidationPlanName: ServerPlanName,
+		}
 
-		rows, err = db.Query(sql)
-		if err != nil {
+		if err := rows.Scan(&report.DeviceSerial, &report.ID, &report.Raw); err != nil {
 			log.Fatal(err)
 		}
-		defer rows.Close()
 
-		for rows.Next() {
-
-			if err := rows.Scan(&row.report); err != nil {
-				log.Fatal(err)
-			}
-
-			report := Report{
-				DeviceSerial:       row.deviceID,
-				ValidationPlanID:   ServerPlanID,
-				ValidationPlanName: ServerPlanName,
-				Raw:                row.report,
-			}
-
-			if err := json.Unmarshal([]byte(row.report), &report.Parsed); err != nil {
-				log.Printf(
-					"Report for device '%s' failed to parse: %s",
-					row.deviceID,
-					err.Error(),
-				)
-				continue
-			}
-
-			if val, ok := report.Parsed["device_type"]; ok {
-				deviceType := val.(string)
-				if deviceType == "switch" {
-					report.ValidationPlanID = SwitchPlanID
-					report.ValidationPlanName = SwitchPlanName
-				}
-			}
-
-			reports = append(reports, report)
+		if err := json.Unmarshal([]byte(report.Raw), &report.Parsed); err != nil {
+			log.Errorf(
+				"Report for device '%s' failed to parse: %s",
+				report.DeviceSerial,
+				err.Error(),
+			)
+			continue
 		}
+
+		if val, ok := report.Parsed["device_type"]; ok {
+			deviceType := val.(string)
+			if deviceType == "switch" {
+				report.ValidationPlanID = SwitchPlanID
+				report.ValidationPlanName = SwitchPlanName
+			}
+		}
+
+		reports = append(reports, report)
 	}
+	rows.Close()
 
 	log.Info(fmt.Sprintf("Found %d device reports to submit", len(reports)))
 
