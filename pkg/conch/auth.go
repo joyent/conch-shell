@@ -59,7 +59,7 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 	if !forceJWT {
 		if (refreshTime > 0) && !c.JWT.Expires.IsZero() {
 			now := time.Now()
-			if now.Sub(c.JWT.Expires).Seconds() > float64(refreshTime) {
+			if c.JWT.Expires.Sub(now).Seconds() > float64(refreshTime) {
 				return nil
 			}
 		}
