@@ -30,7 +30,7 @@ bin/conch: pkg/**/*.go cmd/conch/*.go vendor ## Build bin/conch
 
 clean: ## Remove build products from bin/
 	@echo "==> Removing build products from bin/"
-	rm -f bin/conch
+	rm -f bin/conch bin/tester
 
 .PHONY: vendor
 vendor: ## Install dependencies
@@ -79,4 +79,10 @@ tools: ## Download and install all dev/code tools
 help: ## Display this help message
 	@echo "GNU make(1) targets:"
 	@grep -E '^[a-zA-Z_.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+
+bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor fasttest ## Build bin/tester
+	@echo "==> building bin/tester"
+	go build ${BUILD_ARGS} -o bin/tester cmd/tester/main.go
+
 
