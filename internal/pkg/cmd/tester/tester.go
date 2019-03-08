@@ -10,8 +10,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
+	"github.com/dghubble/sling"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,6 +37,26 @@ type Report struct {
 
 type Reports []Report
 
+type mmField struct {
+	Short bool   `json:"short,omitempty"`
+	Title string `json:"title,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
+type mmAttachment struct {
+	Pretext  string    `json:"pretext,omitempty"`
+	Text     string    `json:"text,omitempty"`
+	Title    string    `json:"title,omitempty"`
+	Color    string    `json:"color,omitempty"`
+	Fallback string    `json:"fallback,omitempty"`
+	Fields   []mmField `json:"fields,omitempty"`
+}
+
+type mmPayload struct {
+	Text        string         `json:"text,omitempty"`
+	Attachments []mmAttachment `json:"attachments,omitempty"`
+}
+
 /************************/
 
 func init() {
@@ -57,14 +79,22 @@ func init() {
 
 /************************/
 
-func failMe(r Report) {
+func failMe(r Report, destructive bool) {
 	FailedCount++
+
+	sort.Strings(r.Reasons)
+
+	submitType := "Validations Only"
+	if destructive {
+		submitType = "Full POST"
+	}
 
 	logger := log.WithFields(log.Fields{
 		"device":               r.DeviceSerial,
 		"report_id":            r.ID,
 		"validation_plan_name": r.ValidationPlanName,
 		"server":               viper.GetString("conch_api"),
+		"submission_type":      submitType,
 	})
 
 	if !r.Exists {
@@ -73,6 +103,63 @@ func failMe(r Report) {
 	}
 
 	logger.Error(strings.Join(r.Reasons, " || "))
+
+	/***/
+
+	if !viper.GetBool("mattermost") {
+		return
+	}
+
+	var msg string
+
+	if !r.Exists {
+		msg = fmt.Sprintf("Device %s does not exist in target API", r.DeviceSerial)
+		r.Reasons = []string{msg}
+	} else {
+		msg = fmt.Sprintf(
+			"%s failed (%s): %s",
+			r.DeviceSerial,
+			submitType,
+			strings.Join(r.Reasons, " || "),
+		)
+	}
+	payload := mmPayload{
+		Attachments: []mmAttachment{
+			{
+				Color:    "#FF0000",
+				Fallback: msg,
+				Fields: []mmField{
+					{
+						Title: "API Server",
+						Value: viper.GetString("conch_api"),
+					},
+					{
+						Title: "Device ID",
+						Value: r.DeviceSerial,
+					},
+					{
+						Title: "Report ID",
+						Value: r.ID.String(),
+					},
+					{
+						Title: "Validation Plan",
+						Value: r.ValidationPlanName,
+					},
+					{
+						Title: "Submission Type",
+						Value: submitType,
+					},
+					{
+						Title: "Failure Reasons",
+						Value: "* " + strings.Join(r.Reasons, "\n* "),
+						Short: false,
+					},
+				},
+			},
+		},
+	}
+
+	sendToMM(payload)
 }
 
 func nonbindingTest(cmd *cobra.Command, args []string) {
@@ -93,7 +180,7 @@ func nonbindingTest(cmd *cobra.Command, args []string) {
 
 		_, err := API.GetDevice(report.DeviceSerial)
 		if err != nil {
-			failMe(report)
+			failMe(report, false)
 			continue
 		}
 		report.Exists = true
@@ -106,7 +193,7 @@ func nonbindingTest(cmd *cobra.Command, args []string) {
 
 		if err != nil {
 			report.Reasons = append(report.Reasons, fmt.Sprintf("%s", err))
-			failMe(report)
+			failMe(report, false)
 			continue
 		}
 
@@ -122,16 +209,32 @@ func nonbindingTest(cmd *cobra.Command, args []string) {
 				report.Passed = false
 				report.Reasons = append(
 					report.Reasons,
-					fmt.Sprintf("%s : %s", validationName, result.Message),
+					fmt.Sprintf(
+						"%s : %s : %s -> %s",
+						validationName,
+						result.Category,
+						result.Status,
+						result.Message,
+					),
 				)
 			}
 		}
 		if !validationPassed {
-			failMe(report)
+			failMe(report, false)
 		}
 	}
 
-	log.Infof("Of %d results, %d failed", len(reports), FailedCount)
+	msg := fmt.Sprintf(
+		"Submitted %d reports to %s (validations only). %d failed",
+		len(reports),
+		viper.GetString("conch_api"),
+		FailedCount,
+	)
+
+	log.Info(msg)
+	sendToMM(mmPayload{
+		Text: msg,
+	})
 }
 
 /************************/
@@ -163,7 +266,7 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 
 		if err != nil {
 			report.Reasons = append(report.Reasons, err.Error())
-			failMe(report)
+			failMe(report, true)
 
 			continue
 		}
@@ -176,7 +279,7 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 					report.Reasons = append(
 						report.Reasons,
 						fmt.Sprintf(
-							"- %s : %s : %s\n   %s\n",
+							"%s : %s : %s -> %s",
 							r.Validation.Name,
 							r.Result.Category,
 							r.Result.Status,
@@ -186,14 +289,25 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 				}
 			}
 
-			failMe(report)
+			failMe(report, true)
 		}
 	}
+
+	msg := fmt.Sprintf(
+		"Submitted %d reports to %s (full report process). %d failed",
+		len(reports),
+		viper.GetString("conch_api"),
+		FailedCount,
+	)
+
+	log.Info(msg)
+	sendToMM(mmPayload{
+		Text: msg,
+	})
 }
 
 /**
 *** Grab reports from the database
-*** Eventually this should be an API endpoint
 **/
 func extractReportsFromDB() Reports {
 	log.Debug("Attempting database connection")
@@ -287,4 +401,16 @@ func extractReportsFromDB() Reports {
 	db.Close()
 
 	return reports
+}
+
+func sendToMM(payload mmPayload) {
+	_, err := sling.New().Set("User-Agent", UserAgent).
+		Post(viper.GetString("mattermost_webhook")).
+		BodyJSON(payload).
+		ReceiveSuccess(nil)
+
+	if err != nil {
+		log.Warn(err)
+		return
+	}
 }

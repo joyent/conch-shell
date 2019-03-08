@@ -178,6 +178,18 @@ func initFlags() {
 		"Submit a maximum of this many reports",
 	)
 
+	flag.String(
+		"mattermost_webhook",
+		"",
+		"Webhook for mattermost",
+	)
+
+	flag.Bool(
+		"mattermost",
+		false,
+		"Alert failures to mattermost",
+	)
+
 	viper.SetConfigName("conch_tester")
 	viper.AddConfigPath("/etc")
 	viper.AddConfigPath("/usr/local/etc")
@@ -203,6 +215,12 @@ func initFlags() {
 
 	if viper.GetBool("json") {
 		log.SetFormatter(&log.JSONFormatter{})
+	}
+
+	if viper.GetBool("mattermost") {
+		if viper.GetString("mattermost_webhook") == "" {
+			log.Fatal("Please provide the mattermost_webhook parameter")
+		}
 	}
 }
 
@@ -236,5 +254,4 @@ func prepEnv() {
 	for _, validation := range v {
 		Validations[validation.ID] = validation
 	}
-
 }
