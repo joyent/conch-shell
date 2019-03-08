@@ -43,8 +43,7 @@ func (c *Conch) RevokeOwnTokens() error {
 	return nil
 }
 
-// VerifyLogin determines if the user's session data is still valid. If
-// available, it uses the refresh API, falling back to plain cookie auth.
+// VerifyLogin determines if the user's session data is still valid.
 //
 // One can pass in an integer value, representing when to force a token
 // refresh, based on the number of seconds left until expiry. Pass in 0 to
@@ -59,7 +58,7 @@ func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
 	if !forceJWT {
 		if (refreshTime > 0) && !c.JWT.Expires.IsZero() {
 			now := time.Now()
-			if now.Sub(c.JWT.Expires).Seconds() > float64(refreshTime) {
+			if c.JWT.Expires.Sub(now).Seconds() > float64(refreshTime) {
 				return nil
 			}
 		}
