@@ -94,7 +94,7 @@ func roomCreate(app *cli.Cmd) {
 		aliasOpt      = app.StringOpt("alias", "", "Room Alias")
 		vendorNameOpt = app.StringOpt("vendor-name vn", "", "Vendor Name")
 	)
-	app.Spec = "--datacenter-id --az [OPTIONS]"
+	app.Spec = "--datacenter-id --az --alias [OPTIONS]"
 
 	app.Action = func() {
 		dcID, err := uuid.FromString(*dcIDOpt)
