@@ -64,7 +64,7 @@ var (
 )
 
 func init() {
-	SemVersion = semver.MustParse(Version)
+	SemVersion = CleanVersion(Version)
 }
 
 const GhOrg = "joyent"
@@ -122,8 +122,9 @@ func BuildAPI() {
 		Bail(err)
 	}
 
-	sem := semver.MustParse(strings.TrimLeft(version, "v"))
-	minSem := semver.MustParse(conch.MinimumAPIVersion)
+	sem := CleanVersion(version)
+	minSem := CleanVersion(conch.MinimumAPIVersion)
+	maxSem := CleanVersion(conch.BreakingAPIVersion)
 
 	if sem.Major != minSem.Major {
 		Bail(fmt.Errorf(
@@ -133,6 +134,30 @@ func BuildAPI() {
 			minSem.Major,
 		))
 	}
+
+	if sem.LT(minSem) || sem.GTE(maxSem) {
+		Bail(fmt.Errorf(
+			"cannot continue. the API server version '%s' is '%s' and we require >= %s and < %s",
+			API.BaseURL,
+			sem,
+			minSem,
+			maxSem,
+		))
+
+	}
+}
+
+// CleanVersion removes a "v" prefix, and anything after a dash
+// For example, pass in v2.99.10-abcde-dirty and get back a semver containing
+// 2.29.10
+// Why? Git and Semver differ in their notions of what those extra bits mean.
+// In Git, they mean "v2.99.10, plus some other stuff that happend". In semver,
+// they indicate that this is a prerelease of v2.99.10. Obviously this screws
+// up comparisions. This function lets us clean that stuff out so we can get a
+// clean comparison
+func CleanVersion(version string) semver.Version {
+	bits := strings.Split(strings.TrimLeft(version, "v"), "-")
+	return semver.MustParse(bits[0])
 }
 
 // GetMarkdownTable returns a tablewriter configured to output markdown
@@ -411,7 +436,7 @@ func LatestGithubRelease() (gh GithubRelease, err error) {
 		if r.TagName == "" {
 			continue
 		}
-		r.SemVer = semver.MustParse(
+		r.SemVer = CleanVersion(
 			strings.TrimLeft(r.TagName, "v"),
 		)
 
@@ -451,7 +476,7 @@ func GithubReleasesSince(start semver.Version) GithubReleases {
 		if r.TagName == "" {
 			continue
 		}
-		r.SemVer = semver.MustParse(
+		r.SemVer = CleanVersion(
 			strings.TrimLeft(r.TagName, "v"),
 		)
 
