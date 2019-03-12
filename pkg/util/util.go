@@ -12,8 +12,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
@@ -24,7 +26,6 @@ import (
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	"github.com/olekukonko/tablewriter"
-	"unicode/utf8"
 )
 
 var (
@@ -58,7 +59,13 @@ var (
 	BuildTime string
 	GitRev    string
 	BuildHost string
+
+	SemVersion semver.Version
 )
+
+func init() {
+	SemVersion = semver.MustParse(Version)
+}
 
 // DateFormat should be used in date formatting calls to ensure uniformity of
 // output
@@ -314,6 +321,39 @@ type GithubRelease struct {
 	Body    string         `json:"body"`
 	Name    string         `json:"name"`
 	Assets  []GithubAsset  `json:"assets"`
+	Upgrade bool           `json:"-"`
+}
+
+type GithubReleases []GithubRelease
+
+func (g GithubReleases) Len() int {
+	return len(g)
+}
+
+func (g GithubReleases) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
+
+func (g GithubReleases) Less(i, j int) bool {
+	var iSem, jSem semver.Version
+
+	if g[i].TagName == "" {
+		iSem = semver.MustParse("0.0.0")
+	} else {
+		iSem = semver.MustParse(
+			strings.TrimLeft(g[i].TagName, "v"),
+		)
+	}
+
+	if g[j].TagName == "" {
+		jSem = semver.MustParse("0.0.0")
+	} else {
+		jSem = semver.MustParse(
+			strings.TrimLeft(g[j].TagName, "v"),
+		)
+	}
+
+	return iSem.GT(jSem) // reversing sort
 }
 
 // GithubAsset represents a file inside of a github release
@@ -324,39 +364,47 @@ type GithubAsset struct {
 	BrowserDownloadURL string `json:"browser_download_url"`
 }
 
+var ErrNoGithubRelease = errors.New("no appropriate github release found")
+
 // LatestGithubRelease returns some fields from the latest Github Release
 // object for the given owner and repo via
 // "https://api.github.com/repos/:owner/:repo/releases/latest"
-func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
+func LatestGithubRelease(owner string, repo string) (gh GithubRelease, err error) {
+	releases := make(GithubReleases, 0)
+
 	url := fmt.Sprintf(
-		"https://api.github.com/repos/%s/%s/releases/latest",
+		"https://api.github.com/repos/%s/%s/releases",
 		owner,
 		repo,
 	)
 
-	gh := &GithubRelease{}
-
-	_, err := sling.New().
+	_, err = sling.New().
 		Set("User-Agent", UserAgent).
-		Get(url).Receive(&gh, nil)
+		Get(url).Receive(&releases, nil)
 
 	if err != nil {
 		return gh, err
 	}
 
-	if gh.TagName == "" {
-		gh.SemVer = semver.MustParse("0.0.0")
-	} else {
-		sem, err := semver.Make(
-			strings.TrimLeft(gh.TagName, "v"),
-		)
-		if err != nil {
-			return gh, err
+	sort.Sort(releases)
+
+	for _, r := range releases {
+		if r.TagName == "" {
+			continue
 		}
-		gh.SemVer = sem
+		r.SemVer = semver.MustParse(
+			strings.TrimLeft(r.TagName, "v"),
+		)
+
+		if r.SemVer.Major == SemVersion.Major {
+			if r.SemVer.GT(SemVersion) {
+				r.Upgrade = true
+			}
+			return r, nil
+		}
 	}
 
-	return gh, err
+	return gh, ErrNoGithubRelease
 }
 
 // IsPasswordSane verifies that the given password follows the current rules
