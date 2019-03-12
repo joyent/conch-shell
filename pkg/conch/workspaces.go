@@ -133,16 +133,6 @@ func (c *Conch) GetWorkspaceUsers(workspaceUUID fmt.Stringer) ([]WorkspaceUser, 
 	)
 }
 
-// GetWorkspaceRooms returns the contents of /workspace/:uuid/room, getting
-// a list of rooms for the given workspace id
-func (c *Conch) GetWorkspaceRooms(workspaceUUID fmt.Stringer) ([]Room, error) {
-	rooms := make([]Room, 0)
-	return rooms, c.get(
-		"/workspace/"+workspaceUUID.String()+"/room",
-		&rooms,
-	)
-}
-
 // CreateSubWorkspace creates a sub workspace under the parent, via
 // /workspace/:uuid/child
 // If the provided parent lacks an ID, ErrBadInput is returned
