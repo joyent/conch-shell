@@ -142,12 +142,6 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"rooms",
-				"Get a list of rooms for a single workspace",
-				getRooms,
-			)
-
-			cmd.Command(
 				"subs subworkspaces ws",
 				"Get a list of subworkspaces for a single workspace",
 				getSubs,

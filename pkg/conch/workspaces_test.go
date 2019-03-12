@@ -65,16 +65,6 @@ func TestWorkspaceErrors(t *testing.T) {
 		st.Expect(t, ret, []conch.WorkspaceUser{})
 	})
 
-	t.Run("GetWorkspaceRooms", func(t *testing.T) {
-		id := uuid.NewV4()
-		gock.New(API.BaseURL).Get("/workspace/" + id.String() + "/room").
-			Reply(400).JSON(ErrApi)
-
-		ret, err := API.GetWorkspaceRooms(id)
-		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Room{})
-	})
-
 	t.Run("CreateSubWorkspace", func(t *testing.T) {
 		id := uuid.NewV4()
 		id2 := uuid.NewV4()
