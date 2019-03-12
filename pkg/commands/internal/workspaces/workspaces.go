@@ -462,30 +462,6 @@ func getRelays(app *cli.Cmd) {
 	}
 }
 
-func getRooms(app *cli.Cmd) {
-	app.Action = func() {
-		rooms, err := util.API.GetWorkspaceRooms(WorkspaceUUID)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		if util.JSON {
-			util.JSONOut(rooms)
-			return
-		}
-
-		table := util.GetMarkdownTable()
-		table.SetHeader([]string{"ID", "AZ", "Alias", "Vendor Name"})
-
-		for _, r := range rooms {
-			table.Append([]string{r.ID, r.AZ, r.Alias, r.VendorName})
-		}
-
-		table.Render()
-	}
-
-}
-
 func getSubs(app *cli.Cmd) {
 	app.Action = func() {
 		workspaces, err := util.API.GetSubWorkspaces(WorkspaceUUID)
