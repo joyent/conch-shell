@@ -409,6 +409,47 @@ func LatestGithubRelease() (gh GithubRelease, err error) {
 	return gh, ErrNoGithubRelease
 }
 
+func GithubReleasesSince(start semver.Version) GithubReleases {
+	releases := make(GithubReleases, 0)
+
+	diff := make(GithubReleases, 0)
+
+	url := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/releases",
+		GhOrg,
+		GhRepo,
+	)
+
+	_, err := sling.New().
+		Set("User-Agent", UserAgent).
+		Get(url).Receive(&releases, nil)
+
+	if err != nil {
+		return diff
+	}
+
+	sort.Sort(releases)
+
+	for _, r := range releases {
+		if r.TagName == "" {
+			continue
+		}
+		r.SemVer = semver.MustParse(
+			strings.TrimLeft(r.TagName, "v"),
+		)
+
+		if r.SemVer.Major == SemVersion.Major {
+			if r.SemVer.GT(start) {
+				diff = append(diff, r)
+			}
+		}
+	}
+
+	sort.Sort(diff)
+
+	return diff
+}
+
 // IsPasswordSane verifies that the given password follows the current rules
 // and restrictions
 func IsPasswordSane(password string, profile *config.ConchProfile) error {
