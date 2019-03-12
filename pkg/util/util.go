@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -20,7 +19,6 @@ import (
 	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/dghubble/sling"
 	cli "github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/config"
@@ -66,9 +64,6 @@ var (
 func init() {
 	SemVersion = CleanVersion(Version)
 }
-
-const GhOrg = "joyent"
-const GhRepo = "conch-shell"
 
 // DateFormat should be used in date formatting calls to ensure uniformity of
 // output
@@ -145,19 +140,6 @@ func BuildAPI() {
 		))
 
 	}
-}
-
-// CleanVersion removes a "v" prefix, and anything after a dash
-// For example, pass in v2.99.10-abcde-dirty and get back a semver containing
-// 2.29.10
-// Why? Git and Semver differ in their notions of what those extra bits mean.
-// In Git, they mean "v2.99.10, plus some other stuff that happend". In semver,
-// they indicate that this is a prerelease of v2.99.10. Obviously this screws
-// up comparisions. This function lets us clean that stuff out so we can get a
-// clean comparison
-func CleanVersion(version string) semver.Version {
-	bits := strings.Split(strings.TrimLeft(version, "v"), "-")
-	return semver.MustParse(bits[0])
 }
 
 // GetMarkdownTable returns a tablewriter configured to output markdown
@@ -356,140 +338,6 @@ func JSONOutIndent(thingy interface{}) {
 	}
 
 	fmt.Println(string(j))
-}
-
-// GithubRelease represents a 'release' for a Github project
-type GithubRelease struct {
-	URL     string         `json:"html_url"`
-	TagName string         `json:"tag_name"`
-	SemVer  semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
-	Body    string         `json:"body"`
-	Name    string         `json:"name"`
-	Assets  []GithubAsset  `json:"assets"`
-	Upgrade bool           `json:"-"`
-}
-
-type GithubReleases []GithubRelease
-
-func (g GithubReleases) Len() int {
-	return len(g)
-}
-
-func (g GithubReleases) Swap(i, j int) {
-	g[i], g[j] = g[j], g[i]
-}
-
-func (g GithubReleases) Less(i, j int) bool {
-	var iSem, jSem semver.Version
-
-	if g[i].TagName == "" {
-		iSem = semver.MustParse("0.0.0")
-	} else {
-		iSem = semver.MustParse(
-			strings.TrimLeft(g[i].TagName, "v"),
-		)
-	}
-
-	if g[j].TagName == "" {
-		jSem = semver.MustParse("0.0.0")
-	} else {
-		jSem = semver.MustParse(
-			strings.TrimLeft(g[j].TagName, "v"),
-		)
-	}
-
-	return iSem.GT(jSem) // reversing sort
-}
-
-// GithubAsset represents a file inside of a github release
-type GithubAsset struct {
-	URL                string `json:"url"`
-	Name               string `json:"name"`
-	State              string `json:"state"`
-	BrowserDownloadURL string `json:"browser_download_url"`
-}
-
-var ErrNoGithubRelease = errors.New("no appropriate github release found")
-
-// LatestGithubRelease returns some fields from the latest Github Release
-// that matches our major version
-func LatestGithubRelease() (gh GithubRelease, err error) {
-	releases := make(GithubReleases, 0)
-
-	url := fmt.Sprintf(
-		"https://api.github.com/repos/%s/%s/releases",
-		GhOrg,
-		GhRepo,
-	)
-
-	_, err = sling.New().
-		Set("User-Agent", UserAgent).
-		Get(url).Receive(&releases, nil)
-
-	if err != nil {
-		return gh, err
-	}
-
-	sort.Sort(releases)
-
-	for _, r := range releases {
-		if r.TagName == "" {
-			continue
-		}
-		r.SemVer = CleanVersion(
-			strings.TrimLeft(r.TagName, "v"),
-		)
-
-		if r.SemVer.Major == SemVersion.Major {
-			if r.SemVer.GT(SemVersion) {
-				r.Upgrade = true
-			}
-			return r, nil
-		}
-	}
-
-	return gh, ErrNoGithubRelease
-}
-
-func GithubReleasesSince(start semver.Version) GithubReleases {
-	releases := make(GithubReleases, 0)
-
-	diff := make(GithubReleases, 0)
-
-	url := fmt.Sprintf(
-		"https://api.github.com/repos/%s/%s/releases",
-		GhOrg,
-		GhRepo,
-	)
-
-	_, err := sling.New().
-		Set("User-Agent", UserAgent).
-		Get(url).Receive(&releases, nil)
-
-	if err != nil {
-		return diff
-	}
-
-	sort.Sort(releases)
-
-	for _, r := range releases {
-		if r.TagName == "" {
-			continue
-		}
-		r.SemVer = CleanVersion(
-			strings.TrimLeft(r.TagName, "v"),
-		)
-
-		if r.SemVer.Major == SemVersion.Major {
-			if r.SemVer.GT(start) {
-				diff = append(diff, r)
-			}
-		}
-	}
-
-	sort.Sort(diff)
-
-	return diff
 }
 
 // IsPasswordSane verifies that the given password follows the current rules
