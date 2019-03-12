@@ -33,10 +33,14 @@ func (c *Conch) SaveGlobalRoom(r *GlobalRoom) error {
 		return ErrBadInput
 	}
 
+	if r.Alias == "" {
+		return ErrBadInput
+	}
+
 	j := struct {
 		Datacenter string `json:"datacenter"`
 		AZ         string `json:"az"`
-		Alias      string `json:"alias,omitempty"`
+		Alias      string `json:"alias"`
 		VendorName string `json:"vendor_name,omitempty"`
 	}{r.DatacenterID.String(), r.AZ, r.Alias, r.VendorName}
 
