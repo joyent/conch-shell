@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/commands"
 	"github.com/joyent/conch-shell/pkg/conch"
@@ -42,12 +41,13 @@ func main() {
 						"  Git Revision: %s\n"+
 						"  Build Time: %s\n"+
 						"  Build Host: %s\n"+
-						"  Requires API version: >= %s\n",
+						"  Requires API version: >= %s and < %s\n",
 					util.Version,
 					util.GitRev,
 					buildTime,
 					util.BuildHost,
 					conch.MinimumAPIVersion,
+					conch.BreakingAPIVersion,
 				)
 			}
 		},
@@ -96,30 +96,29 @@ func main() {
 		}
 
 		checkVersion := true
-		if *noVersion {
-			checkVersion = false
-		}
-
-		if cfg.SkipVersionCheck {
+		if *noVersion || cfg.SkipVersionCheck {
 			checkVersion = false
 		}
 
 		if checkVersion {
-			gh, err := util.LatestGithubRelease("joyent", "conch-shell")
-			if err != nil {
+			gh, err := util.LatestGithubRelease()
+			if (err != nil) && (err != util.ErrNoGithubRelease) {
 				util.Bail(err)
 			}
+			if gh.Upgrade {
+				os.Stderr.WriteString(fmt.Sprintf(`
+A new release is available! You have v%s but %s is available.
+The changelog can be viewed via 'conch update changelog'
 
-			if gh.SemVer.GT(semver.MustParse(util.Version)) {
-				os.Stderr.WriteString(fmt.Sprintf(
-					"** A new release is available! You have v%s and %s is available.\n",
+You can obtain the new release by:
+  * Running 'conch update self', which will attempt to overwrite the current application
+  * Manually download the new release at %s
+
+`,
 					util.Version,
 					gh.TagName,
+					gh.URL,
 				))
-				os.Stderr.WriteString(fmt.Sprintf("   The changelog can be viewed via 'conch update changelog'\n\n"))
-				os.Stderr.WriteString(fmt.Sprintln("   You can obtain the new release by:"))
-				os.Stderr.WriteString(fmt.Sprintln("     * Running 'conch update self', which will attempt to overwrite the current application"))
-				os.Stderr.WriteString(fmt.Sprintf("     * Download the new release at %s and manually install it\n\n", gh.URL))
 			}
 		}
 

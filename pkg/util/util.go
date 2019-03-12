@@ -14,16 +14,16 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
-	"github.com/dghubble/sling"
+	"github.com/davecgh/go-spew/spew"
 	cli "github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/config"
 	"github.com/joyent/conch-shell/pkg/pgtime"
 	"github.com/olekukonko/tablewriter"
-	"unicode/utf8"
 )
 
 var (
@@ -57,7 +57,13 @@ var (
 	BuildTime string
 	GitRev    string
 	BuildHost string
+
+	SemVersion semver.Version
 )
+
+func init() {
+	SemVersion = CleanVersion(Version)
+}
 
 // DateFormat should be used in date formatting calls to ensure uniformity of
 // output
@@ -104,6 +110,35 @@ func BuildAPI() {
 	}
 	if UserAgent != "" {
 		API.UA = UserAgent
+	}
+
+	version, err := API.GetVersion()
+	if err != nil {
+		Bail(err)
+	}
+
+	sem := CleanVersion(version)
+	minSem := CleanVersion(conch.MinimumAPIVersion)
+	maxSem := CleanVersion(conch.BreakingAPIVersion)
+
+	if sem.Major != minSem.Major {
+		Bail(fmt.Errorf(
+			"cannot continue. the major version of API server '%s' is '%d' and we require '%d'",
+			API.BaseURL,
+			sem.Major,
+			minSem.Major,
+		))
+	}
+
+	if sem.LT(minSem) || sem.GTE(maxSem) {
+		Bail(fmt.Errorf(
+			"cannot continue. the API server version '%s' is '%s' and we require >= %s and < %s",
+			API.BaseURL,
+			sem,
+			minSem,
+			maxSem,
+		))
+
 	}
 }
 
@@ -305,59 +340,6 @@ func JSONOutIndent(thingy interface{}) {
 	fmt.Println(string(j))
 }
 
-// GithubRelease represents a 'release' for a Github project
-type GithubRelease struct {
-	URL     string         `json:"html_url"`
-	TagName string         `json:"tag_name"`
-	SemVer  semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
-	Body    string         `json:"body"`
-	Name    string         `json:"name"`
-	Assets  []GithubAsset  `json:"assets"`
-}
-
-// GithubAsset represents a file inside of a github release
-type GithubAsset struct {
-	URL                string `json:"url"`
-	Name               string `json:"name"`
-	State              string `json:"state"`
-	BrowserDownloadURL string `json:"browser_download_url"`
-}
-
-// LatestGithubRelease returns some fields from the latest Github Release
-// object for the given owner and repo via
-// "https://api.github.com/repos/:owner/:repo/releases/latest"
-func LatestGithubRelease(owner string, repo string) (*GithubRelease, error) {
-	url := fmt.Sprintf(
-		"https://api.github.com/repos/%s/%s/releases/latest",
-		owner,
-		repo,
-	)
-
-	gh := &GithubRelease{}
-
-	_, err := sling.New().
-		Set("User-Agent", UserAgent).
-		Get(url).Receive(&gh, nil)
-
-	if err != nil {
-		return gh, err
-	}
-
-	if gh.TagName == "" {
-		gh.SemVer = semver.MustParse("0.0.0")
-	} else {
-		sem, err := semver.Make(
-			strings.TrimLeft(gh.TagName, "v"),
-		)
-		if err != nil {
-			return gh, err
-		}
-		gh.SemVer = sem
-	}
-
-	return gh, err
-}
-
 // IsPasswordSane verifies that the given password follows the current rules
 // and restrictions
 func IsPasswordSane(password string, profile *config.ConchProfile) error {
@@ -408,4 +390,20 @@ func InteractiveForcePasswordChange() {
 	ActiveProfile.JWT = API.JWT
 
 	WriteConfig()
+}
+
+// DDP pretty prints a structure to stderr. "Deep Data Printer"
+func DDP(v interface{}) {
+	spew.Fdump(
+		os.Stderr,
+		v,
+	)
+}
+
+func init() {
+	spew.Config = spew.ConfigState{
+		Indent:                  "    ",
+		SortKeys:                true,
+		DisablePointerAddresses: true,
+	}
 }

@@ -9,6 +9,7 @@ package update
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,41 +17,66 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/util"
 )
 
 func status(cmd *cli.Cmd) {
 	cmd.Action = func() {
-		gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+		gh, err := util.LatestGithubRelease()
 		if err != nil {
+			if err == util.ErrNoGithubRelease {
+				fmt.Printf(
+					"This is v%s. No upgrade is available.\n",
+					util.Version,
+				)
+				return
+			}
+
 			util.Bail(err)
 		}
-		fmt.Printf("This is v%s. Current release is %s.\n",
-			util.Version,
-			gh.TagName,
-		)
+
+		if gh.Upgrade {
+			fmt.Printf(
+				"This is v%s. An upgrade to %s is available\n",
+				util.Version,
+				gh.TagName,
+			)
+		} else {
+			fmt.Printf(
+				"This is v%s. No upgrade is available.\n",
+				util.Version,
+			)
+		}
 	}
 }
 
 func changelog(cmd *cli.Cmd) {
 	cmd.Action = func() {
-		gh, err := util.LatestGithubRelease("joyent", "conch-shell")
-		if err != nil {
-			util.Bail(err)
+		releases := util.GithubReleasesSince(util.SemVersion)
+		if len(releases) == 0 {
+			fmt.Println("No changelog found")
+			return
 		}
 
-		// I'm not going to try and fully sanitize the output
-		// for a shell environment but removing the markdown
-		// backticks seems like a no-brainer for safety.
-		re := regexp.MustCompile("`")
-		body := gh.Body
-		re.ReplaceAllLiteralString(body, "'")
-		fmt.Printf("Version %s Changelog:\n\n", gh.TagName)
-		fmt.Println(body)
+		sort.Sort(sort.Reverse(releases))
+
+		for _, gh := range releases {
+
+			// I'm not going to try and fully sanitize the output
+			// for a shell environment but removing the markdown
+			// backticks seems like a no-brainer for safety.
+			re := regexp.MustCompile("`")
+			body := gh.Body
+			re.ReplaceAllLiteralString(body, "'")
+			fmt.Printf("# Version %s Changelog:\n\n", gh.TagName)
+			fmt.Println(body)
+			fmt.Println("- - -\n")
+
+		}
 	}
 }
 
@@ -61,25 +87,28 @@ func selfUpdate(cmd *cli.Cmd) {
 		"Update the binary even if it appears we are on the current release",
 	)
 	cmd.Action = func() {
-		gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+		gh, err := util.LatestGithubRelease()
+
 		if err != nil {
+			if err == util.ErrNoGithubRelease {
+				fmt.Fprintln(os.Stderr, "no upgrade available")
+				return
+			}
+
 			util.Bail(err)
 		}
-		sem := semver.MustParse(util.Version)
+
 		if !*force {
-			if gh.SemVer.LTE(sem) {
-				util.Bail(fmt.Errorf(
-					"no upgrade required. We are at version %s which is better than %s",
-					sem,
-					gh.SemVer,
-				))
+			if !gh.Upgrade {
+				util.Bail(errors.New("no upgrade required"))
 			}
 		}
+
 		if !util.JSON {
 			fmt.Fprintf(
 				os.Stderr,
 				"Attempting to upgrade from %s to %s...\n",
-				sem,
+				util.SemVersion,
 				gh.SemVer,
 			)
 
@@ -218,7 +247,7 @@ func selfUpdate(cmd *cli.Cmd) {
 			fmt.Fprintf(
 				os.Stderr,
 				"Successfully upgraded from %s to %s\n",
-				sem,
+				util.SemVersion,
 				gh.SemVer,
 			)
 		}
