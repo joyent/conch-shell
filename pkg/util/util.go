@@ -116,6 +116,23 @@ func BuildAPI() {
 	if UserAgent != "" {
 		API.UA = UserAgent
 	}
+
+	version, err := API.GetVersion()
+	if err != nil {
+		Bail(err)
+	}
+
+	sem := semver.MustParse(strings.TrimLeft(version, "v"))
+	minSem := semver.MustParse(conch.MinimumAPIVersion)
+
+	if sem.Major != minSem.Major {
+		Bail(fmt.Errorf(
+			"cannot continue. the major version of API server '%s' is '%d' and we require '%d'",
+			API.BaseURL,
+			sem.Major,
+			minSem.Major,
+		))
+	}
 }
 
 // GetMarkdownTable returns a tablewriter configured to output markdown
