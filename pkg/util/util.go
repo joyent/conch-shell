@@ -17,6 +17,7 @@ import (
 
 	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/dghubble/sling"
 	cli "github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
@@ -408,4 +409,20 @@ func InteractiveForcePasswordChange() {
 	ActiveProfile.JWT = API.JWT
 
 	WriteConfig()
+}
+
+// DDP pretty prints a structure to stderr. "Deep Data Printer"
+func DDP(v interface{}) {
+	spew.Fdump(
+		os.Stderr,
+		v,
+	)
+}
+
+func init() {
+	spew.Config = spew.ConfigState{
+		Indent:                  "    ",
+		SortKeys:                true,
+		DisablePointerAddresses: true,
+	}
 }
