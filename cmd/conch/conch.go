@@ -41,12 +41,13 @@ func main() {
 						"  Git Revision: %s\n"+
 						"  Build Time: %s\n"+
 						"  Build Host: %s\n"+
-						"  Requires API version: >= %s\n",
+						"  Requires API version: >= %s and < %s\n",
 					util.Version,
 					util.GitRev,
 					buildTime,
 					util.BuildHost,
 					conch.MinimumAPIVersion,
+					conch.BreakingAPIVersion,
 				)
 			}
 		},
