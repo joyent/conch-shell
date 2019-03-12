@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/jawher/mow.cli"
@@ -55,23 +56,27 @@ func status(cmd *cli.Cmd) {
 
 func changelog(cmd *cli.Cmd) {
 	cmd.Action = func() {
-		gh, err := util.LatestGithubRelease("joyent", "conch-shell")
-		if err != nil {
-			if err == util.ErrNoGithubRelease {
-				fmt.Println("No changelog found")
-				return
-			}
-			util.Bail(err)
+		releases := util.GithubReleasesSince(util.SemVersion)
+		if len(releases) == 0 {
+			fmt.Println("No changelog found")
+			return
 		}
 
-		// I'm not going to try and fully sanitize the output
-		// for a shell environment but removing the markdown
-		// backticks seems like a no-brainer for safety.
-		re := regexp.MustCompile("`")
-		body := gh.Body
-		re.ReplaceAllLiteralString(body, "'")
-		fmt.Printf("Version %s Changelog:\n\n", gh.TagName)
-		fmt.Println(body)
+		sort.Sort(sort.Reverse(releases))
+
+		for _, gh := range releases {
+
+			// I'm not going to try and fully sanitize the output
+			// for a shell environment but removing the markdown
+			// backticks seems like a no-brainer for safety.
+			re := regexp.MustCompile("`")
+			body := gh.Body
+			re.ReplaceAllLiteralString(body, "'")
+			fmt.Printf("# Version %s Changelog:\n\n", gh.TagName)
+			fmt.Println(body)
+			fmt.Println("- - -\n")
+
+		}
 	}
 }
 
