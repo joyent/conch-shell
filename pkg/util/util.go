@@ -67,6 +67,9 @@ func init() {
 	SemVersion = semver.MustParse(Version)
 }
 
+const GhOrg = "joyent"
+const GhRepo = "conch-shell"
+
 // DateFormat should be used in date formatting calls to ensure uniformity of
 // output
 const DateFormat = "2006-01-02 15:04:05 -0700 MST"
@@ -367,15 +370,14 @@ type GithubAsset struct {
 var ErrNoGithubRelease = errors.New("no appropriate github release found")
 
 // LatestGithubRelease returns some fields from the latest Github Release
-// object for the given owner and repo via
-// "https://api.github.com/repos/:owner/:repo/releases/latest"
-func LatestGithubRelease(owner string, repo string) (gh GithubRelease, err error) {
+// that matches our major version
+func LatestGithubRelease() (gh GithubRelease, err error) {
 	releases := make(GithubReleases, 0)
 
 	url := fmt.Sprintf(
 		"https://api.github.com/repos/%s/%s/releases",
-		owner,
-		repo,
+		GhOrg,
+		GhRepo,
 	)
 
 	_, err = sling.New().

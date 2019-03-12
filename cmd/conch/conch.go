@@ -100,7 +100,7 @@ func main() {
 		}
 
 		if checkVersion {
-			gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+			gh, err := util.LatestGithubRelease()
 			if (err != nil) && (err != util.ErrNoGithubRelease) {
 				util.Bail(err)
 			}

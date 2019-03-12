@@ -25,7 +25,7 @@ import (
 
 func status(cmd *cli.Cmd) {
 	cmd.Action = func() {
-		gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+		gh, err := util.LatestGithubRelease()
 		if err != nil {
 			if err == util.ErrNoGithubRelease {
 				fmt.Printf(
@@ -82,7 +82,7 @@ func selfUpdate(cmd *cli.Cmd) {
 		"Update the binary even if it appears we are on the current release",
 	)
 	cmd.Action = func() {
-		gh, err := util.LatestGithubRelease("joyent", "conch-shell")
+		gh, err := util.LatestGithubRelease()
 
 		if err != nil {
 			if err == util.ErrNoGithubRelease {
