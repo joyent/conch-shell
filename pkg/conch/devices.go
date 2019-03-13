@@ -8,7 +8,6 @@ package conch
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -214,9 +213,7 @@ func (c *Conch) GetDevicesByField(key string, value string) (d Devices, err erro
 	return d, c.get(url, &d)
 }
 
-func (c *Conch) SubmitDeviceReport(serial string, report string) (state DeviceReportState, err error) {
-	var vState ValidationState
-
+func (c *Conch) SubmitDeviceReport(serial string, report string) (state ValidationState, err error) {
 	reportReader := bytes.NewReader([]byte(report))
 
 	req, err := c.sling().New().Post("/device/"+serial).
@@ -226,48 +223,6 @@ func (c *Conch) SubmitDeviceReport(serial string, report string) (state DeviceRe
 		return state, err
 	}
 
-	_, err = c.httpDo(req, &vState)
-	if err != nil {
-		return state, err
-	}
-
-	// Cross your fingers and hope the most recent state is the one we just got back
-	// This won't be true if someone submitted another device report in the
-	// last few milliseconds.
-	states, err := c.DeviceValidationStates(serial)
-	if err != nil {
-		return state, err
-	}
-
-	// Since we only have one plan per device type right now, just grab the first
-	latestState := states[0]
-	if !uuid.Equal(latestState.ID, vState.ID) {
-		return state, errors.New("latest state doesn't match report's state")
-	}
-
-	state.State = latestState
-
-	plan, err := c.GetValidationPlan(latestState.ValidationPlanID)
-	if err != nil {
-		return state, err
-	}
-
-	state.Plan = plan
-
-	filledResults := make([]DeviceReportResult, 0)
-	for _, r := range latestState.Results {
-		var result DeviceReportResult
-
-		result.Result = r
-
-		if v, err := c.GetValidation(r.ValidationID); err == nil {
-			result.Validation = v
-		}
-
-		filledResults = append(filledResults, result)
-	}
-
-	state.Results = filledResults
-
+	_, err = c.httpDo(req, &state)
 	return state, err
 }

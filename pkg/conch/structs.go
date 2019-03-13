@@ -132,17 +132,6 @@ type DeviceLocation struct {
 	TargetHardwareProduct HardwareProductTarget `json:"target_hardware_product"`
 }
 
-type DeviceReportResult struct {
-	Result     ValidationResult `json:"validation_result"`
-	Validation Validation       `json:"validation"`
-}
-
-type DeviceReportState struct {
-	State   ValidationState      `json:"validation_state"`
-	Plan    ValidationPlan       `json:"validation_plan"`
-	Results []DeviceReportResult `json:"results"`
-}
-
 type ExtendedDevice struct {
 	Device
 	IPMI          string                    `json:"ipmi"`
