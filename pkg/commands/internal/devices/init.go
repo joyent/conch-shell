@@ -59,7 +59,7 @@ func Init(app *cli.Cli) {
 
 	app.Command(
 		"device d",
-		"Commands for dealing with a single device",
+		"Commands for dealing with a single device. The device must be in a workspace to which the user has at least read-only access",
 		func(cmd *cli.Cmd) {
 
 			var deviceSerialStr = cmd.StringArg("ID", "", "The serial of the device")
