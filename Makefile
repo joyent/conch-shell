@@ -10,7 +10,7 @@ BUILD_ARGS = -ldflags="-X ${FLAGS_PATH}.BuildHost=${BUILD_WHO} -X ${FLAGS_PATH}.
 
 BUILD = go build ${BUILD_ARGS} 
 
-default: clean vendor check bin/conch ## By default, run 'clean', 'check', 'bin/conch'
+default: clean vendor check bin/conch bin/tester ## By default, run 'clean', 'check', 'bin/conch', 'bin/tester'
 
 first-run: tools ## Install all the dependencies needed to build and test
 
@@ -81,8 +81,16 @@ help: ## Display this help message
 	@grep -E '^[a-zA-Z_.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 
-bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor fasttest ## Build bin/tester
+bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor ## Build bin/tester
 	@echo "==> building bin/tester"
 	go build ${BUILD_ARGS} -o bin/tester cmd/tester/main.go
+
+
+.PHONY: tester_release
+tester_release: vendor check  ## Build binaries for conch-api-tester
+	@echo "==> Building conch-api-tester for all the platforms"
+	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-api-tester-darwin-amd64 cmd/tester/main.go
+	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-api-tester-linux-amd64 cmd/tester/main.go
+	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/conch-api-tester-solaris-amd64 cmd/tester/main.go
 
 

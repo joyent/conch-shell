@@ -111,4 +111,13 @@ func TestDevices(t *testing.T) {
 		st.Expect(t, ret, d)
 	})
 
+	t.Run("SubmitDeviceReport", func(t *testing.T) {
+		serial := "test"
+		gock.New(API.BaseURL).Post("/device/" + serial).Reply(400).JSON(ErrApi)
+
+		ret, err := API.SubmitDeviceReport(serial, "")
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, conch.ValidationState{})
+	})
+
 }

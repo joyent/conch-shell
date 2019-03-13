@@ -72,10 +72,10 @@ func init() {
 	})
 
 	rootCmd.AddCommand(&cobra.Command{
-		Use:     "test",
-		Aliases: []string{"run"},
-		Short:   "Run the tester, with no side effects",
-		Long:    "Submits the reports to the validation endpoints, running the validations in a stateless mode. No data will be written to the database and all the database munging code in the device report processing code will NOT be exercised. This also requires that the device exist already in the database.",
+		Use:     "run",
+		Aliases: []string{"test"},
+		Short:   "Run the tester, with supposedly no side effects",
+		Long:    "This submits the reports to the validation endpoints, running the validations in a stateless mode. No data will be written to the database and all the database munging code in the device report processing code will NOT be exercised. This also requires that the device exist already in the database and exist in a workspace that the user can see",
 		Run:     nonbindingTest,
 	})
 
@@ -102,7 +102,7 @@ func failMe(r Report, destructive bool) {
 	})
 
 	if !r.Exists {
-		logger.Error("device does not exist")
+		logger.Error("device does not exist or this user cannot see it due to workspace permissions")
 		return
 	}
 
@@ -289,27 +289,49 @@ func destructiveTest(cmd *cobra.Command, args []string) {
 
 			continue
 		}
-		report.ValidationPlanID = state.Plan.ID
-		report.ValidationPlanName = state.Plan.Name
 
-		if state.State.Status != "pass" {
-			for _, r := range state.Results {
-				if r.Result.Status != "pass" {
-					report.Reasons = append(
-						report.Reasons,
-						fmt.Sprintf(
-							"%s : %s : %s -> %s",
-							r.Validation.Name,
-							r.Result.Category,
-							r.Result.Status,
-							r.Result.Message,
-						),
-					)
-				}
+		report.ValidationPlanID = state.ValidationPlanID
+		report.ValidationPlanName = "[unknown]"
+
+		if state.Status == "pass" {
+			continue
+		}
+
+		if plan, err := API.GetValidationPlan(state.ValidationPlanID); err == nil {
+			report.ValidationPlanName = plan.Name
+		}
+
+		for _, r := range state.Results {
+			if r.Status == "pass" {
+				continue
 			}
 
-			failMe(report, true)
+			v, err := API.GetValidation(r.ValidationID)
+			if err == nil {
+				report.Reasons = append(
+					report.Reasons,
+					fmt.Sprintf(
+						"%s : %s : %s -> %s",
+						v.Name,
+						r.Category,
+						r.Status,
+						r.Message,
+					),
+				)
+			} else {
+				report.Reasons = append(
+					report.Reasons,
+					fmt.Sprintf(
+						"%s : %s : %s -> %s",
+						r.ValidationID,
+						r.Category,
+						r.Status,
+						r.Message,
+					),
+				)
+			}
 		}
+		failMe(report, true)
 	}
 
 	msg := fmt.Sprintf(
