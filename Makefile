@@ -86,3 +86,11 @@ bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor fasttest ## Buil
 	go build ${BUILD_ARGS} -o bin/tester cmd/tester/main.go
 
 
+.PHONY: tester_release
+tester_release: vendor check  ## Build binaries for conch-api-tester
+	@echo "==> Building conch-api-tester for all the platforms"
+	GOOS=darwin GOARCH=amd64 ${BUILD} -o release/conch-api-tester-darwin-amd64 cmd/tester/main.go
+	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-api-tester-linux-amd64 cmd/tester/main.go
+	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/conch-api-tester-solaris-amd64 cmd/tester/main.go
+
+
