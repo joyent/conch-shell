@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/dghubble/sling"
 	_ "github.com/lib/pq"
@@ -28,6 +29,7 @@ var FailedCount = 0
 
 type Report struct {
 	ID                 uuid.UUID
+	Completed          time.Time
 	FileName           string
 	Raw                string
 	DeviceSerial       string
@@ -99,6 +101,7 @@ func failMe(r Report, destructive bool) {
 		"validation_plan_name": r.ValidationPlanName,
 		"server":               viper.GetString("conch_api"),
 		"submission_type":      submitType,
+		"validation_completed": r.Completed,
 	})
 
 	if !r.Exists {
@@ -443,17 +446,19 @@ func extractReportsFromDB() Reports {
 	sql := fmt.Sprintf(`select
 	foo.device_id,
 	foo.device_report_id,
+	foo.completed,
 	dr.report
 	from (
 		select
 			device_id,
 			device_report_id,
+			completed,
 			row_number() over (
-				partition by device_id order by created desc
+				partition by device_id order by completed desc
 			) as result_num
 			from validation_state 
 			where
-				created > now() - interval '%s'
+				completed > now() - interval '%s'
 				and status = 'pass'
 	) foo
 	join device_report dr on dr.id = foo.device_report_id
@@ -479,7 +484,7 @@ func extractReportsFromDB() Reports {
 			ValidationPlanName: ServerPlanName,
 		}
 
-		if err := rows.Scan(&report.DeviceSerial, &report.ID, &report.Raw); err != nil {
+		if err := rows.Scan(&report.DeviceSerial, &report.ID, &report.Completed, &report.Raw); err != nil {
 			log.Fatal(err)
 		}
 
