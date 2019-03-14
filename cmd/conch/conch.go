@@ -49,6 +49,9 @@ func main() {
 					conch.MinimumAPIVersion,
 					conch.BreakingAPIVersion,
 				)
+				if util.NoApiVersionCheck {
+					fmt.Println("\n** API version checking is disabled. Functionality cannot be guaranteed **")
+				}
 			}
 		},
 	)
