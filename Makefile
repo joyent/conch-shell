@@ -81,7 +81,7 @@ help: ## Display this help message
 	@grep -E '^[a-zA-Z_.-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 
-bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go vendor ## Build bin/tester
+bin/tester: internal/pkg/cmd/tester/*.go cmd/tester/*.go pkg/conch/*.go vendor ## Build bin/tester
 	@echo "==> building bin/tester"
 	go build ${BUILD_ARGS} -o bin/tester cmd/tester/main.go
 
@@ -93,4 +93,8 @@ tester_release: vendor check  ## Build binaries for conch-api-tester
 	GOOS=linux GOARCH=amd64 ${BUILD} -o release/conch-api-tester-linux-amd64 cmd/tester/main.go
 	GOOS=solaris GOARCH=amd64 ${BUILD} -o release/conch-api-tester-solaris-amd64 cmd/tester/main.go
 
+.PHONY: bin/report_corpus
+bin/report_corpus: internal/pkg/cmd/corpus/*.go cmd/corpus/*.go pkg/conch/*.go vendor
+	@echo "==> building bin/report_corpus"
+	go build ${BUILD_ARGS} -o bin/report_corpus cmd/corpus/main.go
 
