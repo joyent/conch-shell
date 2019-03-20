@@ -54,9 +54,7 @@ var (
 // These variables are provided by the build environment
 var (
 	Version                string
-	BuildTime              string
 	GitRev                 string
-	BuildHost              string
 	DisableApiVersionCheck string
 
 	SemVersion semver.Version

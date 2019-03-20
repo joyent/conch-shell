@@ -8,8 +8,6 @@ package corpus
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/util"
@@ -57,21 +55,11 @@ func init() {
 		Use:   "version",
 		Short: "Display version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			buildTime := util.BuildTime
-			t, err := strconv.ParseInt(util.BuildTime, 10, 64)
-			if err == nil {
-				buildTime = util.TimeStr(time.Unix(t, 0))
-			}
-
 			fmt.Printf(
 				"Conch %s - API Tester\n"+
-					"  Git Revision: %s\n"+
-					"  Build Time: %s\n"+
-					"  Build Host: %s\n",
+					"  Git Revision: %s\n",
 				util.Version,
 				util.GitRev,
-				buildTime,
-				util.BuildHost,
 			)
 		},
 	})
