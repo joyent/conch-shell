@@ -6,7 +6,7 @@
 
 package main
 
-import "github.com/joyent/conch-shell/internal/pkg/cmd/corpus"
+import "github.com/joyent/conch-shell/pkg/cmd/corpus"
 
 func main() {
 	corpus.Execute()

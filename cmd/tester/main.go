@@ -6,7 +6,7 @@
 
 package main
 
-import "github.com/joyent/conch-shell/internal/pkg/cmd/tester"
+import "github.com/joyent/conch-shell/pkg/cmd/tester"
 
 func main() {
 	tester.Execute()

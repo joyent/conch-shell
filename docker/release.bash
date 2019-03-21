@@ -21,6 +21,7 @@ fi
 
 IMAGE_NAME="${PREFIX}/${NAME}:${LABEL}"
 
+mkdir release
 
 docker build \
 	-t ${IMAGE_NAME} \
