@@ -56,7 +56,7 @@ BUILD      := CGO_ENABLED=0 go build $(LD_FLAGS)
 all: $(BINS) ## Build all binaries
 
 .PHONY: release
-release: clean vendor test $(RELEASES) ## Build release binaries with checksums
+release: vendor test $(RELEASES) ## Build release binaries with checksums
 
 bin/%:
 	@mkdir -p bin
