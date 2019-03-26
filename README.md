@@ -77,13 +77,20 @@ process as well, use the following Makefile targets:
   the app, runs the test suite, and then runs `conch version` to verify basic
   functionality
 
-* `make docker_release` - Copies the local source code into the container and
-  executes `make release checksums`, dropping the results in the local
+* `make docker_release` - Checks the provided version from git and
+  executes `make release`, dropping the results in the local
   `release` directory.
 
 ## Reproducible Builds
 
-At this time, reproducible builds are not supported. The build environment sets
-certain values at build time that help us debug user problems. This
-unfortunately also causes each binary to be unique, specific to the exact time
-and place it was built.
+As of 1841c57, our build process no longer inserts local values that break
+reproducible builds. Using docker and our `make docker_release` process, one
+should be able to reproduce our builds and validate via checksum.
+
+However, at time of writing, go itself does not support reproducible builds
+when `GOPATH` changes, since it embeds that path in the binary for "debugging"
+purposes. It is not possible to reproduce our builds outside the docker build
+environment. 
+
+This issue is being tracked at https://github.com/golang/go/issues/16860
+
