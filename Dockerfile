@@ -1,4 +1,4 @@
-FROM golang:alpine AS build
+FROM golang:1.12.1-alpine AS build
 ENV CGO_ENABLED 0
 
 RUN apk add --no-cache --update make git perl-utils dep shadow
