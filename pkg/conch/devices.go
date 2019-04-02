@@ -44,11 +44,20 @@ func (c *Conch) GetExtendedDevice(serial string) (ed ExtendedDevice, err error) 
 
 	/***********/
 
+	var role GlobalRackRole
+	if !uuid.Equal(d.Location.Rack.RoleID, uuid.UUID{}) {
+		role, err = c.GetGlobalRackRole(d.Location.Rack.RoleID)
+		if err != nil {
+			return ed, err
+		}
+	}
+
 	ed = ExtendedDevice{
 		Device:        d,
 		IPMI:          "",
 		HardwareName:  "",
 		SKU:           "",
+		RackRole:      role,
 		Enclosures:    enclosures,
 		IsGraduated:   !d.Graduated.IsZero(),
 		IsTritonSetup: !d.TritonSetup.IsZero(),

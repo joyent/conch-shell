@@ -35,12 +35,12 @@ IPMI: {{ .IPMI }}{{ if .LatestReportIsInvalid }}
 ** LATEST REPORT IS INVALID **{{- end }}
 
 Location:
-  Datacenter: {{ .Location.Datacenter.Name }}
+  Datacenter: {{ .Location.Room.AZ }}
     Vendor:   {{ .Location.Datacenter.VendorName }}
 
   Rack: {{ .Location.Rack.Name }} 
-    - Role: {{ .Location.Rack.Role }}
-    - RU:   {{ .Location.Rack.Unit }} of {{ .Location.Rack.Size }}
+    - Role: {{ .RackRole.Name }}
+    - RU:   {{ .Location.RackUnitStart }} of {{ .RackRole.RackSize }}
 	- ID:   {{ .Location.Rack.ID }}
 
 Created:      {{ .Created.Local }}
@@ -142,6 +142,14 @@ func getLocation(app *cli.Cmd) {
 			return
 		}
 
+		var role conch.GlobalRackRole
+		if !uuid.Equal(location.Rack.RoleID, uuid.UUID{}) {
+			role, err = util.API.GetGlobalRackRole(location.Rack.RoleID)
+			if err != nil {
+				util.Bail(err)
+			}
+		}
+
 		fmt.Printf(`Location for device %s:
   Datacenter:
     Id:   %s
@@ -154,11 +162,11 @@ func getLocation(app *cli.Cmd) {
 `,
 			DeviceSerial,
 			location.Datacenter.ID,
-			location.Datacenter.Name,
+			location.Room.AZ,
 			location.Rack.ID,
 			location.Rack.Name,
-			location.Rack.Role,
-			location.Rack.Unit,
+			role.Name,
+			location.RackUnitStart,
 		)
 	}
 }

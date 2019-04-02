@@ -15,30 +15,30 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-func TestGlobalDatacenterErrors(t *testing.T) {
+func TestDatacenterErrors(t *testing.T) {
 	gock.Flush()
 	defer gock.Flush()
 
-	t.Run("GetGlobalDatacenters", func(t *testing.T) {
+	t.Run("GetDatacenters", func(t *testing.T) {
 		gock.New(API.BaseURL).Get("/dc").Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalDatacenters()
+		ret, err := API.GetDatacenters()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalDatacenter{})
+		st.Expect(t, ret, []conch.Datacenter{})
 	})
 
-	t.Run("GetGlobalDatacenter", func(t *testing.T) {
+	t.Run("GetDatacenter", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Get("/dc/" + id.String()).Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalDatacenter(id)
+		ret, err := API.GetDatacenter(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, conch.GlobalDatacenter{})
+		st.Expect(t, ret, conch.Datacenter{})
 	})
 
-	t.Run("CreateGlobalDatacenter", func(t *testing.T) {
-		d := conch.GlobalDatacenter{
+	t.Run("CreateDatacenter", func(t *testing.T) {
+		d := conch.Datacenter{
 			Region:   "r",
 			Vendor:   "v",
 			Location: "l",
@@ -46,13 +46,13 @@ func TestGlobalDatacenterErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/dc").Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalDatacenter(&d)
+		err := API.SaveDatacenter(&d)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("UpdateGlobalDatacenter", func(t *testing.T) {
+	t.Run("UpdateDatacenter", func(t *testing.T) {
 		id := uuid.NewV4()
-		d := conch.GlobalDatacenter{
+		d := conch.Datacenter{
 			ID:       id,
 			Region:   "r",
 			Vendor:   "v",
@@ -61,22 +61,22 @@ func TestGlobalDatacenterErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/dc/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalDatacenter(&d)
+		err := API.SaveDatacenter(&d)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("DeleteGlobalDatacenter", func(t *testing.T) {
+	t.Run("DeleteDatacenter", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Delete("/dc/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.DeleteGlobalDatacenter(id)
+		err := API.DeleteDatacenter(id)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("GetGlobalDatacenterRooms", func(t *testing.T) {
+	t.Run("GetDatacenterRooms", func(t *testing.T) {
 		id := uuid.NewV4()
-		d := conch.GlobalDatacenter{
+		d := conch.Datacenter{
 			ID:       id,
 			Region:   "r",
 			Vendor:   "v",
@@ -86,7 +86,7 @@ func TestGlobalDatacenterErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get("/dc/" + id.String() + "/rooms").
 			Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalDatacenterRooms(d)
+		ret, err := API.GetDatacenterRooms(d)
 		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, []conch.GlobalRoom{})
 	})

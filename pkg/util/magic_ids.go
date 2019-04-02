@@ -179,19 +179,19 @@ func FindShortUUID(s string, uuids []uuid.UUID) (uuid.UUID, error) {
 
 }
 
-// MagicGlobalDatacenterID takes a string and tries to find a valid global
+// MagicDatacenterID takes a string and tries to find a valid global
 // datacenter UUID.  If the string is a UUID, it doesn't get checked further.
-// If it's not a UUID, we dig through GetGlobalDatacenters() looking for UUIDs
+// If it's not a UUID, we dig through GetDatacenters() looking for UUIDs
 // that match up to the first hyphen.
 // *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalDatacenterID(wat string) (uuid.UUID, error) {
+func MagicDatacenterID(wat string) (uuid.UUID, error) {
 	id, err := uuid.FromString(wat)
 	if err == nil {
 		return id, err
 	}
 
 	// So, it's not a UUID. Let's try for a partial UUID
-	ds, err := API.GetGlobalDatacenters()
+	ds, err := API.GetDatacenters()
 	if err != nil {
 		return id, err
 	}
