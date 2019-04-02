@@ -298,7 +298,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 
 		if fullOutput {
 			table.Append([]string{
-				d.Location.Datacenter.Name,
+				d.Location.Room.AZ,
 				d.Location.Rack.Name,
 				d.ID,
 				d.AssetTag,

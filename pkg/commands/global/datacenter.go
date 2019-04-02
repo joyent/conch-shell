@@ -18,7 +18,7 @@ import (
 
 func dcGetAll(app *cli.Cmd) {
 	app.Action = func() {
-		d, err := util.API.GetGlobalDatacenters()
+		d, err := util.API.GetDatacenters()
 		if err != nil {
 			util.Bail(err)
 		}
@@ -52,7 +52,7 @@ func dcGetAll(app *cli.Cmd) {
 
 func dcGet(app *cli.Cmd) {
 	app.Action = func() {
-		d, err := util.API.GetGlobalDatacenter(GdcUUID)
+		d, err := util.API.GetDatacenter(GdcUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -94,14 +94,14 @@ func dcCreate(app *cli.Cmd) {
 	app.Spec = "--region --vendor --location [OPTIONS]"
 
 	app.Action = func() {
-		d := conch.GlobalDatacenter{
+		d := conch.Datacenter{
 			Region:     *regionOpt,
 			Vendor:     *vendorOpt,
 			VendorName: *vendorNameOpt,
 			Location:   *locationOpt,
 		}
 
-		err := util.API.SaveGlobalDatacenter(&d)
+		err := util.API.SaveDatacenter(&d)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -136,7 +136,7 @@ Updated: %s
 
 func dcDelete(app *cli.Cmd) {
 	app.Action = func() {
-		if err := util.API.DeleteGlobalDatacenter(GdcUUID); err != nil {
+		if err := util.API.DeleteDatacenter(GdcUUID); err != nil {
 			util.Bail(err)
 		}
 	}
@@ -151,7 +151,7 @@ func dcUpdate(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
-		d, err := util.API.GetGlobalDatacenter(GdcUUID)
+		d, err := util.API.GetDatacenter(GdcUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -169,7 +169,7 @@ func dcUpdate(app *cli.Cmd) {
 			d.Location = *locationOpt
 		}
 
-		if err := util.API.SaveGlobalDatacenter(&d); err != nil {
+		if err := util.API.SaveDatacenter(&d); err != nil {
 			util.Bail(err)
 		}
 
@@ -204,12 +204,12 @@ Updated: %s
 
 func dcGetAllRooms(app *cli.Cmd) {
 	app.Action = func() {
-		d, err := util.API.GetGlobalDatacenter(GdcUUID)
+		d, err := util.API.GetDatacenter(GdcUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		rs, err := util.API.GetGlobalDatacenterRooms(d)
+		rs, err := util.API.GetDatacenterRooms(d)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -243,7 +243,7 @@ func dcAllTheThingsTree(app *cli.Cmd) {
 	app.Action = func() {
 		hwProds := make(map[string]conch.HardwareProduct)
 
-		d, err := util.API.GetGlobalDatacenter(GdcUUID)
+		d, err := util.API.GetDatacenter(GdcUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -251,7 +251,7 @@ func dcAllTheThingsTree(app *cli.Cmd) {
 		tree := gotree.GTStructure{}
 		tree.Name = fmt.Sprintf("DC: %s (%s)", d.Region, d.ID)
 
-		rs, err := util.API.GetGlobalDatacenterRooms(d)
+		rs, err := util.API.GetDatacenterRooms(d)
 		if err != nil {
 			util.Bail(err)
 		}

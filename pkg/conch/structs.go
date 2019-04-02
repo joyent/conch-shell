@@ -50,11 +50,24 @@ func (j *ConchJWT) FullToken() string {
 	return j.Token + "." + j.Signature
 }
 
-// Datacenter represents a conch datacenter, aka an AZ
 type Datacenter struct {
 	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
+	Vendor     string    `json:"vendor"`
 	VendorName string    `json:"vendor_name"`
+	Region     string    `json:"region"`
+	Location   string    `json:"location"`
+	Created    time.Time `json:"created"`
+	Updated    time.Time `json:"updated"`
+}
+
+type DatacenterDetailedRoom struct {
+	ID           uuid.UUID     `json:"id"`
+	AZ           string        `json:"az"`
+	Alias        string        `json:"alias"`
+	VendorName   string        `json:"vendor_name,omitempty"`
+	DatacenterID uuid.UUID     `json:"datacenter'`
+	Created      pgtime.PgTime `json:"created"`
+	Updated      pgtime.PgTime `json:"updated"`
 }
 
 // Device represents what the API docs call a "DetailedDevice"
@@ -124,35 +137,27 @@ type Disk struct {
 	Vendor       string        `json:"vendor"`
 }
 
-// DeviceLocation represents the location of a device, including its datacenter
-// and rack
+// DeviceLocation represents the location of a device, including its
+// datacenter, room and rack
 type DeviceLocation struct {
-	Datacenter            Datacenter            `json:"datacenter"`
-	Rack                  Rack                  `json:"rack"`
-	TargetHardwareProduct HardwareProductTarget `json:"target_hardware_product"`
+	Datacenter            Datacenter             `json:"datacenter"`
+	Room                  DatacenterDetailedRoom `json:"datacenter_room"`
+	Rack                  GlobalRack             `json:"rack"`
+	TargetHardwareProduct HardwareProductTarget  `json:"target_hardware_product"`
+	RackUnitStart         int                    `json:"rack_unit_start"`
 }
 
 type ExtendedDevice struct {
 	Device
 	IPMI          string                    `json:"ipmi"`
 	HardwareName  string                    `json:"hardware_name"`
+	RackRole      GlobalRackRole            `json:"rack_role"`
 	SKU           string                    `json:"sku"`
 	Enclosures    map[string]map[int]Disk   `json:"enclosures"`
 	IsGraduated   bool                      `json:"is_graduated"`
 	IsTritonSetup bool                      `json:"is_triton_setup"`
 	IsValidated   bool                      `json:"is_validated"`
 	Validations   []ValidationPlanExecution `json:"validations"`
-}
-
-// GlobalDatacenter represents a datacenter in the global domain
-type GlobalDatacenter struct {
-	ID         uuid.UUID `json:"id"`
-	Vendor     string    `json:"vendor"`
-	VendorName string    `json:"vendor_name"`
-	Region     string    `json:"region"`
-	Location   string    `json:"location"`
-	Created    time.Time `json:"created"`
-	Updated    time.Time `json:"updated"`
 }
 
 // GlobalRack represents a datacenter rack in the global domain
@@ -273,9 +278,10 @@ func (h *HardwareProduct) UnmarshalJSON(data []byte) error {
 // HardwareProductTarget represents the HardwareProduct that a device should
 // have based on its location
 type HardwareProductTarget struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Alias string    `json:"alias"`
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	Alias  string    `json:"alias"`
+	Vendor string    `json:"vendor"`
 }
 
 // HardwareProfile is a detailed accounting of either the actual hardware or

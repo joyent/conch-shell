@@ -64,7 +64,7 @@ func Init(app *cli.Cli) {
 
 					dc.Spec = "ID"
 					dc.Before = func() {
-						id, err := util.MagicGlobalDatacenterID(*gdcIDStr)
+						id, err := util.MagicDatacenterID(*gdcIDStr)
 						if err != nil {
 							util.Bail(err)
 						}

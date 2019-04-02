@@ -7,25 +7,21 @@
 package conch
 
 import (
-	"fmt"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-// GetGlobalDatacenters fetches a list of all datacenters in the global domain
-func (c *Conch) GetGlobalDatacenters() ([]GlobalDatacenter, error) {
-	d := make([]GlobalDatacenter, 0)
+func (c *Conch) GetDatacenters() ([]Datacenter, error) {
+	d := make([]Datacenter, 0)
 	return d, c.get("/dc", &d)
 }
 
-// GetGlobalDatacenter fetches a single datacenter in the global domain, by its
-// UUID
-func (c *Conch) GetGlobalDatacenter(id fmt.Stringer) (d GlobalDatacenter, err error) {
+func (c *Conch) GetDatacenter(id uuid.UUID) (d Datacenter, err error) {
 	return d, c.get("/dc/"+id.String(), &d)
 }
 
-// SaveGlobalDatacenter creates or updates a datacenter in the global domain,
+// SaveDatacenter creates or updates a datacenter in the global domain,
 // based on the presence of an ID
-func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
+func (c *Conch) SaveDatacenter(d *Datacenter) error {
 	if d.Vendor == "" {
 		return ErrBadInput
 	}
@@ -49,13 +45,13 @@ func (c *Conch) SaveGlobalDatacenter(d *GlobalDatacenter) error {
 	}
 }
 
-// DeleteGlobalDatacenter deletes a datacenter
-func (c *Conch) DeleteGlobalDatacenter(id fmt.Stringer) error {
+// DeleteDatacenter deletes a datacenter
+func (c *Conch) DeleteDatacenter(id uuid.UUID) error {
 	return c.httpDelete("/dc/" + id.String())
 }
 
-// GetGlobalDatacenterRooms gets the global rooms assigned to a global datacenter
-func (c *Conch) GetGlobalDatacenterRooms(d GlobalDatacenter) ([]GlobalRoom, error) {
+// GetDatacenterRooms gets the global rooms assigned to a global datacenter
+func (c *Conch) GetDatacenterRooms(d Datacenter) ([]GlobalRoom, error) {
 	r := make([]GlobalRoom, 0)
 	return r, c.get("/dc/"+d.ID.String()+"/rooms", &r)
 }
