@@ -102,6 +102,11 @@ func selfUpdate(cmd *cli.Cmd) {
 			if !gh.Upgrade {
 				util.Bail(errors.New("no upgrade required"))
 			}
+
+			if util.UserIsRoot() {
+				util.Bail(errors.New("cannot continue. user is root. provide --force if you are ok writing data from the internet to disk as root"))
+
+			}
 		}
 
 		if !util.JSON {
