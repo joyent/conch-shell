@@ -42,9 +42,10 @@ tools: ## Download and install all dev/code tools
 
 PLATFORMS  := darwin-amd64 linux-amd64 solaris-amd64 freebsd-amd64 openbsd-amd64 linux-arm
 BINARIES   := conch conch-minimal tester corpus
+RELEASE_BINARIES := conch
 
 BINS       := $(foreach bin,$(BINARIES),bin/$(bin)) 
-RELEASES   := $(foreach bin,$(BINARIES),release/$(bin))
+RELEASES   := $(foreach bin,$(RELEASE_BINARIES),release/$(bin))
 
 GIT_REV    := $(shell git describe --always --abbrev --dirty --long)
 FLAGS_PATH := github.com/joyent/conch-shell/pkg/util
@@ -71,7 +72,7 @@ define release_me
 	$(eval GOARCH:=$(call arch, $(platform)))
 	$(eval RPATH:=release/$(BIN)-$(GOOS)-$(GOARCH))
 
-	$(BUILD) -o $(RPATH) cmd/$(BIN)/*.go
+	GOOS=$(GOOS) GOARCH=$(GOARCH) $(BUILD) -o $(RPATH) cmd/$(BIN)/*.go
 	shasum -a 256 $(RPATH) > $(RPATH).sha256
 endef
 

@@ -7,16 +7,14 @@ RUN apk add --no-cache --update make git perl-utils dep shadow
 ARG UID="1000"
 ARG BRANCH="master"
 
-RUN adduser -D -u $UID app
-
 ENV GOPATH "/home/app/go"
 ENV PATH "${GOPATH}/bin:${PATH}"
 ENV GOCACHE "/home/app/.cache"
 
 RUN mkdir -p "${GOPATH}/src/github.com/joyent/"
-RUN chown -R app /home/app
+RUN chown -R $UID /home/app
 
-USER app
+USER $UID
 
 WORKDIR "${GOPATH}/src/github.com/joyent/"
 RUN git clone --branch $BRANCH https://github.com/joyent/conch-shell conch-shell
