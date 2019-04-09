@@ -42,9 +42,10 @@ tools: ## Download and install all dev/code tools
 
 PLATFORMS  := darwin-amd64 linux-amd64 solaris-amd64 freebsd-amd64 openbsd-amd64 linux-arm
 BINARIES   := conch conch-minimal tester corpus
+RELEASE_BINARIES := conch
 
 BINS       := $(foreach bin,$(BINARIES),bin/$(bin)) 
-RELEASES   := $(foreach bin,$(BINARIES),release/$(bin))
+RELEASES   := $(foreach bin,$(RELEASE_BINARIES),release/$(bin))
 
 GIT_REV    := $(shell git describe --always --abbrev --dirty --long)
 FLAGS_PATH := github.com/joyent/conch-shell/pkg/util
