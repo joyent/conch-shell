@@ -72,7 +72,7 @@ define release_me
 	$(eval GOARCH:=$(call arch, $(platform)))
 	$(eval RPATH:=release/$(BIN)-$(GOOS)-$(GOARCH))
 
-	$(BUILD) -o $(RPATH) cmd/$(BIN)/*.go
+	GOOS=$(GOOS) GOARCH=$(GOARCH) $(BUILD) -o $(RPATH) cmd/$(BIN)/*.go
 	shasum -a 256 $(RPATH) > $(RPATH).sha256
 endef
 
