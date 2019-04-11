@@ -408,6 +408,28 @@ func DDP(v interface{}) {
 	)
 }
 
+func GithubReleaseCheck() {
+	gh, err := LatestGithubRelease()
+	if (err != nil) && (err != ErrNoGithubRelease) {
+		Bail(err)
+	}
+	if gh.Upgrade {
+		os.Stderr.WriteString(fmt.Sprintf(`
+A new release is available! You have v%s but %s is available.
+The changelog can be viewed via 'conch update changelog'
+
+You can obtain the new release by:
+* Running 'conch update self', which will attempt to overwrite the current application
+* Manually download the new release at %s
+
+`,
+			Version,
+			gh.TagName,
+			gh.URL,
+		))
+	}
+}
+
 func init() {
 	spew.Config = spew.ConfigState{
 		Indent:                  "    ",

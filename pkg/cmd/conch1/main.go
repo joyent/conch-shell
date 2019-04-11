@@ -49,7 +49,7 @@ func Init() *cli.Cli {
 	var (
 		useJSON         = app.BoolOpt("json j", false, "Output JSON")
 		configFile      = app.StringOpt("config c", "~/.conch.json", "Path to config file")
-		noVersion       = app.BoolOpt("no-version-check", false, "Skip Github version check")
+		noVersion       = app.BoolOpt("no-version-check", false, "Does nothing. Included for backwards compatibility.") // TODO(sungo): remove back compat
 		profileOverride = app.StringOpt("profile p", "", "Override the active profile")
 		debugMode       = app.BoolOpt("debug", false, "Debug mode")
 		traceMode       = app.BoolOpt("trace", false, "Trace http requests. Warning: this is super loud")

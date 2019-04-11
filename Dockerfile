@@ -25,5 +25,5 @@ FROM scratch
 COPY --from=build /go/src/github.com/joyent/conch-shell/bin/conch /bin/conch
 COPY --from=build /etc/ssl /etc/ssl
 
-ENTRYPOINT [ "/bin/conch", "--no-version-check" ]
+ENTRYPOINT [ "/bin/conch" ]
 CMD ["version"]

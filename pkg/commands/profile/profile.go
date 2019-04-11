@@ -384,27 +384,3 @@ func changePassword(app *cli.Cmd) {
 		}
 	}
 }
-
-func enableVersionCheck(app *cli.Cmd) {
-	app.Action = func() {
-		util.Config.SkipVersionCheck = false
-		util.WriteConfig()
-	}
-}
-
-func disableVersionCheck(app *cli.Cmd) {
-	app.Action = func() {
-		util.Config.SkipVersionCheck = true
-		util.WriteConfig()
-	}
-}
-
-func statusVersionCheck(app *cli.Cmd) {
-	app.Action = func() {
-		if util.Config.SkipVersionCheck {
-			fmt.Println("disabled")
-		} else {
-			fmt.Println("enabled")
-		}
-	}
-}
