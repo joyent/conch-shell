@@ -33,8 +33,14 @@ var (
 	// JSON tells us if we should output JSON
 	JSON bool
 
+	IgnoreConfig bool
+	Token        string
+	BaseURL      string
+
 	// Config is a global Config object
 	Config *config.ConchConfig
+
+	ConfigPath string
 
 	// ActiveProfile represents, well, the active profile
 	ActiveProfile *config.ConchProfile
@@ -86,15 +92,26 @@ func TimeStr(t time.Time) string {
 // VerifyLogin
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
+
+	if IgnoreConfig {
+		return
+	}
+
 	if err := API.VerifyLogin(RefreshTokenTime, false); err != nil {
 		Bail(err)
 	}
 	ActiveProfile.JWT = API.JWT
-	WriteConfig()
+	WriteConfig(false)
 }
 
 // WriteConfig serializes the Config struct to disk
-func WriteConfig() {
+func WriteConfig(force bool) {
+	if !force {
+		if IgnoreConfig {
+			return
+		}
+	}
+
 	if err := Config.SerializeToFile(Config.Path); err != nil {
 		Bail(err)
 	}
@@ -102,16 +119,28 @@ func WriteConfig() {
 
 // BuildAPI builds a Conch object
 func BuildAPI() {
-	if ActiveProfile == nil {
-		Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
+	if IgnoreConfig {
+		API = &conch.Conch{
+			BaseURL: BaseURL,
+			Debug:   Debug,
+			Trace:   Trace,
+			Token:   Token,
+		}
+
+	} else {
+		if ActiveProfile == nil {
+			Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
+		}
+
+		API = &conch.Conch{
+			BaseURL: ActiveProfile.BaseURL,
+			JWT:     ActiveProfile.JWT,
+			Token:   ActiveProfile.Token,
+			Debug:   Debug,
+			Trace:   Trace,
+		}
 	}
 
-	API = &conch.Conch{
-		BaseURL: ActiveProfile.BaseURL,
-		JWT:     ActiveProfile.JWT,
-		Debug:   Debug,
-		Trace:   Trace,
-	}
 	if UserAgent != "" {
 		API.UA = UserAgent
 	}
@@ -166,10 +195,14 @@ func Bail(err error) {
 
 	switch err {
 	case conch.ErrBadInput:
-		msg = err.Error() + " -- Internal Error. Please file a GHI"
+		msg = err.Error() + " -- Internal Error. Please run with --debug and file a Github Issue"
 
 	case conch.ErrNotAuthorized:
-		msg = err.Error() + " -- Running 'profile relogin' might resolve this"
+		if len(Token) > 0 {
+			msg = err.Error() + " -- The API token might be incorrect or revoked"
+		} else {
+			msg = err.Error() + " -- Running 'profile relogin' might resolve this"
+		}
 
 	case conch.ErrMalformedJWT:
 		msg = "The server sent a malformed auth token. Please contact the Conch team"
@@ -397,7 +430,7 @@ func InteractiveForcePasswordChange() {
 
 	ActiveProfile.JWT = API.JWT
 
-	WriteConfig()
+	WriteConfig(false)
 }
 
 // DDP pretty prints a structure to stderr. "Deep Data Printer"

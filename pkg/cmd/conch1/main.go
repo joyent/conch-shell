@@ -7,6 +7,7 @@
 package conch1
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -46,7 +47,29 @@ func Init() *cli.Cli {
 			}
 		},
 	)
+
 	var (
+		tokenOpt = app.String(cli.StringOpt{
+			Name:   "token",
+			Value:  "",
+			Desc:   "API token",
+			EnvVar: "CONCH_TOKEN",
+		})
+
+		environmentOpt = app.String(cli.StringOpt{
+			Name:   "environment env",
+			Value:  "production",
+			Desc:   "Specify the environment to be used: production, staging, development (provide URL in the --url parameter)",
+			EnvVar: "CONCH_ENV",
+		})
+
+		urlOpt = app.String(cli.StringOpt{
+			Name:   "url",
+			Value:  "",
+			Desc:   "If the environment is 'development', this specifies the API URL. Ignored if --environment is 'production' or 'staging'",
+			EnvVar: "CONCH_URL",
+		})
+
 		useJSON         = app.BoolOpt("json j", false, "Output JSON")
 		configFile      = app.StringOpt("config c", "~/.conch.json", "Path to config file")
 		noVersion       = app.BoolOpt("no-version-check", false, "Does nothing. Included for backwards compatibility.") // TODO(sungo): remove back compat
@@ -63,6 +86,31 @@ func Init() *cli.Cli {
 			util.JSON = true
 		} else {
 			util.JSON = false
+		}
+
+		if *noVersion {
+			fmt.Fprintf(os.Stderr, "--no-version-check is deprecated and no longer functional")
+		}
+
+		if (*profileOverride != "") && (len(*tokenOpt) > 0) {
+			util.IgnoreConfig = true
+			util.Token = *tokenOpt
+
+			if len(*environmentOpt) > 0 {
+				if (*environmentOpt == "development") && (len(*urlOpt) == 0) {
+					util.Bail(errors.New("--url must be provied if --environment=development is set"))
+				}
+			}
+
+			switch *environmentOpt {
+			case "staging":
+				util.BaseURL = config.StagingURL
+			case "development":
+				util.BaseURL = *urlOpt
+			default:
+				util.BaseURL = config.ProductionURL
+			}
+
 		}
 
 		expandedPath, err := homedir.Expand(*configFile)
@@ -85,37 +133,17 @@ func Init() *cli.Cli {
 				break
 			}
 		}
-		if (*profileOverride != "") && (util.ActiveProfile == nil) {
-			util.Bail(fmt.Errorf("could not find a profile named '%s'", *profileOverride))
-		}
 
-		checkVersion := true
-		if *noVersion || cfg.SkipVersionCheck {
-			checkVersion = false
-		}
-
-		if checkVersion {
-			gh, err := util.LatestGithubRelease()
-			if (err != nil) && (err != util.ErrNoGithubRelease) {
-				util.Bail(err)
-			}
-			if gh.Upgrade {
-				os.Stderr.WriteString(fmt.Sprintf(`
-A new release is available! You have v%s but %s is available.
-The changelog can be viewed via 'conch update changelog'
-
-You can obtain the new release by:
-  * Running 'conch update self', which will attempt to overwrite the current application
-  * Manually download the new release at %s
-
-`,
-					util.Version,
-					gh.TagName,
-					gh.URL,
-				))
+		if !util.IgnoreConfig {
+			if (*profileOverride != "") && (util.ActiveProfile == nil) {
+				util.Bail(fmt.Errorf("could not find a profile named '%s'", *profileOverride))
 			}
 		}
 
+		// There is no way to avoid the version check, save piping stderr to
+		// /dev/null.  The API is changing too much and introducing too much
+		// breakage on the regular for users to stick using old versions.
+		util.GithubReleaseCheck()
 	}
 
 	return app

@@ -128,7 +128,8 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		util.Config.Profiles[p.Name] = p
-		util.WriteConfig()
+		util.WriteConfig(true)
+
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -156,7 +157,7 @@ func deleteProfile(app *cli.Cmd) {
 			}
 		}
 
-		util.WriteConfig()
+		util.WriteConfig(true)
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -190,7 +191,11 @@ func listProfiles(app *cli.Cmd) {
 		for _, prof := range util.Config.Profiles {
 			active := ""
 			if prof.Active {
-				active = "*"
+				if util.IgnoreConfig {
+					active = "*?"
+				} else {
+					active = "*"
+				}
 			}
 			workspaceName := ""
 			if !uuid.Equal(prof.WorkspaceUUID, uuid.UUID{}) {
@@ -213,6 +218,9 @@ func listProfiles(app *cli.Cmd) {
 			})
 		}
 		table.Render()
+		if util.IgnoreConfig {
+			fmt.Println("\n? The active profile has been overridden by the use of a token")
+		}
 	}
 }
 
@@ -240,7 +248,7 @@ func setWorkspace(app *cli.Cmd) {
 		util.ActiveProfile.WorkspaceUUID = ws.ID
 		util.ActiveProfile.WorkspaceName = ws.Name
 
-		util.WriteConfig()
+		util.WriteConfig(true)
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -269,7 +277,7 @@ func setActive(app *cli.Cmd) {
 			)
 		}
 
-		util.WriteConfig()
+		util.WriteConfig(true)
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -293,7 +301,7 @@ func refreshJWT(app *cli.Cmd) {
 
 		util.ActiveProfile.JWT = util.API.JWT
 
-		util.WriteConfig()
+		util.WriteConfig(true)
 
 		if util.JSON {
 			util.JSONOut(struct {
@@ -358,7 +366,7 @@ func relogin(app *cli.Cmd) {
 
 		util.ActiveProfile.JWT = util.API.JWT
 
-		util.WriteConfig()
+		util.WriteConfig(true)
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}

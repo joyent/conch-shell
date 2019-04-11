@@ -20,6 +20,11 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
+const (
+	ProductionURL = "https://conch.joyent.us"
+	StagingURL    = "https://staging.conch.joyent.us"
+)
+
 // ErrConfigNoPath is issued when a file operation is attempted on a
 // ConchConfig that lacks a path
 var ErrConfigNoPath = errors.New("no path found in config data")
@@ -27,9 +32,8 @@ var ErrConfigNoPath = errors.New("no path found in config data")
 // ConchConfig represents the configuration information for the shell, mostly
 // just a profile list
 type ConchConfig struct {
-	Path             string                   `json:"path"`
-	SkipVersionCheck bool                     `json:"skip_version_check"`
-	Profiles         map[string]*ConchProfile `json:"profiles"`
+	Path     string                   `json:"path"`
+	Profiles map[string]*ConchProfile `json:"profiles"`
 }
 
 // ConchProfile is an individual environment, consisting of login data, API
@@ -50,9 +54,8 @@ type ConchProfile struct {
 // "http://localhost:5001".
 func New() (c *ConchConfig) {
 	c = &ConchConfig{
-		Path:             "~/.conch.json",
-		Profiles:         make(map[string]*ConchProfile),
-		SkipVersionCheck: false,
+		Path:     "~/.conch.json",
+		Profiles: make(map[string]*ConchProfile),
 	}
 
 	return c
@@ -65,16 +68,15 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 	// compatbility. Need to give it a release or two in production before
 	// removing this grossness.
 	type conchProfileTransition struct {
-		Name             string    `json:"name"`
-		User             string    `json:"user"`
-		Session          string    `json:"session,omitempty"`
-		WorkspaceUUID    uuid.UUID `json:"workspace_id"`
-		WorkspaceName    string    `json:"workspace_name"`
-		BaseURL          string    `json:"api_url"`
-		Active           bool      `json:"active"`
-		JWT              string    `json:"jwt"`
-		Expires          int64     `json:"expires,omitempty"`
-		SkipVersionCheck bool      `json:"skip_version_check"`
+		Name          string    `json:"name"`
+		User          string    `json:"user"`
+		Session       string    `json:"session,omitempty"`
+		WorkspaceUUID uuid.UUID `json:"workspace_id"`
+		WorkspaceName string    `json:"workspace_name"`
+		BaseURL       string    `json:"api_url"`
+		Active        bool      `json:"active"`
+		JWT           string    `json:"jwt"`
+		Expires       int64     `json:"expires,omitempty"`
 	}
 
 	type conchConfigTransition struct {

@@ -31,6 +31,7 @@ type Conch struct {
 	Debug   bool
 	Trace   bool
 	JWT     ConchJWT
+	Token   string // replacement for JWT
 
 	HTTPClient *http.Client
 	CookieJar  *cookiejar.Jar

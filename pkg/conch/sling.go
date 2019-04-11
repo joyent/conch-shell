@@ -86,10 +86,12 @@ func (c *Conch) sling() *sling.Sling {
 		Base(c.BaseURL).
 		Set("User-Agent", c.UA)
 
-	// BUG(sungo) This is mostly for the config back compat code. Once that's
-	// gone, we can probably just check the expires value
-	if (c.JWT.Token != "") && (c.JWT.Signature != "") {
-		s = s.Set("Authorization", "Bearer "+c.JWT.FullToken())
+	if c.Token != "" {
+		s = s.Set("Authorization", "Bearer "+c.Token)
+	} else {
+		if (c.JWT.Token != "") && (c.JWT.Signature != "") {
+			s = s.Set("Authorization", "Bearer "+c.JWT.FullToken())
+		}
 	}
 
 	return s
