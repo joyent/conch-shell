@@ -69,21 +69,48 @@ func listAllUsers(app *cli.Cmd) {
 
 func revokeTokens(app *cli.Cmd) {
 	var (
-		forceOpt = app.BoolOpt("force", false, "Perform destructive actions")
+		forceOpt   = app.BoolOpt("force", false, "Perform destructive actions")
+		revokeAuth = app.BoolOpt("auth-only", false, "Revoke auth tokens, not API tokens. This will force a user to log in again on the website (and old versions of the shell)")
+		tokenAuth  = app.BoolOpt("tokens-only", false, "Revoke all API tokens. This will likely break a lot of automation so use this carefully")
+		allAuth    = app.BoolOpt("all", false, "The nuclear option. Revoke all auth *and* API tokens, forcing the user to login again *and* to generate new API tokens for automation processes. Use this very carefully")
 	)
-	app.Spec = "--force"
+	app.Spec = "--force (--auth-only | --tokens-only | --all)"
 
 	app.Action = func() {
 		if !*forceOpt {
 			return
 		}
 
-		if err := util.API.RevokeUserTokens(UserEmail); err != nil {
-			util.Bail(err)
+		if *allAuth {
+			if err := util.API.RevokeUserTokens(UserEmail); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Printf("Login and API tokens revoked for %s.\n", UserEmail)
+			}
+			return
 		}
 
-		if !util.JSON {
-			fmt.Printf("Tokens revoked for %s.\n", UserEmail)
+		if *revokeAuth {
+			if err := util.API.RevokeUserAuthTokens(UserEmail); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Printf("Login tokens revoked for %s.\n", UserEmail)
+			}
+			return
+		}
+		if *tokenAuth {
+			if err := util.API.RevokeUserApiTokens(UserEmail); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Printf("API tokens revoked for %s.\n", UserEmail)
+			}
+			return
 		}
 	}
 }
