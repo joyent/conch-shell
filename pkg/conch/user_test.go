@@ -98,4 +98,78 @@ func TestUserErrors(t *testing.T) {
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
+	t.Run("GetMyTokens", func(t *testing.T) {
+		gock.New(API.BaseURL).Get("/user/me/token").Reply(400).JSON(ErrApi)
+		tokens, err := API.GetMyTokens()
+		st.Expect(t, tokens, make(conch.UserTokens, 0))
+		st.Expect(t, err, ErrApiUnpacked)
+
+	})
+
+	t.Run("GetMyToken", func(t *testing.T) {
+		tokenName := "token_test"
+		gock.New(API.BaseURL).Get("/user/me/token/" + tokenName).Reply(400).JSON(ErrApi)
+
+		token, err := API.GetMyToken(tokenName)
+		st.Expect(t, token, conch.UserToken{})
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("CreateMyToken", func(t *testing.T) {
+		tokenName := "token_test"
+		gock.New(API.BaseURL).Post("/user/me/token").Reply(400).JSON(ErrApi)
+
+		token, err := API.CreateMyToken(tokenName)
+		st.Expect(t, token, conch.NewUserToken{})
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("DeleteMyToken", func(t *testing.T) {
+		tokenName := "token_test"
+		gock.New(API.BaseURL).Delete("/user/me/token/" + tokenName).Reply(400).JSON(ErrApi)
+
+		err := API.DeleteMyToken(tokenName)
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("RevokeMyAuthTokens", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user/me/revoke").
+			MatchParam("auth_only", "1").Reply(400).JSON(ErrApi)
+
+		err := API.RevokeMyAuthTokens()
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("RevokeMyApiTokens", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user/me/revoke").
+			MatchParam("api_only", "1").Reply(400).JSON(ErrApi)
+
+		err := API.RevokeMyApiTokens()
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("RevokeMyTokens", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user/me/revoke").Reply(400).JSON(ErrApi)
+		err := API.RevokeMyTokens()
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("RevokeOwnTokens", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user/me/revoke").Reply(400).JSON(ErrApi)
+		err := API.RevokeOwnTokens()
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("ChangePassword", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user/me/password").Reply(400).JSON(ErrApi)
+		err := API.ChangePassword("pants")
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
+	t.Run("ChangeMyPassword", func(t *testing.T) {
+		gock.New(API.BaseURL).Post("/user/me/password").Reply(400).JSON(ErrApi)
+		err := API.ChangeMyPassword("pants")
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
 }

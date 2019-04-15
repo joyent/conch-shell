@@ -12,6 +12,65 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
+func (c *Conch) GetMyTokens() (UserTokens, error) {
+	u := make(UserTokens, 0)
+	return u, c.get("/user/me/token", &u)
+}
+
+func (c *Conch) GetMyToken(name string) (u UserToken, err error) {
+	return u, c.get("/user/me/token/"+name, &u)
+}
+
+func (c *Conch) CreateMyToken(name string) (u NewUserToken, err error) {
+	return u, c.post(
+		"/user/me/token",
+		CreateNewUserToken{Name: name},
+		&u,
+	)
+}
+
+func (c *Conch) DeleteMyToken(name string) error {
+	return c.httpDelete("/user/me/token/" + name)
+}
+
+func (c *Conch) RevokeMyAuthTokens() error {
+	return c.post("/user/me/revoke?auth_only=1", nil, nil)
+}
+
+func (c *Conch) RevokeMyApiTokens() error {
+	return c.post("/user/me/revoke?api_only=1", nil, nil)
+}
+
+func (c *Conch) RevokeMyTokens() error {
+	return c.RevokeOwnTokens()
+}
+
+// RevokeOwnTokens revokes all auth tokens for the current user. Login() is
+// required after to generate new tokens. Clears the JWT, and
+// Expires attributes
+func (c *Conch) RevokeOwnTokens() error {
+	if err := c.post("/user/me/revoke", nil, nil); err != nil {
+		return err
+	}
+
+	c.JWT = ConchJWT{}
+	return nil
+}
+
+func (c *Conch) ChangeMyPassword(password string) error {
+	return c.ChangePassword(password)
+}
+
+// ChangePassword changes the password for the currently active profile
+func (c *Conch) ChangePassword(password string) error {
+	b := struct {
+		Password string `json:"password"`
+	}{password}
+
+	return c.post("/user/me/password", b, nil)
+
+}
+
 // GetUserSettings returns the results of /user/me/settings
 // The return is a map[string]interface{} because the database structure is a
 // string name and a jsonb data field.  There is no way for this library to

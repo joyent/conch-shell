@@ -17,8 +17,8 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-// RevokeUserTokens revokes all auth tokens for a the given user. This action
-// is typically limited server-side to admins.
+// RevokeUserTokens revokes all auth and api tokens for a the given user. This
+// action is typically limited server-side to admins.
 func (c *Conch) RevokeUserTokens(user string) error {
 	var uPart string
 	_, err := uuid.FromString(user)
@@ -31,16 +31,28 @@ func (c *Conch) RevokeUserTokens(user string) error {
 	return c.post("/user/"+uPart+"/revoke", nil, nil)
 }
 
-// RevokeOwnTokens revokes all auth tokens for the current user. Login() is
-// required after to generate new tokens. Clears the JWT, and
-// Expires attributes
-func (c *Conch) RevokeOwnTokens() error {
-	if err := c.post("/user/me/revoke", nil, nil); err != nil {
-		return err
+func (c *Conch) RevokeUserAuthTokens(user string) error {
+	var uPart string
+	_, err := uuid.FromString(user)
+	if err == nil {
+		uPart = user
+	} else {
+		uPart = "email=" + user
 	}
 
-	c.JWT = ConchJWT{}
-	return nil
+	return c.post("/user/"+uPart+"/revoke?auth_only=1", nil, nil)
+}
+
+func (c *Conch) RevokeUserApiTokens(user string) error {
+	var uPart string
+	_, err := uuid.FromString(user)
+	if err == nil {
+		uPart = user
+	} else {
+		uPart = "email=" + user
+	}
+
+	return c.post("/user/"+uPart+"/revoke?api_only=1", nil, nil)
 }
 
 // VerifyLogin determines if the user's session data is still valid.
@@ -199,14 +211,4 @@ func (c *Conch) ParseJWT(token string, signature string) (ConchJWT, error) {
 	}
 
 	return jwt, nil
-}
-
-// ChangePassword changes the password for the currently active profile
-func (c *Conch) ChangePassword(password string) error {
-	b := struct {
-		Password string `json:"password"`
-	}{password}
-
-	return c.post("/user/me/password", b, nil)
-
 }
