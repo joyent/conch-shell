@@ -38,12 +38,6 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"refresh",
-				"Refresh the auth token for the active profile",
-				refreshJWT,
-			)
-
-			cmd.Command(
 				"relogin",
 				"Log in again, preserving all other profile data",
 				relogin,

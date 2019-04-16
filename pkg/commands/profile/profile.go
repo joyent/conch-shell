@@ -7,9 +7,7 @@ package profile
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"time"
 
 	"github.com/Bowery/prompt"
 	"github.com/jawher/mow.cli"
@@ -282,40 +280,6 @@ func setActive(app *cli.Cmd) {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
 
-	}
-}
-
-func refreshJWT(app *cli.Cmd) {
-	app.Action = func() {
-		util.BuildAPI()
-		if util.ActiveProfile == nil {
-			util.Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
-		}
-
-		if err := util.API.VerifyLogin(0, true); err != nil {
-			if util.JSON || err != conch.ErrMustChangePassword {
-				util.Bail(err)
-			}
-			util.InteractiveForcePasswordChange()
-		}
-
-		util.ActiveProfile.JWT = util.API.JWT
-
-		util.WriteConfig(true)
-
-		if util.JSON {
-			util.JSONOut(struct {
-				Expires time.Time `json:"expires"`
-			}{util.API.JWT.Expires})
-
-			return
-		}
-
-		fmt.Printf(
-			"Auth for profile '%s' now expires at %s\n",
-			util.ActiveProfile.Name,
-			util.TimeStr(util.API.JWT.Expires),
-		)
 	}
 }
 
