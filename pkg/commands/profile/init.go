@@ -59,6 +59,12 @@ func Init(app *cli.Cli) {
 						"Change which profile is active",
 						setActive,
 					)
+
+					cmd.Command(
+						"token",
+						"Change the API token for the active profile. This will convert the profile to token auth if it was previously using login auth",
+						setToken,
+					)
 				},
 			)
 

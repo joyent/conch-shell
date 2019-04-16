@@ -396,3 +396,22 @@ func changePassword(app *cli.Cmd) {
 		util.WriteConfigForce()
 	}
 }
+
+func setToken(cmd *cli.Cmd) {
+	var tokenArg = cmd.StringArg("TOKEN", "", "An API token")
+	cmd.Spec = "TOKEN"
+
+	cmd.Action = func() {
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
+		util.ActiveProfile.Token = *tokenArg
+		util.Token = *tokenArg
+
+		util.ActiveProfile.JWT = conch.ConchJWT{}
+
+		util.WriteConfigForce()
+	}
+
+}
