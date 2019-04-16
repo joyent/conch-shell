@@ -64,6 +64,7 @@ var (
 	FlagsDisableApiVersionCheck string
 	FlagsDisableApiTokenCRUD    string
 	FlagsTokensOnly             string
+	FlagsNoAdmin                string
 
 	SemVersion semver.Version
 )
@@ -78,6 +79,10 @@ func DisableApiTokenCRUD() bool {
 
 func TokensOnly() bool {
 	return FlagsTokensOnly == "0"
+}
+
+func NoAdmin() bool {
+	return FlagsNoAdmin == "0"
 }
 
 func init() {

@@ -20,6 +20,10 @@ var UserEmail string
 
 // Init loads up the commands
 func Init(app *cli.Cli) {
+	if util.NoAdmin() {
+		return
+	}
+
 	app.Command(
 		"admin",
 		"Commands for various server-side administrative tasks",

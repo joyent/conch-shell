@@ -9,6 +9,7 @@ package profile
 
 import (
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
 )
 
 // Init loads up the profile commands
@@ -38,21 +39,9 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"relogin",
-				"Log in again, preserving all other profile data",
-				relogin,
-			)
-
-			cmd.Command(
 				"change-password",
 				"Change the password associated with this profile",
 				changePassword,
-			)
-
-			cmd.Command(
-				"revoke-tokens",
-				"Revoke all auth tokens. User must log in again after this.",
-				revokeJWT,
 			)
 
 			cmd.Command(
@@ -72,6 +61,23 @@ func Init(app *cli.Cli) {
 					)
 				},
 			)
+
+			if !util.TokensOnly() {
+				cmd.Command(
+					"relogin",
+					"Log in again, preserving all other profile data",
+					relogin,
+				)
+			}
+
+			if !util.DisableApiTokenCRUD() {
+				cmd.Command(
+					"revoke-tokens",
+					"Revoke all auth tokens. User must log in again after this.",
+					revokeJWT,
+				)
+			}
+
 		},
 	)
 }
