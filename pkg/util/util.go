@@ -111,6 +111,14 @@ func BuildAPIAndVerifyLogin() {
 		return
 	}
 
+	if TokensOnly() {
+		return
+	}
+
+	if Token != "" {
+		return
+	}
+
 	if err := API.VerifyLogin(RefreshTokenTime, false); err != nil {
 		Bail(err)
 	}
