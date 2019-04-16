@@ -126,10 +126,18 @@ func Init() *cli.Cli {
 			if *profileOverride != "" {
 				if prof.Name == *profileOverride {
 					util.ActiveProfile = prof
+					if prof.Token != "" {
+						util.Token = prof.Token
+					}
+
 					break
 				}
 			} else if prof.Active {
 				util.ActiveProfile = prof
+				if prof.Token != "" {
+					util.Token = prof.Token
+				}
+
 				break
 			}
 		}
