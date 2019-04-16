@@ -127,7 +127,7 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		util.Config.Profiles[p.Name] = p
-		util.WriteConfig(true)
+		util.WriteConfigForce()
 
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
@@ -156,7 +156,7 @@ func deleteProfile(app *cli.Cmd) {
 			}
 		}
 
-		util.WriteConfig(true)
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -251,7 +251,7 @@ func setWorkspace(app *cli.Cmd) {
 		util.ActiveProfile.WorkspaceUUID = ws.ID
 		util.ActiveProfile.WorkspaceName = ws.Name
 
-		util.WriteConfig(true)
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -280,7 +280,7 @@ func setActive(app *cli.Cmd) {
 			)
 		}
 
-		util.WriteConfig(true)
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -369,7 +369,7 @@ func relogin(app *cli.Cmd) {
 
 		util.ActiveProfile.JWT = util.API.JWT
 
-		util.WriteConfig(true)
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}

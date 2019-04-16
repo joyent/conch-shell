@@ -115,17 +115,21 @@ func BuildAPIAndVerifyLogin() {
 		Bail(err)
 	}
 	ActiveProfile.JWT = API.JWT
-	WriteConfig(false)
+	WriteConfig()
 }
 
 // WriteConfig serializes the Config struct to disk
-func WriteConfig(force bool) {
-	if !force {
-		if IgnoreConfig {
-			return
-		}
+func WriteConfig() {
+	if IgnoreConfig {
+		return
 	}
 
+	if err := Config.SerializeToFile(Config.Path); err != nil {
+		Bail(err)
+	}
+}
+
+func WriteConfigForce() {
 	if err := Config.SerializeToFile(Config.Path); err != nil {
 		Bail(err)
 	}
@@ -444,7 +448,7 @@ func InteractiveForcePasswordChange() {
 
 	ActiveProfile.JWT = API.JWT
 
-	WriteConfig(false)
+	WriteConfig()
 }
 
 // DDP pretty prints a structure to stderr. "Deep Data Printer"
