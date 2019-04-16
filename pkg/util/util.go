@@ -70,19 +70,19 @@ var (
 )
 
 func DisableApiVersionCheck() bool {
-	return FlagsDisableApiVersionCheck == "0"
+	return FlagsDisableApiVersionCheck != "0"
 }
 
 func DisableApiTokenCRUD() bool {
-	return FlagsDisableApiTokenCRUD == "0"
+	return FlagsDisableApiTokenCRUD != "0"
 }
 
 func TokensOnly() bool {
-	return FlagsTokensOnly == "0"
+	return FlagsTokensOnly != "0"
 }
 
 func NoAdmin() bool {
-	return FlagsNoAdmin == "0"
+	return FlagsNoAdmin != "0"
 }
 
 func init() {
