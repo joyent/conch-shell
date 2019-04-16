@@ -45,8 +45,9 @@ type ConchProfile struct {
 	WorkspaceName string         `json:"workspace_name"`
 	BaseURL       string         `json:"api_url"`
 	Active        bool           `json:"active"`
-	JWT           conch.ConchJWT `json:"jwt"`
-	Expires       time.Time      `json:"expires,omitempty"`
+	JWT           conch.ConchJWT `json:"jwt"`               // TODO(sungo): DEPRECATED
+	Expires       time.Time      `json:"expires,omitempty"` // TODO(sungo): DEPRECATED
+	Token         string         `json:"token"`
 }
 
 // New provides an initialized struct with default values geared towards a
@@ -64,9 +65,8 @@ func New() (c *ConchConfig) {
 // NewFromJSON unmarshals a JSON blob into a ConchConfig struct
 func NewFromJSON(j string) (c *ConchConfig, err error) {
 
-	// BUG(sungo): This transition code is a mess but necessary for
-	// compatbility. Need to give it a release or two in production before
-	// removing this grossness.
+	// Keeping all these structures local because they're old, crufty, and
+	// there's no need to pollute the global space with this noise
 	type conchProfileTransition struct {
 		Name          string    `json:"name"`
 		User          string    `json:"user"`
@@ -90,42 +90,62 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 	}
 
 	c = New()
+
+	// First we see if the JSON parses as the old profile structure
 	err = json.Unmarshal([]byte(j), ct)
 
 	if err != nil {
+		// Well, that didn't work. Let's try again with the current structure
 		err = json.Unmarshal([]byte(j), c)
 		if err != nil {
+			// That didn't work either. Not much we can do except bail
 			return c, err
 		}
 
+		// Great. We have a current profile
 		if c.Profiles == nil {
+			// Except we don't have any profiles
 			c.Profiles = make(map[string]*ConchProfile)
 		}
 
-	} else {
-		for _, p := range ct.Profiles {
-
-			jwt := conch.ConchJWT{}
-
-			bits := strings.Split(p.JWT, ".")
-			if len(bits) == 3 {
-				token := bits[0] + "." + bits[1]
-				sig := bits[2]
-				jwt, _ = parseJWT(token, sig)
+		// If we have a token, zero out the old JWT structure because who cares
+		// about that if we have a token
+		for _, profile := range c.Profiles {
+			if profile.Token != "" {
+				profile.JWT = conch.ConchJWT{}
 			}
-
-			pNew := &ConchProfile{
-				Name:          p.Name,
-				User:          p.User,
-				WorkspaceUUID: p.WorkspaceUUID,
-				WorkspaceName: p.WorkspaceName,
-				BaseURL:       p.BaseURL,
-				Active:        p.Active,
-				JWT:           jwt,
-				Expires:       time.Unix(p.Expires, 0),
-			}
-			c.Profiles[pNew.Name] = pNew
 		}
+
+		return c, nil
+	}
+
+	// Oh joy. We have old data.
+	//
+	// This mostly just pulls apart the old JWT string into a fancy structure.
+	// This will also be totally replaced by the Token string which is... well,
+	// it's a JWT string. Circle of life, I guess. Or something.
+	for _, p := range ct.Profiles {
+
+		jwt := conch.ConchJWT{}
+
+		bits := strings.Split(p.JWT, ".")
+		if len(bits) == 3 {
+			token := bits[0] + "." + bits[1]
+			sig := bits[2]
+			jwt, _ = parseJWT(token, sig)
+		}
+
+		pNew := &ConchProfile{
+			Name:          p.Name,
+			User:          p.User,
+			WorkspaceUUID: p.WorkspaceUUID,
+			WorkspaceName: p.WorkspaceName,
+			BaseURL:       p.BaseURL,
+			Active:        p.Active,
+			JWT:           jwt,
+			Expires:       time.Unix(p.Expires, 0),
+		}
+		c.Profiles[pNew.Name] = pNew
 	}
 
 	return c, nil
