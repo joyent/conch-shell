@@ -1,5 +1,7 @@
 VERSION ?= $(shell git describe --tags --abbrev=0 | sed 's/^v//')
 DISABLE_API_VERSION_CHECK ?= 0
+DISABLE_API_TOKEN_CRUD ?= 0
+API_TOKENS_ONLY ?= 0
 
 build: vendor clean test all ## Test and build binaries for local architecture into bin/
 
@@ -49,7 +51,7 @@ RELEASES   := $(foreach bin,$(RELEASE_BINARIES),release/$(bin))
 
 GIT_REV    := $(shell git describe --always --abbrev --dirty --long)
 FLAGS_PATH := github.com/joyent/conch-shell/pkg/util
-LD_FLAGS   := -ldflags="-X $(FLAGS_PATH).Version=$(VERSION) -X $(FLAGS_PATH).GitRev=$(GIT_REV) -X $(FLAGS_PATH).DisableApiVersionCheck=$(DISABLE_API_VERSION_CHECK)"
+LD_FLAGS   := -ldflags="-X $(FLAGS_PATH).Version=$(VERSION) -X $(FLAGS_PATH).GitRev=$(GIT_REV) -X $(FLAGS_PATH).FlagsDisableApiVersionCheck=$(DISABLE_API_VERSION_CHECK) -X $(FLAGS_PATH).FlagsDisableApiTokenCRUD=$(DISABLE_API_TOKEN_CRUD) -X $(FLAGS_PATH).FlagsTokensOnly=$(API_TOKENS_ONLY)"
 BUILD      := CGO_ENABLED=0 go build $(LD_FLAGS) 
 
 ####

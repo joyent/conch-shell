@@ -41,7 +41,7 @@ func Init() *cli.Cli {
 					conch.MinimumAPIVersion,
 					conch.BreakingAPIVersion,
 				)
-				if util.NoApiVersionCheck {
+				if util.DisableApiVersionCheck() {
 					fmt.Println("\n** API version checking is disabled. Functionality cannot be guaranteed **")
 				}
 			}

@@ -59,20 +59,29 @@ var (
 
 // These variables are provided by the build environment
 var (
-	Version                string
-	GitRev                 string
-	DisableApiVersionCheck string
+	Version                     string
+	GitRev                      string
+	FlagsDisableApiVersionCheck string
+	FlagsDisableApiTokenCRUD    string
+	FlagsTokensOnly             string
 
 	SemVersion semver.Version
 )
 
-var NoApiVersionCheck bool
+func DisableApiVersionCheck() bool {
+	return FlagsDisableApiVersionCheck == "0"
+}
+
+func DisableApiTokenCRUD() bool {
+	return FlagsDisableApiTokenCRUD == "0"
+}
+
+func TokensOnly() bool {
+	return FlagsTokensOnly == "0"
+}
 
 func init() {
 	SemVersion = CleanVersion(Version)
-	if DisableApiVersionCheck == "1" {
-		NoApiVersionCheck = true
-	}
 }
 
 // DateFormat should be used in date formatting calls to ensure uniformity of
@@ -150,7 +159,7 @@ func BuildAPI() {
 		Bail(err)
 	}
 
-	if NoApiVersionCheck {
+	if DisableApiVersionCheck() {
 		return
 	}
 

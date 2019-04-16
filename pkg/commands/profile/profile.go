@@ -284,19 +284,49 @@ func setActive(app *cli.Cmd) {
 }
 
 func revokeJWT(app *cli.Cmd) {
-	var forceOpt = app.BoolOpt("force", false, "Perform destructive actions")
-	app.Spec = "--force"
+	var (
+		forceOpt   = app.BoolOpt("force", false, "Perform destructive actions")
+		revokeAuth = app.BoolOpt("auth-only", false, "Revoke auth tokens, not API tokens. This will force you to log in again on the website")
+		tokenAuth  = app.BoolOpt("tokens-only", false, "Revoke all API tokens. This will likely break all your automations and your ability to continue using the shell so use this carefully")
+		allAuth    = app.BoolOpt("all", false, "The nuclear option. Revoke all auth *and* API tokens, forcing you to login again *and* to generate new API tokens for automation processes, including the shell. Use this very carefully")
+	)
+	app.Spec = "--force (--auth-only | --tokens-only | --all)"
 
 	app.Action = func() {
-		if *forceOpt {
-			util.BuildAPIAndVerifyLogin()
-			if err := util.API.RevokeOwnTokens(); err != nil {
+		if !*forceOpt {
+			return
+		}
+
+		if *allAuth {
+			if err := util.API.RevokeMyTokens(); err != nil {
 				util.Bail(err)
 			}
 
 			if !util.JSON {
-				fmt.Println("Tokens revoked.")
+				fmt.Println("Login and API tokens revoked")
 			}
+			return
+		}
+
+		if *revokeAuth {
+			if err := util.API.RevokeMyAuthTokens(); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Println("Login tokens revoked")
+			}
+			return
+		}
+		if *tokenAuth {
+			if err := util.API.RevokeMyApiTokens(); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Println("API tokens revoked")
+			}
+			return
 		}
 	}
 }
