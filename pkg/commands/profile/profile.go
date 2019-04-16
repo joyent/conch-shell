@@ -368,8 +368,8 @@ func relogin(app *cli.Cmd) {
 		}
 
 		util.ActiveProfile.JWT = util.API.JWT
-
 		util.WriteConfigForce()
+
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -393,5 +393,6 @@ func changePassword(app *cli.Cmd) {
 				util.Bail(err)
 			}
 		}
+		util.WriteConfigForce()
 	}
 }

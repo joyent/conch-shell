@@ -448,7 +448,7 @@ func InteractiveForcePasswordChange() {
 
 	ActiveProfile.JWT = API.JWT
 
-	WriteConfig()
+	WriteConfigForce()
 }
 
 // DDP pretty prints a structure to stderr. "Deep Data Printer"
