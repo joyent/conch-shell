@@ -59,14 +59,15 @@ var (
 
 // These variables are provided by the build environment
 var (
-	Version                     string
-	GitRev                      string
-	FlagsDisableApiVersionCheck string
-	FlagsDisableApiTokenCRUD    string
-	FlagsTokensOnly             string
-	FlagsNoAdmin                string
-
+	Version    string
+	GitRev     string
 	SemVersion semver.Version
+
+	FlagsDisableApiVersionCheck string // Used in shell development
+	FlagsDisableApiTokenCRUD    string // Useful for preventing automations from creating and deleting tokens
+	FlagsTokensOnly             string // Useful for finally killing password auth
+	FlagsNoAdmin                string // Useful for preventing automations from accessing admin commands
+
 )
 
 func DisableApiVersionCheck() bool {
