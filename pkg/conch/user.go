@@ -8,6 +8,7 @@ package conch
 
 import (
 	"fmt"
+	"regexp"
 
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -15,6 +16,27 @@ import (
 func (c *Conch) GetMyTokens() (UserTokens, error) {
 	u := make(UserTokens, 0)
 	return u, c.get("/user/me/token", &u)
+}
+
+// BUG(sungo): The need for this hack should get fixed as part of
+// joyent/conch#738
+func (c *Conch) GetMyApiTokens() (UserTokens, error) {
+	re := regexp.MustCompile("^login_jwt")
+	tokens := make(UserTokens, 0)
+
+	u := make(UserTokens, 0)
+	err := c.get("/user/me/token", &u)
+	if err != nil {
+		return tokens, nil
+	}
+
+	for _, t := range u {
+		if !re.MatchString(t.Name) {
+			tokens = append(tokens, t)
+		}
+	}
+
+	return tokens, nil
 }
 
 func (c *Conch) GetMyToken(name string) (u UserToken, err error) {

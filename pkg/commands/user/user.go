@@ -146,3 +146,114 @@ func deleteSetting(app *cli.Cmd) {
 		}
 	}
 }
+
+func listTokens(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	app.Action = func() {
+		tokens, err := util.API.GetMyApiTokens()
+		if err != nil {
+			util.Bail(err)
+		}
+		if util.JSON {
+			util.JSONOut(tokens)
+			return
+		}
+
+		sort.Sort(tokens)
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{"Name", "Created", "Last Used"})
+
+		for _, t := range tokens {
+			timeStr := ""
+			if !t.LastUsed.IsZero() {
+				timeStr = util.TimeStr(t.LastUsed)
+			}
+
+			table.Append([]string{
+				t.Name,
+				util.TimeStr(t.Created),
+				timeStr,
+			})
+		}
+
+		table.Render()
+	}
+}
+
+func createToken(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	var nameArg = app.StringArg("NAME", "", "Name for the token")
+	app.Spec = "NAME"
+
+	app.Action = func() {
+		token, err := util.API.CreateMyToken(*nameArg)
+		if err != nil {
+			util.Bail(err)
+		}
+		if util.JSON {
+			util.JSONOut(token)
+			return
+		}
+
+		fmt.Println("***")
+		fmt.Println("*** This is the *only* time the token string will be shown.")
+		fmt.Println("***")
+		fmt.Println("*** Please make sure to record it as the string cannot be retrieved later ")
+		fmt.Println("***")
+		fmt.Println()
+		fmt.Printf("Name: %s\n", token.Name)
+		fmt.Printf("Token: %s    <--- Write this down\n", token.Token)
+		fmt.Println()
+	}
+}
+
+func removeToken(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	var nameArg = app.StringArg("NAME", "", "Name for the token")
+	app.Spec = "NAME"
+
+	app.Action = func() {
+		err := util.API.DeleteMyToken(*nameArg)
+		if err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func getToken(cmd *cli.Cmd) {
+	cmd.Before = util.BuildAPIAndVerifyLogin
+
+	var nameArg = cmd.StringArg("NAME", "", "Name for the token")
+	cmd.Spec = "NAME"
+
+	cmd.Action = func() {
+		token, err := util.API.GetMyToken(*nameArg)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		if util.JSON {
+			util.JSONOut(token)
+			return
+		}
+
+		lastUsed := "[ Never Used ]"
+		if !token.LastUsed.IsZero() {
+			lastUsed = util.TimeStr(token.LastUsed)
+		}
+
+		fmt.Printf(`
+Name: %s
+Created: %s
+Last Used: %s
+`,
+			token.Name,
+			util.TimeStr(token.Created),
+			lastUsed,
+		)
+	}
+}
