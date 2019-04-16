@@ -7,6 +7,7 @@ package profile
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/Bowery/prompt"
@@ -233,6 +234,10 @@ func setWorkspace(app *cli.Cmd) {
 	}
 
 	app.Action = func() {
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
 		workspaceUUID, err := util.MagicWorkspaceID(*workspaceArg)
 		if err != nil {
 			util.Bail(err)
@@ -337,6 +342,10 @@ func relogin(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
 		util.BuildAPI()
 
 		password := *passwordOpt
