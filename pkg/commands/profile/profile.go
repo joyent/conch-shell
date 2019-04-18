@@ -339,11 +339,19 @@ func revokeJWT(app *cli.Cmd) {
 func relogin(app *cli.Cmd) {
 	var (
 		passwordOpt = app.StringOpt("password pass", "", "API Password")
+		forceOpt    = app.BoolOpt("force", false, "If your profile uses a token, this option will be required since the command will eliminate the token from the config")
 	)
 
 	app.Action = func() {
 		if util.ActiveProfile == nil {
 			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
+		if util.ActiveProfile.Token != "" {
+			if !*forceOpt {
+				util.Bail(errors.New("the current profile uses an API token. Running 'relogin' will irrevocably remove the token from the shell's configuration. Use --force to perform this destructive action"))
+			}
+
 		}
 
 		util.BuildAPI()
@@ -368,6 +376,9 @@ func relogin(app *cli.Cmd) {
 		}
 
 		util.ActiveProfile.JWT = util.API.JWT
+		util.ActiveProfile.Expires = util.API.JWT.Expires
+		util.ActiveProfile.Token = ""
+		util.Token = ""
 		util.WriteConfigForce()
 
 		if !util.JSON {
