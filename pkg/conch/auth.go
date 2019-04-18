@@ -55,7 +55,20 @@ func (c *Conch) RevokeUserApiTokens(user string) error {
 	return c.post("/user/"+uPart+"/revoke?api_only=1", nil, nil)
 }
 
-// VerifyLogin determines if the user's session data is still valid.
+func (c *Conch) VerifyToken() (bool, error) {
+	if c.Token == "" {
+		return false, ErrBadInput
+	}
+
+	_, err := c.GetUserSettings()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// VerifyJwtLogin determines if the user's JWT auth data is still valid.
 //
 // One can pass in an integer value, representing when to force a token
 // refresh, based on the number of seconds left until expiry. Pass in 0 to
@@ -64,7 +77,7 @@ func (c *Conch) RevokeUserApiTokens(user string) error {
 // If the second parameter is true, a JWT refresh is forced, regardless of any
 // other parameters.
 //
-func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
+func (c *Conch) VerifyJwtLogin(refreshTime int, forceJWT bool) error {
 	u, _ := url.Parse(c.BaseURL)
 
 	if !forceJWT {

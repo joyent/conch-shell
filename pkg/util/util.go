@@ -103,17 +103,18 @@ func TimeStr(t time.Time) string {
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
 
-	if IgnoreConfig {
-		return
-	}
-
 	if Token != "" {
+		ok, err := API.VerifyToken()
+		if !ok {
+			Bail(err)
+		}
 		return
 	}
 
-	if err := API.VerifyLogin(RefreshTokenTime, false); err != nil {
+	if err := API.VerifyJwtLogin(RefreshTokenTime, false); err != nil {
 		Bail(err)
 	}
+
 	ActiveProfile.JWT = API.JWT
 	WriteConfig()
 }
