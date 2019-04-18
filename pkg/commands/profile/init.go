@@ -68,13 +68,11 @@ func Init(app *cli.Cli) {
 				},
 			)
 
-			if !util.TokensOnly() {
-				cmd.Command(
-					"relogin",
-					"Log in again, preserving all other profile data",
-					relogin,
-				)
-			}
+			cmd.Command(
+				"relogin",
+				"Log in again, preserving all other profile data",
+				relogin,
+			)
 
 			if !util.DisableApiTokenCRUD() {
 				cmd.Command(

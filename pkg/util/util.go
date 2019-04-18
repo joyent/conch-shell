@@ -65,7 +65,6 @@ var (
 
 	FlagsDisableApiVersionCheck string // Used in shell development
 	FlagsDisableApiTokenCRUD    string // Useful for preventing automations from creating and deleting tokens
-	FlagsTokensOnly             string // Useful for finally killing password auth
 	FlagsNoAdmin                string // Useful for preventing automations from accessing admin commands
 
 )
@@ -76,10 +75,6 @@ func DisableApiVersionCheck() bool {
 
 func DisableApiTokenCRUD() bool {
 	return FlagsDisableApiTokenCRUD != "0"
-}
-
-func TokensOnly() bool {
-	return FlagsTokensOnly != "0"
 }
 
 func NoAdmin() bool {
@@ -109,10 +104,6 @@ func BuildAPIAndVerifyLogin() {
 	BuildAPI()
 
 	if IgnoreConfig {
-		return
-	}
-
-	if TokensOnly() {
 		return
 	}
 
