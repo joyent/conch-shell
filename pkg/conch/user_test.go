@@ -78,9 +78,18 @@ func TestUserErrors(t *testing.T) {
 	})
 
 	t.Run("ResetUserPassword", func(t *testing.T) {
-		gock.New(API.BaseURL).Delete("/user/email=foo@bar.bat").Reply(400).JSON(ErrApi)
-		err := API.ResetUserPassword("foo@bar.bat")
+		gock.New(API.BaseURL).Delete("/user/email=foo@bar.bat").
+			MatchParam("clear_tokens", "login_only").Reply(400).JSON(ErrApi)
+
+		err := API.ResetUserPassword("foo@bar.bat", false)
 		st.Expect(t, err, ErrApiUnpacked)
+
+		gock.New(API.BaseURL).Delete("/user/email=foo@bar.bat").
+			MatchParam("clear_tokens", "all").Reply(400).JSON(ErrApi)
+
+		err = API.ResetUserPassword("foo@bar.bat", true)
+		st.Expect(t, err, ErrApiUnpacked)
+
 	})
 
 	t.Run("GetAllUsers", func(t *testing.T) {
@@ -154,16 +163,17 @@ func TestUserErrors(t *testing.T) {
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("ChangePassword", func(t *testing.T) {
-		gock.New(API.BaseURL).Post("/user/me/password").Reply(400).JSON(ErrApi)
-		err := API.ChangePassword("pants")
-		st.Expect(t, err, ErrApiUnpacked)
-	})
-
 	t.Run("ChangeMyPassword", func(t *testing.T) {
-		gock.New(API.BaseURL).Post("/user/me/password").Reply(400).JSON(ErrApi)
-		err := API.ChangeMyPassword("pants")
+		gock.New(API.BaseURL).Post("/user/me/password").
+			MatchParam("clear_tokens", "login_only").Reply(400).JSON(ErrApi)
+		err := API.ChangeMyPassword("pants", false)
 		st.Expect(t, err, ErrApiUnpacked)
+
+		gock.New(API.BaseURL).Post("/user/me/password").
+			MatchParam("clear_tokens", "all").Reply(400).JSON(ErrApi)
+		err = API.ChangeMyPassword("pants", true)
+		st.Expect(t, err, ErrApiUnpacked)
+
 	})
 
 }
