@@ -303,7 +303,7 @@ func revokeJWT(app *cli.Cmd) {
 		}
 
 		if *allAuth {
-			if err := util.API.RevokeMyTokens(); err != nil {
+			if err := util.API.RevokeMyTokensAndLogins(); err != nil {
 				util.Bail(err)
 			}
 
@@ -314,7 +314,7 @@ func revokeJWT(app *cli.Cmd) {
 		}
 
 		if *revokeAuth {
-			if err := util.API.RevokeMyAuthTokens(); err != nil {
+			if err := util.API.RevokeMyLogins(); err != nil {
 				util.Bail(err)
 			}
 
@@ -324,7 +324,7 @@ func revokeJWT(app *cli.Cmd) {
 			return
 		}
 		if *tokenAuth {
-			if err := util.API.RevokeMyApiTokens(); err != nil {
+			if err := util.API.RevokeMyTokens(); err != nil {
 				util.Bail(err)
 			}
 

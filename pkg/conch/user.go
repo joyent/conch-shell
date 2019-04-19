@@ -8,7 +8,6 @@ package conch
 
 import (
 	"fmt"
-	"regexp"
 
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -16,27 +15,6 @@ import (
 func (c *Conch) GetMyTokens() (UserTokens, error) {
 	u := make(UserTokens, 0)
 	return u, c.get("/user/me/token", &u)
-}
-
-// BUG(sungo): The need for this hack should get fixed as part of
-// joyent/conch#738
-func (c *Conch) GetMyApiTokens() (UserTokens, error) {
-	re := regexp.MustCompile("^login_jwt")
-	tokens := make(UserTokens, 0)
-
-	u := make(UserTokens, 0)
-	err := c.get("/user/me/token", &u)
-	if err != nil {
-		return tokens, nil
-	}
-
-	for _, t := range u {
-		if !re.MatchString(t.Name) {
-			tokens = append(tokens, t)
-		}
-	}
-
-	return tokens, nil
 }
 
 func (c *Conch) GetMyToken(name string) (u UserToken, err error) {
@@ -55,22 +33,15 @@ func (c *Conch) DeleteMyToken(name string) error {
 	return c.httpDelete("/user/me/token/" + name)
 }
 
-func (c *Conch) RevokeMyAuthTokens() error {
+func (c *Conch) RevokeMyLogins() error {
 	return c.post("/user/me/revoke?auth_only=1", nil, nil)
 }
 
-func (c *Conch) RevokeMyApiTokens() error {
+func (c *Conch) RevokeMyTokens() error {
 	return c.post("/user/me/revoke?api_only=1", nil, nil)
 }
 
-func (c *Conch) RevokeMyTokens() error {
-	return c.RevokeOwnTokens()
-}
-
-// RevokeOwnTokens revokes all auth tokens for the current user. Login() is
-// required after to generate new tokens. Clears the JWT, and
-// Expires attributes
-func (c *Conch) RevokeOwnTokens() error {
+func (c *Conch) RevokeMyTokensAndLogins() error {
 	if err := c.post("/user/me/revoke", nil, nil); err != nil {
 		return err
 	}

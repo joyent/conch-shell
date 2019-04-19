@@ -65,7 +65,7 @@ func Init(app *cli.Cli) {
 
 					cmd.Command(
 						"revoke",
-						"Revoke the auth tokens for a given user",
+						"Revoke the api tokens and/or logins for a given user",
 						revokeTokens,
 					)
 
@@ -103,6 +103,31 @@ func Init(app *cli.Cli) {
 						"demote",
 						"Demote the user to a regular user",
 						demoteUser,
+					)
+
+					cmd.Command(
+						"tokens",
+						"List the API tokens for a user",
+						listTokens,
+					)
+
+					cmd.Command(
+						"token",
+						"Operate on a user's API tokens",
+						func(cmd *cli.Cmd) {
+							cmd.Command(
+								"get",
+								"Get a user's API token",
+								getToken,
+							)
+
+							cmd.Command(
+								"delete rm",
+								"Delete a user's API token",
+								removeToken,
+							)
+
+						},
 					)
 
 				},

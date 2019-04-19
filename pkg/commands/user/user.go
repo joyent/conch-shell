@@ -151,7 +151,7 @@ func listTokens(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
 
 	app.Action = func() {
-		tokens, err := util.API.GetMyApiTokens()
+		tokens, err := util.API.GetMyTokens()
 		if err != nil {
 			util.Bail(err)
 		}

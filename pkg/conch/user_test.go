@@ -132,31 +132,25 @@ func TestUserErrors(t *testing.T) {
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("RevokeMyAuthTokens", func(t *testing.T) {
+	t.Run("RevokeMyLogins", func(t *testing.T) {
 		gock.New(API.BaseURL).Post("/user/me/revoke").
 			MatchParam("auth_only", "1").Reply(400).JSON(ErrApi)
 
-		err := API.RevokeMyAuthTokens()
-		st.Expect(t, err, ErrApiUnpacked)
-	})
-
-	t.Run("RevokeMyApiTokens", func(t *testing.T) {
-		gock.New(API.BaseURL).Post("/user/me/revoke").
-			MatchParam("api_only", "1").Reply(400).JSON(ErrApi)
-
-		err := API.RevokeMyApiTokens()
+		err := API.RevokeMyLogins()
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
 	t.Run("RevokeMyTokens", func(t *testing.T) {
-		gock.New(API.BaseURL).Post("/user/me/revoke").Reply(400).JSON(ErrApi)
+		gock.New(API.BaseURL).Post("/user/me/revoke").
+			MatchParam("api_only", "1").Reply(400).JSON(ErrApi)
+
 		err := API.RevokeMyTokens()
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("RevokeOwnTokens", func(t *testing.T) {
+	t.Run("RevokeMyTokensAndLogins", func(t *testing.T) {
 		gock.New(API.BaseURL).Post("/user/me/revoke").Reply(400).JSON(ErrApi)
-		err := API.RevokeOwnTokens()
+		err := API.RevokeMyTokensAndLogins()
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 

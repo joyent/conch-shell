@@ -17,9 +17,7 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-// RevokeUserTokens revokes all auth and api tokens for a the given user. This
-// action is typically limited server-side to admins.
-func (c *Conch) RevokeUserTokens(user string) error {
+func (c *Conch) RevokeUserTokensAndLogins(user string) error {
 	var uPart string
 	_, err := uuid.FromString(user)
 	if err == nil {
@@ -31,7 +29,7 @@ func (c *Conch) RevokeUserTokens(user string) error {
 	return c.post("/user/"+uPart+"/revoke", nil, nil)
 }
 
-func (c *Conch) RevokeUserAuthTokens(user string) error {
+func (c *Conch) RevokeUserLogins(user string) error {
 	var uPart string
 	_, err := uuid.FromString(user)
 	if err == nil {
@@ -43,7 +41,7 @@ func (c *Conch) RevokeUserAuthTokens(user string) error {
 	return c.post("/user/"+uPart+"/revoke?auth_only=1", nil, nil)
 }
 
-func (c *Conch) RevokeUserApiTokens(user string) error {
+func (c *Conch) RevokeUserTokens(user string) error {
 	var uPart string
 	_, err := uuid.FromString(user)
 	if err == nil {
@@ -53,6 +51,19 @@ func (c *Conch) RevokeUserApiTokens(user string) error {
 	}
 
 	return c.post("/user/"+uPart+"/revoke?api_only=1", nil, nil)
+}
+
+func (c *Conch) GetUserToken(user string, name string) (u UserToken, err error) {
+	return u, c.get("/user/email="+user+"/token/"+name, &u)
+}
+
+func (c *Conch) GetUserTokens(user string) (UserTokens, error) {
+	u := make(UserTokens, 0)
+	return u, c.get("/user/email="+user+"/token", &u)
+}
+
+func (c *Conch) DeleteUserToken(user string, name string) error {
+	return c.httpDelete("/user/email=" + user + "/token/" + name)
 }
 
 func (c *Conch) VerifyToken() (bool, error) {
