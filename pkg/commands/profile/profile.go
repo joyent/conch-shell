@@ -389,7 +389,8 @@ func relogin(app *cli.Cmd) {
 
 func changePassword(app *cli.Cmd) {
 	var (
-		passwordOpt = app.StringOpt("password pass", "", "Account password")
+		passwordOpt  = app.StringOpt("password pass", "", "Account password")
+		revokeTokens = app.BoolOpt("purge-tokens", false, "Also purge API tokens")
 	)
 
 	app.Action = func() {
@@ -400,7 +401,12 @@ func changePassword(app *cli.Cmd) {
 		if password == "" {
 			util.InteractiveForcePasswordChange()
 		} else {
-			if err := util.API.ChangePassword(password); err != nil {
+			err := util.IsPasswordSane(password, nil)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			if err := util.API.ChangeMyPassword(password, *revokeTokens); err != nil {
 				util.Bail(err)
 			}
 		}

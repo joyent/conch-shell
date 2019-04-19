@@ -439,7 +439,7 @@ func InteractiveForcePasswordChange() {
 		}
 
 	}
-	if err := API.ChangePassword(password); err != nil {
+	if err := API.ChangeMyPassword(password, false); err != nil {
 		Bail(err)
 	}
 

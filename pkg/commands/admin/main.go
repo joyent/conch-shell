@@ -240,8 +240,10 @@ func createUser(app *cli.Cmd) {
 }
 
 func resetUserPassword(app *cli.Cmd) {
+	var tokensOpt = app.BoolOpt("revoke-tokens", false, "Also revoke the user's API tokens")
+
 	app.Action = func() {
-		if err := util.API.ResetUserPassword(UserEmail); err != nil {
+		if err := util.API.ResetUserPassword(UserEmail, *tokensOpt); err != nil {
 			util.Bail(err)
 		}
 		if !util.JSON {
