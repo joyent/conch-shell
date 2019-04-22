@@ -3,6 +3,9 @@ DISABLE_API_VERSION_CHECK ?= 0
 DISABLE_API_TOKEN_CRUD ?= 0
 DISABLE_ADMIN_FUNCTIONS ?= 0
 
+# Pass in a different value please. Please?
+TOKEN_OBFUSCATION_KEY ?= "eig0Ahcoi4phepoow2Wee8ahfoe3een4shebahz0Uhu8O"
+
 build: vendor clean test all ## Test and build binaries for local architecture into bin/
 
 .PHONY: docker_test
@@ -51,7 +54,7 @@ RELEASES   := $(foreach bin,$(RELEASE_BINARIES),release/$(bin))
 
 GIT_REV    := $(shell git describe --always --abbrev --dirty --long)
 FLAGS_PATH := github.com/joyent/conch-shell/pkg/util
-LD_FLAGS   := -ldflags="-X $(FLAGS_PATH).Version=$(VERSION) -X $(FLAGS_PATH).GitRev=$(GIT_REV) -X $(FLAGS_PATH).FlagsDisableApiVersionCheck=$(DISABLE_API_VERSION_CHECK) -X $(FLAGS_PATH).FlagsDisableApiTokenCRUD=$(DISABLE_API_TOKEN_CRUD) -X $(FLAGS_PATH).FlagsNoAdmin=$(DISABLE_ADMIN_FUNCTIONS)"
+LD_FLAGS   := -ldflags="-X github.com/joyent/conch-shell/pkg/config.ObfuscationKey=${TOKEN_OBFUSCATION_KEY} -X $(FLAGS_PATH).Version=$(VERSION) -X $(FLAGS_PATH).GitRev=$(GIT_REV) -X $(FLAGS_PATH).FlagsDisableApiVersionCheck=$(DISABLE_API_VERSION_CHECK) -X $(FLAGS_PATH).FlagsDisableApiTokenCRUD=$(DISABLE_API_TOKEN_CRUD) -X $(FLAGS_PATH).FlagsNoAdmin=$(DISABLE_ADMIN_FUNCTIONS)"
 BUILD      := CGO_ENABLED=0 go build $(LD_FLAGS) 
 
 ####
@@ -63,7 +66,8 @@ release: vendor test $(RELEASES) ## Build release binaries with checksums
 
 bin/%:
 	@mkdir -p bin
-	$(BUILD) -o bin/$(subst bin/,,$@) cmd/$(subst bin/,,$@)/*.go
+	@echo "> Building bin/$(subst bin/,,$@)"
+	@$(BUILD) -o bin/$(subst bin/,,$@) cmd/$(subst bin/,,$@)/*.go
 
 os   = $(firstword $(subst -, ,$1))
 arch = $(lastword $(subst -, ,$1))
@@ -74,7 +78,8 @@ define release_me
 	$(eval GOARCH:=$(call arch, $(platform)))
 	$(eval RPATH:=release/$(BIN)-$(GOOS)-$(GOARCH))
 
-	GOOS=$(GOOS) GOARCH=$(GOARCH) $(BUILD) -o $(RPATH) cmd/$(BIN)/*.go
+	@echo "> Building $(RPATH)"
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) $(BUILD) -o $(RPATH) cmd/$(BIN)/*.go
 	shasum -a 256 $(RPATH) > $(RPATH).sha256
 endef
 

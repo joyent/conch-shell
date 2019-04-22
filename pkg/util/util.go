@@ -154,7 +154,7 @@ func BuildAPI() {
 		API = &conch.Conch{
 			BaseURL: ActiveProfile.BaseURL,
 			JWT:     ActiveProfile.JWT,
-			Token:   ActiveProfile.Token,
+			Token:   string(ActiveProfile.Token),
 			Debug:   Debug,
 			Trace:   Trace,
 		}

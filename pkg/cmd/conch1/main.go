@@ -127,7 +127,7 @@ func Init() *cli.Cli {
 				if prof.Name == *profileOverride {
 					util.ActiveProfile = prof
 					if prof.Token != "" {
-						util.Token = prof.Token
+						util.Token = string(prof.Token)
 					}
 
 					break
@@ -135,7 +135,7 @@ func Init() *cli.Cli {
 			} else if prof.Active {
 				util.ActiveProfile = prof
 				if prof.Token != "" {
-					util.Token = prof.Token
+					util.Token = string(prof.Token)
 				}
 
 				break

@@ -423,7 +423,7 @@ func setToken(cmd *cli.Cmd) {
 			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
 		}
 
-		util.ActiveProfile.Token = *tokenArg
+		util.ActiveProfile.Token = config.Token(*tokenArg)
 		util.Token = *tokenArg
 
 		util.ActiveProfile.JWT = conch.ConchJWT{}

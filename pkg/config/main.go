@@ -12,17 +12,24 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
 
 	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/config/obfuscate"
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 const (
 	ProductionURL = "https://conch.joyent.us"
 	StagingURL    = "https://staging.conch.joyent.us"
+)
+
+var (
+	// For the love of Eris, override this default via the Makefile
+	ObfuscationKey = "shies9rohz1beigheyoish1viovohWachohw7aithee9apheez"
 )
 
 // ErrConfigNoPath is issued when a file operation is attempted on a
@@ -36,6 +43,36 @@ type ConchConfig struct {
 	Profiles map[string]*ConchProfile `json:"profiles"`
 }
 
+// We're going to obfuscate the token itself. I'm aware this is krypto and not
+// even remotely secure. But it will prevent the tokens from being just c&p'd
+// out of the configs on a remote box.
+type Token string
+
+func (t Token) String() string {
+	return string(t)
+}
+
+func (t Token) MarshalJSON() ([]byte, error) {
+	if len(string(t)) == 0 {
+		return []byte("\"\""), nil
+	}
+	str, err := obfuscate.Obfuscate(string(t), ObfuscationKey)
+	return []byte(fmt.Sprintf("\"%s\"", str)), err
+}
+
+func (t *Token) UnmarshalJSON(b []byte) error {
+	if string(b) == "\"\"" {
+		*t = Token("")
+		return nil
+	}
+
+	str := strings.ReplaceAll(string(b), "\"", "")
+
+	token, _ := obfuscate.Deobfuscate(str, ObfuscationKey)
+	*t = Token(token)
+	return nil
+}
+
 // ConchProfile is an individual environment, consisting of login data, API
 // settings, and an optional default workspace
 type ConchProfile struct {
@@ -47,7 +84,7 @@ type ConchProfile struct {
 	Active        bool           `json:"active"`
 	JWT           conch.ConchJWT `json:"jwt"`               // TODO(sungo): DEPRECATED
 	Expires       time.Time      `json:"expires,omitempty"` // TODO(sungo): DEPRECATED
-	Token         string         `json:"token"`
+	Token         Token          `json:"token"`
 }
 
 // New provides an initialized struct with default values geared towards a
@@ -111,7 +148,7 @@ func NewFromJSON(j string) (c *ConchConfig, err error) {
 		// If we have a token, zero out the old JWT structure because who cares
 		// about that if we have a token
 		for _, profile := range c.Profiles {
-			if profile.Token != "" {
+			if string(profile.Token) != "" {
 				profile.JWT = conch.ConchJWT{}
 			}
 		}
