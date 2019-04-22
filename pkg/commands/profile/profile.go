@@ -202,7 +202,8 @@ func listProfiles(app *cli.Cmd) {
 					workspaceName = prof.WorkspaceName
 				}
 			}
-			expires := "[relogin]"
+
+			expires := ""
 			if !prof.JWT.Expires.IsZero() {
 				expires = util.TimeStr(prof.JWT.Expires)
 			}
