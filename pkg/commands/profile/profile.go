@@ -302,6 +302,7 @@ func revokeJWT(app *cli.Cmd) {
 		if !*forceOpt {
 			return
 		}
+		util.BuildAPI()
 
 		if *allAuth {
 			if err := util.API.RevokeMyTokensAndLogins(); err != nil {
