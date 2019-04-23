@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/Bowery/prompt"
 	"github.com/jawher/mow.cli"
@@ -433,4 +435,44 @@ func setToken(cmd *cli.Cmd) {
 		util.WriteConfigForce()
 	}
 
+}
+
+func upgradeToToken(cmd *cli.Cmd) {
+	var forceOpt = cmd.BoolOpt("force", false, "Generate a new token, even if the current profile already uses one")
+	cmd.Action = func() {
+		if util.Token != "" && !*forceOpt {
+			util.Bail(errors.New("this profile already uses a token"))
+			return
+		}
+
+		hostname, err := os.Hostname()
+
+		if err != nil {
+			hostname = "unknown"
+		}
+
+		uid := os.Getuid()
+
+		epoch := time.Now().Unix()
+		id := fmt.Sprintf("%d@%s || %d", uid, hostname, epoch)
+
+		util.BuildAPI()
+
+		token, err := util.API.CreateMyToken(id)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.ActiveProfile.Token = config.Token(token.Token)
+		util.Token = token.Token
+
+		util.ActiveProfile.JWT = conch.ConchJWT{}
+
+		util.WriteConfigForce()
+
+		if !util.JSON {
+			fmt.Printf("Created a token named '%s' and will now use it for this profile\n", id)
+
+		}
+	}
 }

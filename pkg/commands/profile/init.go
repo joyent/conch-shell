@@ -69,6 +69,12 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
+				"upgrade",
+				"Upgrade this profile to use API tokens. This will generate a specific API token for this instance which will *not* be displayed or otherwise accessible",
+				upgradeToToken,
+			)
+
+			cmd.Command(
 				"relogin",
 				"Log in again, preserving all other profile data",
 				relogin,
