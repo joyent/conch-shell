@@ -23,69 +23,53 @@ import (
 func newProfile(app *cli.Cmd) {
 	var (
 		nameOpt      = app.StringOpt("name", "", "Profile name. Must be unique")
-		userOpt      = app.StringOpt("user", "", "API User name")
-		apiOpt       = app.StringOpt("api url", "", "API URL")
-		passwordOpt  = app.StringOpt("password pass", "", "API Password")
-		workspaceOpt = app.StringOpt("workspace ws", "", "Default workspace")
 		overwriteOpt = app.BoolOpt("overwrite force", false, "Overwrite any profile with a matching name")
+		workspaceOpt = app.StringOpt("workspace ws", "", "Default workspace")
+
+		tokenOpt    = app.StringOpt("token", "", "Use an API token instead of a password")
+		userOpt     = app.StringOpt("user", "", "API User name")
+		passwordOpt = app.StringOpt("password pass", "", "API Password")
+
+		envOpt = app.StringOpt("environment env", "production", "Specify the environment: production, staging, development (provide URL in the --url parameter)")
+		urlOpt = app.StringOpt("url", "", "If the environment is 'development', this defines the API URL. Ignored otherwise")
 	)
 
+	app.Spec = "--name [OPTIONS]"
+
 	app.Action = func() {
-		p := &config.ConchProfile{}
-
-		password := *passwordOpt
-
-		if *nameOpt == "" {
-			s, err := prompt.Basic("Profile Name:", true)
-			if err != nil {
-				util.Bail(err)
-			}
-
-			p.Name = s
-		} else {
-			p.Name = *nameOpt
-		}
-
-		if !*overwriteOpt {
-			if _, ok := util.Config.Profiles[p.Name]; ok {
+		var err error
+		var p *config.ConchProfile
+		if _, ok := util.Config.Profiles[*nameOpt]; ok {
+			if !*overwriteOpt {
 				util.Bail(
 					fmt.Errorf(
 						"a profile already exists with name '%s'",
-						p.Name,
+						*nameOpt,
 					),
 				)
 			}
-		}
 
-		if *userOpt == "" {
-			s, err := prompt.Basic("User Name:", true)
-			if err != nil {
-				util.Bail(err)
-			}
-			p.User = s
-
+			p = util.Config.Profiles[*nameOpt]
 		} else {
-			p.User = *userOpt
+			p = &config.ConchProfile{}
+			p.Name = *nameOpt
 		}
 
-		if password == "" {
-			s, err := prompt.Password("Password:")
-			if err != nil {
-				util.Bail(err)
+		switch *envOpt {
+		case "production":
+			p.BaseURL = config.ProductionURL
+		case "staging":
+			p.BaseURL = config.StagingURL
+		case "development":
+			if *urlOpt == "" {
+				util.Bail(errors.New("please provide --url"))
 			}
-
-			password = s
+			p.BaseURL = *urlOpt
+		default:
+			p.BaseURL = config.ProductionURL
 		}
 
-		if *apiOpt == "" {
-			s, err := prompt.BasicDefault("API URL:", "https://conch.joyent.us")
-			if err != nil {
-				util.Bail(err)
-			}
-			p.BaseURL = s
-		} else {
-			p.BaseURL = *apiOpt
-		}
+		/***/
 
 		util.API = &conch.Conch{
 			BaseURL: p.BaseURL,
@@ -95,18 +79,43 @@ func newProfile(app *cli.Cmd) {
 			util.API.UA = util.UserAgent
 		}
 
-		err := util.API.Login(p.User, password)
+		/***/
 
-		if err != nil {
-			if util.JSON || err != conch.ErrMustChangePassword {
+		if *tokenOpt != "" {
+			p.Token = config.Token(*tokenOpt)
+			util.API.Token = *tokenOpt
+
+			if ok, err := util.API.VerifyToken(); !ok {
 				util.Bail(err)
 			}
-			util.ActiveProfile = p
-			util.InteractiveForcePasswordChange()
-		}
 
-		p.JWT = util.API.JWT
-		p.Expires = p.JWT.Expires
+		} else {
+			if *userOpt == "" {
+				util.Bail(errors.New("please provide a user name"))
+			}
+			p.User = *userOpt
+
+			password := *passwordOpt
+			if password == "" {
+				s, err := prompt.Password("Password:")
+				if err != nil {
+					util.Bail(err)
+				}
+
+				password = s
+			}
+
+			if err := util.API.Login(p.User, password); err != nil {
+				if util.JSON || err != conch.ErrMustChangePassword {
+					util.Bail(err)
+				}
+				util.ActiveProfile = p
+				util.InteractiveForcePasswordChange()
+			}
+
+			p.JWT = util.API.JWT
+			p.Expires = p.JWT.Expires
+		}
 
 		if *workspaceOpt == "" {
 			p.WorkspaceUUID = uuid.UUID{}
@@ -356,6 +365,9 @@ func relogin(app *cli.Cmd) {
 				util.Bail(errors.New("the current profile uses an API token. Running 'relogin' will irrevocably remove the token from the shell's configuration. Use --force to perform this destructive action"))
 			}
 
+		}
+		if util.ActiveProfile.User == "" {
+			util.Bail(errors.New("the profile lacks a user name, likely because it is token based. cannot continue"))
 		}
 
 		util.BuildAPI()
