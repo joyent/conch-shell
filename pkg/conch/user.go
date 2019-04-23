@@ -8,6 +8,7 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
 
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -18,7 +19,8 @@ func (c *Conch) GetMyTokens() (UserTokens, error) {
 }
 
 func (c *Conch) GetMyToken(name string) (u UserToken, err error) {
-	return u, c.get("/user/me/token/"+name, &u)
+	escapedName := url.PathEscape(name)
+	return u, c.get("/user/me/token/"+escapedName, &u)
 }
 
 func (c *Conch) CreateMyToken(name string) (u NewUserToken, err error) {
@@ -30,7 +32,8 @@ func (c *Conch) CreateMyToken(name string) (u NewUserToken, err error) {
 }
 
 func (c *Conch) DeleteMyToken(name string) error {
-	return c.httpDelete("/user/me/token/" + name)
+	escapedName := url.PathEscape(name)
+	return c.httpDelete("/user/me/token/" + escapedName)
 }
 
 func (c *Conch) RevokeMyLogins() error {

@@ -54,7 +54,8 @@ func (c *Conch) RevokeUserTokens(user string) error {
 }
 
 func (c *Conch) GetUserToken(user string, name string) (u UserToken, err error) {
-	return u, c.get("/user/email="+user+"/token/"+name, &u)
+	escapedName := url.PathEscape(name)
+	return u, c.get("/user/email="+user+"/token/"+escapedName, &u)
 }
 
 func (c *Conch) GetUserTokens(user string) (UserTokens, error) {
@@ -63,7 +64,8 @@ func (c *Conch) GetUserTokens(user string) (UserTokens, error) {
 }
 
 func (c *Conch) DeleteUserToken(user string, name string) error {
-	return c.httpDelete("/user/email=" + user + "/token/" + name)
+	escapedName := url.PathEscape(name)
+	return c.httpDelete("/user/email=" + user + "/token/" + escapedName)
 }
 
 func (c *Conch) VerifyToken() (bool, error) {
