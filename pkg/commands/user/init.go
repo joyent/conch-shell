@@ -72,6 +72,42 @@ func Init(app *cli.Cli) {
 					)
 				},
 			)
+
+			// The biggest use case for disabling these functions is security,
+			// particularly when it comes to edge automation. It's probably a
+			// bad idea for some automation on a random server to be able to
+			// create and remove tokens.
+			if !util.DisableApiTokenCRUD() {
+				cmd.Command(
+					"tokens",
+					"List API tokens",
+					listTokens,
+				)
+
+				cmd.Command(
+					"token",
+					"Operate on a single token",
+					func(cmd *cli.Cmd) {
+						cmd.Command(
+							"remove del rm",
+							"Remove an API token",
+							removeToken,
+						)
+
+						cmd.Command(
+							"create",
+							"Create an API token",
+							createToken,
+						)
+
+						cmd.Command(
+							"get",
+							"See information about a single API token",
+							getToken,
+						)
+					},
+				)
+			}
 		},
 	)
 }

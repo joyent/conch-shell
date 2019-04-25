@@ -69,21 +69,131 @@ func listAllUsers(app *cli.Cmd) {
 
 func revokeTokens(app *cli.Cmd) {
 	var (
-		forceOpt = app.BoolOpt("force", false, "Perform destructive actions")
+		forceOpt   = app.BoolOpt("force", false, "Perform destructive actions")
+		revokeAuth = app.BoolOpt("auth-only", false, "Revoke auth tokens, not API tokens. This will force a user to log in again on the website (and old versions of the shell)")
+		tokenAuth  = app.BoolOpt("tokens-only", false, "Revoke all API tokens. This will likely break a lot of automation so use this carefully")
+		allAuth    = app.BoolOpt("all", false, "The nuclear option. Revoke all auth *and* API tokens, forcing the user to login again *and* to generate new API tokens for automation processes. Use this very carefully")
 	)
-	app.Spec = "--force"
+	app.Spec = "--force (--auth-only | --tokens-only | --all)"
 
 	app.Action = func() {
 		if !*forceOpt {
 			return
 		}
 
-		if err := util.API.RevokeUserTokens(UserEmail); err != nil {
+		if *allAuth {
+			if err := util.API.RevokeUserTokensAndLogins(UserEmail); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Printf("Login and API tokens revoked for %s.\n", UserEmail)
+			}
+			return
+		}
+
+		if *revokeAuth {
+			if err := util.API.RevokeUserLogins(UserEmail); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Printf("Login tokens revoked for %s.\n", UserEmail)
+			}
+			return
+		}
+		if *tokenAuth {
+			if err := util.API.RevokeUserTokens(UserEmail); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Printf("API tokens revoked for %s.\n", UserEmail)
+			}
+			return
+		}
+	}
+}
+
+func listTokens(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	app.Action = func() {
+		tokens, err := util.API.GetUserTokens(UserEmail)
+		if err != nil {
+			util.Bail(err)
+		}
+		if util.JSON {
+			util.JSONOut(tokens)
+			return
+		}
+
+		sort.Sort(tokens)
+
+		table := util.GetMarkdownTable()
+		table.SetHeader([]string{"Name", "Created", "Last Used"})
+
+		for _, t := range tokens {
+			timeStr := ""
+			if !t.LastUsed.IsZero() {
+				timeStr = util.TimeStr(t.LastUsed)
+			}
+
+			table.Append([]string{
+				t.Name,
+				util.TimeStr(t.Created),
+				timeStr,
+			})
+		}
+
+		table.Render()
+	}
+}
+
+func getToken(cmd *cli.Cmd) {
+	cmd.Before = util.BuildAPIAndVerifyLogin
+
+	var nameArg = cmd.StringArg("NAME", "", "Name for the token")
+	cmd.Spec = "NAME"
+
+	cmd.Action = func() {
+		token, err := util.API.GetUserToken(UserEmail, *nameArg)
+		if err != nil {
 			util.Bail(err)
 		}
 
-		if !util.JSON {
-			fmt.Printf("Tokens revoked for %s.\n", UserEmail)
+		if util.JSON {
+			util.JSONOut(token)
+			return
+		}
+
+		lastUsed := "[ Never Used ]"
+		if !token.LastUsed.IsZero() {
+			lastUsed = util.TimeStr(token.LastUsed)
+		}
+
+		fmt.Printf(`
+Name: %s
+Created: %s
+Last Used: %s
+`,
+			token.Name,
+			util.TimeStr(token.Created),
+			lastUsed,
+		)
+	}
+}
+
+func removeToken(app *cli.Cmd) {
+	app.Before = util.BuildAPIAndVerifyLogin
+
+	var nameArg = app.StringArg("NAME", "", "Name for the token")
+	app.Spec = "NAME"
+
+	app.Action = func() {
+		err := util.API.DeleteUserToken(UserEmail, *nameArg)
+		if err != nil {
+			util.Bail(err)
 		}
 	}
 }
@@ -130,8 +240,10 @@ func createUser(app *cli.Cmd) {
 }
 
 func resetUserPassword(app *cli.Cmd) {
+	var tokensOpt = app.BoolOpt("revoke-tokens", false, "Also revoke the user's API tokens")
+
 	app.Action = func() {
-		if err := util.API.ResetUserPassword(UserEmail); err != nil {
+		if err := util.API.ResetUserPassword(UserEmail, *tokensOpt); err != nil {
 			util.Bail(err)
 		}
 		if !util.JSON {

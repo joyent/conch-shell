@@ -17,9 +17,7 @@ import (
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
-// RevokeUserTokens revokes all auth tokens for a the given user. This action
-// is typically limited server-side to admins.
-func (c *Conch) RevokeUserTokens(user string) error {
+func (c *Conch) RevokeUserTokensAndLogins(user string) error {
 	var uPart string
 	_, err := uuid.FromString(user)
 	if err == nil {
@@ -31,19 +29,59 @@ func (c *Conch) RevokeUserTokens(user string) error {
 	return c.post("/user/"+uPart+"/revoke", nil, nil)
 }
 
-// RevokeOwnTokens revokes all auth tokens for the current user. Login() is
-// required after to generate new tokens. Clears the JWT, and
-// Expires attributes
-func (c *Conch) RevokeOwnTokens() error {
-	if err := c.post("/user/me/revoke", nil, nil); err != nil {
-		return err
+func (c *Conch) RevokeUserLogins(user string) error {
+	var uPart string
+	_, err := uuid.FromString(user)
+	if err == nil {
+		uPart = user
+	} else {
+		uPart = "email=" + user
 	}
 
-	c.JWT = ConchJWT{}
-	return nil
+	return c.post("/user/"+uPart+"/revoke?auth_only=1", nil, nil)
 }
 
-// VerifyLogin determines if the user's session data is still valid.
+func (c *Conch) RevokeUserTokens(user string) error {
+	var uPart string
+	_, err := uuid.FromString(user)
+	if err == nil {
+		uPart = user
+	} else {
+		uPart = "email=" + user
+	}
+
+	return c.post("/user/"+uPart+"/revoke?api_only=1", nil, nil)
+}
+
+func (c *Conch) GetUserToken(user string, name string) (u UserToken, err error) {
+	escapedName := url.PathEscape(name)
+	return u, c.get("/user/email="+user+"/token/"+escapedName, &u)
+}
+
+func (c *Conch) GetUserTokens(user string) (UserTokens, error) {
+	u := make(UserTokens, 0)
+	return u, c.get("/user/email="+user+"/token", &u)
+}
+
+func (c *Conch) DeleteUserToken(user string, name string) error {
+	escapedName := url.PathEscape(name)
+	return c.httpDelete("/user/email=" + user + "/token/" + escapedName)
+}
+
+func (c *Conch) VerifyToken() (bool, error) {
+	if c.Token == "" {
+		return false, ErrBadInput
+	}
+
+	_, err := c.GetUserSettings()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// VerifyJwtLogin determines if the user's JWT auth data is still valid.
 //
 // One can pass in an integer value, representing when to force a token
 // refresh, based on the number of seconds left until expiry. Pass in 0 to
@@ -52,7 +90,7 @@ func (c *Conch) RevokeOwnTokens() error {
 // If the second parameter is true, a JWT refresh is forced, regardless of any
 // other parameters.
 //
-func (c *Conch) VerifyLogin(refreshTime int, forceJWT bool) error {
+func (c *Conch) VerifyJwtLogin(refreshTime int, forceJWT bool) error {
 	u, _ := url.Parse(c.BaseURL)
 
 	if !forceJWT {
@@ -199,14 +237,4 @@ func (c *Conch) ParseJWT(token string, signature string) (ConchJWT, error) {
 	}
 
 	return jwt, nil
-}
-
-// ChangePassword changes the password for the currently active profile
-func (c *Conch) ChangePassword(password string) error {
-	b := struct {
-		Password string `json:"password"`
-	}{password}
-
-	return c.post("/user/me/password", b, nil)
-
 }

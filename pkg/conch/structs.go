@@ -31,6 +31,7 @@ type Conch struct {
 	Debug   bool
 	Trace   bool
 	JWT     ConchJWT
+	Token   string // replacement for JWT
 
 	HTTPClient *http.Client
 	CookieJar  *cookiejar.Jar
@@ -619,3 +620,36 @@ The payload looks like:
 Where '47' is the rack unit start for the device
 */
 type WorkspaceRackLayoutAssignments map[string]int
+
+// corresponds to conch.git/json-schema/input.yaml;NewUserToken
+type CreateNewUserToken struct {
+	Name string `json:"name"`
+}
+
+// corresponds to conch.git/json-schema/response.yaml;UserToken
+type UserToken struct {
+	Name     string    `json:"name"`
+	Created  time.Time `json:"created"`
+	LastUsed time.Time `json:"last_used,omitempty"`
+	Expires  time.Time `json:"expires"`
+}
+
+type UserTokens []UserToken
+
+func (u UserTokens) Len() int {
+	return len(u)
+}
+
+func (u UserTokens) Swap(i, j int) {
+	u[i], u[j] = u[j], u[i]
+}
+
+func (u UserTokens) Less(i, j int) bool {
+	return u[i].Name < u[j].Name
+}
+
+// corresponds to conch.git/json-schema/response.yaml;NewUserToken
+type NewUserToken struct {
+	UserToken
+	Token string `json:"token"`
+}

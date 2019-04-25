@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Bowery/prompt"
@@ -22,69 +23,53 @@ import (
 func newProfile(app *cli.Cmd) {
 	var (
 		nameOpt      = app.StringOpt("name", "", "Profile name. Must be unique")
-		userOpt      = app.StringOpt("user", "", "API User name")
-		apiOpt       = app.StringOpt("api url", "", "API URL")
-		passwordOpt  = app.StringOpt("password pass", "", "API Password")
-		workspaceOpt = app.StringOpt("workspace ws", "", "Default workspace")
 		overwriteOpt = app.BoolOpt("overwrite force", false, "Overwrite any profile with a matching name")
+		workspaceOpt = app.StringOpt("workspace ws", "", "Default workspace")
+
+		tokenOpt    = app.StringOpt("token", "", "Use an API token instead of a password")
+		userOpt     = app.StringOpt("user", "", "API User name")
+		passwordOpt = app.StringOpt("password pass", "", "API Password")
+
+		envOpt = app.StringOpt("environment env", "production", "Specify the environment: production, staging, development (provide URL in the --url parameter)")
+		urlOpt = app.StringOpt("url", "", "If the environment is 'development', this defines the API URL. Ignored otherwise")
 	)
 
+	app.Spec = "--name [OPTIONS]"
+
 	app.Action = func() {
-		p := &config.ConchProfile{}
-
-		password := *passwordOpt
-
-		if *nameOpt == "" {
-			s, err := prompt.Basic("Profile Name:", true)
-			if err != nil {
-				util.Bail(err)
-			}
-
-			p.Name = s
-		} else {
-			p.Name = *nameOpt
-		}
-
-		if !*overwriteOpt {
-			if _, ok := util.Config.Profiles[p.Name]; ok {
+		var err error
+		var p *config.ConchProfile
+		if _, ok := util.Config.Profiles[*nameOpt]; ok {
+			if !*overwriteOpt {
 				util.Bail(
 					fmt.Errorf(
 						"a profile already exists with name '%s'",
-						p.Name,
+						*nameOpt,
 					),
 				)
 			}
-		}
 
-		if *userOpt == "" {
-			s, err := prompt.Basic("User Name:", true)
-			if err != nil {
-				util.Bail(err)
-			}
-			p.User = s
-
+			p = util.Config.Profiles[*nameOpt]
 		} else {
-			p.User = *userOpt
+			p = &config.ConchProfile{}
+			p.Name = *nameOpt
 		}
 
-		if password == "" {
-			s, err := prompt.Password("Password:")
-			if err != nil {
-				util.Bail(err)
+		switch *envOpt {
+		case "production":
+			p.BaseURL = config.ProductionURL
+		case "staging":
+			p.BaseURL = config.StagingURL
+		case "development":
+			if *urlOpt == "" {
+				util.Bail(errors.New("please provide --url"))
 			}
-
-			password = s
+			p.BaseURL = *urlOpt
+		default:
+			p.BaseURL = config.ProductionURL
 		}
 
-		if *apiOpt == "" {
-			s, err := prompt.BasicDefault("API URL:", "https://conch.joyent.us")
-			if err != nil {
-				util.Bail(err)
-			}
-			p.BaseURL = s
-		} else {
-			p.BaseURL = *apiOpt
-		}
+		/***/
 
 		util.API = &conch.Conch{
 			BaseURL: p.BaseURL,
@@ -94,18 +79,43 @@ func newProfile(app *cli.Cmd) {
 			util.API.UA = util.UserAgent
 		}
 
-		err := util.API.Login(p.User, password)
+		/***/
 
-		if err != nil {
-			if util.JSON || err != conch.ErrMustChangePassword {
+		if *tokenOpt != "" {
+			p.Token = config.Token(*tokenOpt)
+			util.API.Token = *tokenOpt
+
+			if ok, err := util.API.VerifyToken(); !ok {
 				util.Bail(err)
 			}
-			util.ActiveProfile = p
-			util.InteractiveForcePasswordChange()
-		}
 
-		p.JWT = util.API.JWT
-		p.Expires = p.JWT.Expires
+		} else {
+			if *userOpt == "" {
+				util.Bail(errors.New("please provide a user name"))
+			}
+			p.User = *userOpt
+
+			password := *passwordOpt
+			if password == "" {
+				s, err := prompt.Password("Password:")
+				if err != nil {
+					util.Bail(err)
+				}
+
+				password = s
+			}
+
+			if err := util.API.Login(p.User, password); err != nil {
+				if util.JSON || err != conch.ErrMustChangePassword {
+					util.Bail(err)
+				}
+				util.ActiveProfile = p
+				util.InteractiveForcePasswordChange()
+			}
+
+			p.JWT = util.API.JWT
+			p.Expires = p.JWT.Expires
+		}
 
 		if *workspaceOpt == "" {
 			p.WorkspaceUUID = uuid.UUID{}
@@ -128,7 +138,8 @@ func newProfile(app *cli.Cmd) {
 		}
 
 		util.Config.Profiles[p.Name] = p
-		util.WriteConfig()
+		util.WriteConfigForce()
+
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -156,7 +167,7 @@ func deleteProfile(app *cli.Cmd) {
 			}
 		}
 
-		util.WriteConfig()
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -190,7 +201,11 @@ func listProfiles(app *cli.Cmd) {
 		for _, prof := range util.Config.Profiles {
 			active := ""
 			if prof.Active {
-				active = "*"
+				if util.IgnoreConfig {
+					active = "*?"
+				} else {
+					active = "*"
+				}
 			}
 			workspaceName := ""
 			if !uuid.Equal(prof.WorkspaceUUID, uuid.UUID{}) {
@@ -198,7 +213,8 @@ func listProfiles(app *cli.Cmd) {
 					workspaceName = prof.WorkspaceName
 				}
 			}
-			expires := "[relogin]"
+
+			expires := ""
 			if !prof.JWT.Expires.IsZero() {
 				expires = util.TimeStr(prof.JWT.Expires)
 			}
@@ -213,6 +229,9 @@ func listProfiles(app *cli.Cmd) {
 			})
 		}
 		table.Render()
+		if util.IgnoreConfig {
+			fmt.Println("\n? The active profile has been overridden by the use of a token")
+		}
 	}
 }
 
@@ -227,6 +246,10 @@ func setWorkspace(app *cli.Cmd) {
 	}
 
 	app.Action = func() {
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
 		workspaceUUID, err := util.MagicWorkspaceID(*workspaceArg)
 		if err != nil {
 			util.Bail(err)
@@ -240,7 +263,7 @@ func setWorkspace(app *cli.Cmd) {
 		util.ActiveProfile.WorkspaceUUID = ws.ID
 		util.ActiveProfile.WorkspaceName = ws.Name
 
-		util.WriteConfig()
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -269,7 +292,7 @@ func setActive(app *cli.Cmd) {
 			)
 		}
 
-		util.WriteConfig()
+		util.WriteConfigForce()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -277,54 +300,51 @@ func setActive(app *cli.Cmd) {
 	}
 }
 
-func refreshJWT(app *cli.Cmd) {
+func revokeJWT(app *cli.Cmd) {
+	var (
+		forceOpt   = app.BoolOpt("force", false, "Perform destructive actions")
+		revokeAuth = app.BoolOpt("auth-only", false, "Revoke auth tokens, not API tokens. This will force you to log in again on the website")
+		tokenAuth  = app.BoolOpt("tokens-only", false, "Revoke all API tokens. This will likely break all your automations and your ability to continue using the shell so use this carefully")
+		allAuth    = app.BoolOpt("all", false, "The nuclear option. Revoke all auth *and* API tokens, forcing you to login again *and* to generate new API tokens for automation processes, including the shell. Use this very carefully")
+	)
+	app.Spec = "--force (--auth-only | --tokens-only | --all)"
+
 	app.Action = func() {
-		util.BuildAPI()
-		if util.ActiveProfile == nil {
-			util.Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
-		}
-
-		if err := util.API.VerifyLogin(0, true); err != nil {
-			if util.JSON || err != conch.ErrMustChangePassword {
-				util.Bail(err)
-			}
-			util.InteractiveForcePasswordChange()
-		}
-
-		util.ActiveProfile.JWT = util.API.JWT
-
-		util.WriteConfig()
-
-		if util.JSON {
-			util.JSONOut(struct {
-				Expires time.Time `json:"expires"`
-			}{util.API.JWT.Expires})
-
+		if !*forceOpt {
 			return
 		}
+		util.BuildAPI()
 
-		fmt.Printf(
-			"Auth for profile '%s' now expires at %s\n",
-			util.ActiveProfile.Name,
-			util.TimeStr(util.API.JWT.Expires),
-		)
-	}
-}
-
-func revokeJWT(app *cli.Cmd) {
-	var forceOpt = app.BoolOpt("force", false, "Perform destructive actions")
-	app.Spec = "--force"
-
-	app.Action = func() {
-		if *forceOpt {
-			util.BuildAPIAndVerifyLogin()
-			if err := util.API.RevokeOwnTokens(); err != nil {
+		if *allAuth {
+			if err := util.API.RevokeMyTokensAndLogins(); err != nil {
 				util.Bail(err)
 			}
 
 			if !util.JSON {
-				fmt.Println("Tokens revoked.")
+				fmt.Println("Login and API tokens revoked")
 			}
+			return
+		}
+
+		if *revokeAuth {
+			if err := util.API.RevokeMyLogins(); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Println("Login tokens revoked")
+			}
+			return
+		}
+		if *tokenAuth {
+			if err := util.API.RevokeMyTokens(); err != nil {
+				util.Bail(err)
+			}
+
+			if !util.JSON {
+				fmt.Println("API tokens revoked")
+			}
+			return
 		}
 	}
 }
@@ -332,9 +352,24 @@ func revokeJWT(app *cli.Cmd) {
 func relogin(app *cli.Cmd) {
 	var (
 		passwordOpt = app.StringOpt("password pass", "", "API Password")
+		forceOpt    = app.BoolOpt("force", false, "If your profile uses a token, this option will be required since the command will eliminate the token from the config")
 	)
 
 	app.Action = func() {
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
+		if util.ActiveProfile.Token != "" {
+			if !*forceOpt {
+				util.Bail(errors.New("the current profile uses an API token. Running 'relogin' will irrevocably remove the token from the shell's configuration. Use --force to perform this destructive action"))
+			}
+
+		}
+		if util.ActiveProfile.User == "" {
+			util.Bail(errors.New("the profile lacks a user name, likely because it is token based. cannot continue"))
+		}
+
 		util.BuildAPI()
 
 		password := *passwordOpt
@@ -357,8 +392,11 @@ func relogin(app *cli.Cmd) {
 		}
 
 		util.ActiveProfile.JWT = util.API.JWT
+		util.ActiveProfile.Expires = util.API.JWT.Expires
+		util.ActiveProfile.Token = ""
+		util.Token = ""
+		util.WriteConfigForce()
 
-		util.WriteConfig()
 		if !util.JSON {
 			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
 		}
@@ -367,7 +405,8 @@ func relogin(app *cli.Cmd) {
 
 func changePassword(app *cli.Cmd) {
 	var (
-		passwordOpt = app.StringOpt("password pass", "", "Account password")
+		passwordOpt  = app.StringOpt("password pass", "", "Account password")
+		revokeTokens = app.BoolOpt("purge-tokens", false, "Also purge API tokens")
 	)
 
 	app.Action = func() {
@@ -378,33 +417,74 @@ func changePassword(app *cli.Cmd) {
 		if password == "" {
 			util.InteractiveForcePasswordChange()
 		} else {
-			if err := util.API.ChangePassword(password); err != nil {
+			err := util.IsPasswordSane(password, nil)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			if err := util.API.ChangeMyPassword(password, *revokeTokens); err != nil {
 				util.Bail(err)
 			}
 		}
+		util.WriteConfigForce()
 	}
 }
 
-func enableVersionCheck(app *cli.Cmd) {
-	app.Action = func() {
-		util.Config.SkipVersionCheck = false
-		util.WriteConfig()
+func setToken(cmd *cli.Cmd) {
+	var tokenArg = cmd.StringArg("TOKEN", "", "An API token")
+	cmd.Spec = "TOKEN"
+
+	cmd.Action = func() {
+		if util.ActiveProfile == nil {
+			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
+		}
+
+		util.ActiveProfile.Token = config.Token(*tokenArg)
+		util.Token = *tokenArg
+
+		util.ActiveProfile.JWT = conch.ConchJWT{}
+
+		util.WriteConfigForce()
 	}
+
 }
 
-func disableVersionCheck(app *cli.Cmd) {
-	app.Action = func() {
-		util.Config.SkipVersionCheck = true
-		util.WriteConfig()
-	}
-}
+func upgradeToToken(cmd *cli.Cmd) {
+	var forceOpt = cmd.BoolOpt("force", false, "Generate a new token, even if the current profile already uses one")
+	cmd.Action = func() {
+		if util.Token != "" && !*forceOpt {
+			util.Bail(errors.New("this profile already uses a token"))
+			return
+		}
 
-func statusVersionCheck(app *cli.Cmd) {
-	app.Action = func() {
-		if util.Config.SkipVersionCheck {
-			fmt.Println("disabled")
-		} else {
-			fmt.Println("enabled")
+		hostname, err := os.Hostname()
+
+		if err != nil {
+			hostname = "unknown"
+		}
+
+		uid := os.Getuid()
+
+		epoch := time.Now().Unix()
+		id := fmt.Sprintf("%d@%s || %d", uid, hostname, epoch)
+
+		util.BuildAPI()
+
+		token, err := util.API.CreateMyToken(id)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		util.ActiveProfile.Token = config.Token(token.Token)
+		util.Token = token.Token
+
+		util.ActiveProfile.JWT = conch.ConchJWT{}
+
+		util.WriteConfigForce()
+
+		if !util.JSON {
+			fmt.Printf("Created a token named '%s' and will now use it for this profile\n", id)
+
 		}
 	}
 }

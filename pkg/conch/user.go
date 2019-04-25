@@ -8,9 +8,72 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
 
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
+
+func (c *Conch) GetMyTokens() (UserTokens, error) {
+	u := make(UserTokens, 0)
+	return u, c.get("/user/me/token", &u)
+}
+
+func (c *Conch) GetMyToken(name string) (u UserToken, err error) {
+	escapedName := url.PathEscape(name)
+	return u, c.get("/user/me/token/"+escapedName, &u)
+}
+
+func (c *Conch) CreateMyToken(name string) (u NewUserToken, err error) {
+	return u, c.post(
+		"/user/me/token",
+		CreateNewUserToken{Name: name},
+		&u,
+	)
+}
+
+func (c *Conch) DeleteMyToken(name string) error {
+	escapedName := url.PathEscape(name)
+	return c.httpDelete("/user/me/token/" + escapedName)
+}
+
+func (c *Conch) RevokeMyLogins() error {
+	return c.post("/user/me/revoke?auth_only=1", nil, nil)
+}
+
+func (c *Conch) RevokeMyTokens() error {
+	return c.post("/user/me/revoke?api_only=1", nil, nil)
+}
+
+func (c *Conch) RevokeMyTokensAndLogins() error {
+	if err := c.post("/user/me/revoke", nil, nil); err != nil {
+		return err
+	}
+
+	c.JWT = ConchJWT{}
+	return nil
+}
+
+func (c *Conch) ChangeMyPassword(password string, revokeTokens bool) error {
+	b := struct {
+		Password string `json:"password"`
+	}{password}
+
+	url := "/user/me/password?"
+	if revokeTokens {
+		url = url + "clear_tokens=all"
+	} else {
+		// This is a bit opinionated of me. Changing your password will always
+		// clear your login tokens, but never your API tokens unless you ask.
+		//
+		// While the API allows one to not clear any tokens, I can't figure a
+		// use case where you'd want to change your password but let existing
+		// sessions to just keep working.
+		url = url + "clear_tokens=login_only"
+	}
+
+	return c.post(url, b, nil)
+
+}
 
 // GetUserSettings returns the results of /user/me/settings
 // The return is a map[string]interface{} because the database structure is a
@@ -77,8 +140,22 @@ func (c *Conch) CreateUser(email string, password string, name string, isAdmin b
 
 // ResetUserPassword resets the password for the provided user, causing an
 // email to be sent
-func (c *Conch) ResetUserPassword(email string) error {
-	return c.httpDelete("/user/email=" + email + "/password")
+func (c *Conch) ResetUserPassword(email string, revokeTokens bool) error {
+	url := "/user/email=" + email + "/password?"
+	if revokeTokens {
+		url = url + "clear_tokens=all"
+	} else {
+		// This is a bit opinionated of me. Changing someone's password will
+		// always clear their login tokens, but never their API tokens unless you
+		// ask.
+		//
+		// While the API allows one to not clear any tokens, I can't figure a
+		// use case where you'd want to change someone's password but let
+		// existing sessions to just keep working.
+		url = url + "clear_tokens=login_only"
+	}
+
+	return c.httpDelete(url)
 }
 
 // GetAllUsers retrieves a list of all users, if the user has the right

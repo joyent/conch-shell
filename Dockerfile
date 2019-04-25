@@ -1,4 +1,5 @@
-FROM golang:1.12.1-alpine AS build
+# vim: se syn=dockerfile:
+FROM golang:1.12.4-alpine AS build
 ENV CGO_ENABLED 0
 
 RUN apk add --no-cache --update make git perl-utils dep shadow
@@ -25,5 +26,5 @@ FROM scratch
 COPY --from=build /go/src/github.com/joyent/conch-shell/bin/conch /bin/conch
 COPY --from=build /etc/ssl /etc/ssl
 
-ENTRYPOINT [ "/bin/conch", "--no-version-check" ]
+ENTRYPOINT [ "/bin/conch" ]
 CMD ["version"]

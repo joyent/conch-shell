@@ -33,8 +33,14 @@ var (
 	// JSON tells us if we should output JSON
 	JSON bool
 
+	IgnoreConfig bool
+	Token        string
+	BaseURL      string
+
 	// Config is a global Config object
 	Config *config.ConchConfig
+
+	ConfigPath string
 
 	// ActiveProfile represents, well, the active profile
 	ActiveProfile *config.ConchProfile
@@ -53,20 +59,30 @@ var (
 
 // These variables are provided by the build environment
 var (
-	Version                string
-	GitRev                 string
-	DisableApiVersionCheck string
-
+	Version    string
+	GitRev     string
 	SemVersion semver.Version
+
+	FlagsDisableApiVersionCheck string // Used in shell development
+	FlagsDisableApiTokenCRUD    string // Useful for preventing automations from creating and deleting tokens
+	FlagsNoAdmin                string // Useful for preventing automations from accessing admin commands
+
 )
 
-var NoApiVersionCheck bool
+func DisableApiVersionCheck() bool {
+	return FlagsDisableApiVersionCheck != "0"
+}
+
+func DisableApiTokenCRUD() bool {
+	return FlagsDisableApiTokenCRUD != "0"
+}
+
+func NoAdmin() bool {
+	return FlagsNoAdmin != "0"
+}
 
 func init() {
 	SemVersion = CleanVersion(Version)
-	if DisableApiVersionCheck == "1" {
-		NoApiVersionCheck = true
-	}
 }
 
 // DateFormat should be used in date formatting calls to ensure uniformity of
@@ -86,15 +102,35 @@ func TimeStr(t time.Time) string {
 // VerifyLogin
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
-	if err := API.VerifyLogin(RefreshTokenTime, false); err != nil {
+
+	if Token != "" {
+		ok, err := API.VerifyToken()
+		if !ok {
+			Bail(err)
+		}
+		return
+	}
+
+	if err := API.VerifyJwtLogin(RefreshTokenTime, false); err != nil {
 		Bail(err)
 	}
+
 	ActiveProfile.JWT = API.JWT
 	WriteConfig()
 }
 
 // WriteConfig serializes the Config struct to disk
 func WriteConfig() {
+	if IgnoreConfig {
+		return
+	}
+
+	if err := Config.SerializeToFile(Config.Path); err != nil {
+		Bail(err)
+	}
+}
+
+func WriteConfigForce() {
 	if err := Config.SerializeToFile(Config.Path); err != nil {
 		Bail(err)
 	}
@@ -102,16 +138,28 @@ func WriteConfig() {
 
 // BuildAPI builds a Conch object
 func BuildAPI() {
-	if ActiveProfile == nil {
-		Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
+	if IgnoreConfig {
+		API = &conch.Conch{
+			BaseURL: BaseURL,
+			Debug:   Debug,
+			Trace:   Trace,
+			Token:   Token,
+		}
+
+	} else {
+		if ActiveProfile == nil {
+			Bail(errors.New("no active profile. Please use 'conch profile' to create or set an active profile"))
+		}
+
+		API = &conch.Conch{
+			BaseURL: ActiveProfile.BaseURL,
+			JWT:     ActiveProfile.JWT,
+			Token:   string(ActiveProfile.Token),
+			Debug:   Debug,
+			Trace:   Trace,
+		}
 	}
 
-	API = &conch.Conch{
-		BaseURL: ActiveProfile.BaseURL,
-		JWT:     ActiveProfile.JWT,
-		Debug:   Debug,
-		Trace:   Trace,
-	}
 	if UserAgent != "" {
 		API.UA = UserAgent
 	}
@@ -121,7 +169,7 @@ func BuildAPI() {
 		Bail(err)
 	}
 
-	if NoApiVersionCheck {
+	if DisableApiVersionCheck() {
 		return
 	}
 
@@ -166,10 +214,14 @@ func Bail(err error) {
 
 	switch err {
 	case conch.ErrBadInput:
-		msg = err.Error() + " -- Internal Error. Please file a GHI"
+		msg = err.Error() + " -- Internal Error. Please run with --debug and file a Github Issue"
 
 	case conch.ErrNotAuthorized:
-		msg = err.Error() + " -- Running 'profile relogin' might resolve this"
+		if len(Token) > 0 {
+			msg = err.Error() + " -- The API token might be incorrect or revoked"
+		} else {
+			msg = err.Error() + " -- Running 'profile relogin' might resolve this"
+		}
 
 	case conch.ErrMalformedJWT:
 		msg = "The server sent a malformed auth token. Please contact the Conch team"
@@ -387,7 +439,7 @@ func InteractiveForcePasswordChange() {
 		}
 
 	}
-	if err := API.ChangePassword(password); err != nil {
+	if err := API.ChangeMyPassword(password, false); err != nil {
 		Bail(err)
 	}
 
@@ -397,7 +449,7 @@ func InteractiveForcePasswordChange() {
 
 	ActiveProfile.JWT = API.JWT
 
-	WriteConfig()
+	WriteConfigForce()
 }
 
 // DDP pretty prints a structure to stderr. "Deep Data Printer"
@@ -406,6 +458,28 @@ func DDP(v interface{}) {
 		os.Stderr,
 		v,
 	)
+}
+
+func GithubReleaseCheck() {
+	gh, err := LatestGithubRelease()
+	if (err != nil) && (err != ErrNoGithubRelease) {
+		Bail(err)
+	}
+	if gh.Upgrade {
+		os.Stderr.WriteString(fmt.Sprintf(`
+A new release is available! You have v%s but %s is available.
+The changelog can be viewed via 'conch update changelog'
+
+You can obtain the new release by:
+* Running 'conch update self', which will attempt to overwrite the current application
+* Manually download the new release at %s
+
+`,
+			Version,
+			gh.TagName,
+			gh.URL,
+		))
+	}
 }
 
 func init() {

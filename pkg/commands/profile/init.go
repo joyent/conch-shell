@@ -9,6 +9,7 @@ package profile
 
 import (
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
 )
 
 // Init loads up the profile commands
@@ -38,27 +39,9 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"refresh",
-				"Refresh the auth token for the active profile",
-				refreshJWT,
-			)
-
-			cmd.Command(
-				"relogin",
-				"Log in again, preserving all other profile data",
-				relogin,
-			)
-
-			cmd.Command(
 				"change-password",
 				"Change the password associated with this profile",
 				changePassword,
-			)
-
-			cmd.Command(
-				"revoke-tokens",
-				"Revoke all auth tokens. User must log in again after this.",
-				revokeJWT,
 			)
 
 			cmd.Command(
@@ -76,38 +59,35 @@ func Init(app *cli.Cli) {
 						"Change which profile is active",
 						setActive,
 					)
+
+					cmd.Command(
+						"token",
+						"Change the API token for the active profile. This will convert the profile to token auth if it was previously using login auth",
+						setToken,
+					)
 				},
 			)
 
 			cmd.Command(
-				"global",
-				"Change global settings that apply regardless of the profile chosen",
-				func(cmd *cli.Cmd) {
-					cmd.Command(
-						"version-check vc",
-						"Enable/disable version checking",
-						func(cmd *cli.Cmd) {
-							cmd.Command(
-								"status",
-								"See if version checking is enabled or disabled",
-								statusVersionCheck,
-							)
-
-							cmd.Command(
-								"enable",
-								"Enable version checking",
-								enableVersionCheck,
-							)
-
-							cmd.Command(
-								"disable",
-								"Disable version checking",
-								disableVersionCheck,
-							)
-						},
-					)
-				},
+				"upgrade",
+				"Upgrade this profile to use API tokens. This will generate a specific API token for this instance which will *not* be displayed or otherwise accessible",
+				upgradeToToken,
 			)
+
+			cmd.Command(
+				"relogin",
+				"Log in again, preserving all other profile data",
+				relogin,
+			)
+
+			if !util.DisableApiTokenCRUD() {
+				cmd.Command(
+					"revoke-tokens",
+					"Revoke all auth tokens. User must log in again after this.",
+					revokeJWT,
+				)
+			}
+
 		},
 	)
 }
