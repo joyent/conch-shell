@@ -1,1 +1,10 @@
+title: Conch Shell
+description: Conch Shell is a CLI for accessing the Conch API
+logo: joyent.png
+show_downloads: true
+
+exclude:
+    - vendor
+    - .git
+
 theme: jekyll-theme-minimal
