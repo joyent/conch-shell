@@ -50,6 +50,14 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:bed9d72d596f94e65fff37f4d6c01398074a6bb1c3f3ceff963516bd01db6ff5"
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6b08a5c5172ba18946672b49749cde22873dd7c2"
+  version = "v3.2.0"
+
+[[projects]]
   branch = "master"
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
   name = "github.com/google/go-querystring"
@@ -302,6 +310,7 @@
     "github.com/blang/semver",
     "github.com/davecgh/go-spew/spew",
     "github.com/dghubble/sling",
+    "github.com/gofrs/uuid",
     "github.com/jawher/mow.cli",
     "github.com/lib/pq",
     "github.com/mitchellh/go-homedir",
