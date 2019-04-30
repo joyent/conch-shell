@@ -25,6 +25,17 @@ func TestUUID(t *testing.T) {
 		st.Expect(t, u.Equal(u2), false)
 	})
 
+	t.Run("FromString", func(t *testing.T) {
+		u := uuid.NewV4()
+		str := u.String()
+
+		u2, err := uuid.FromString(str)
+		st.Expect(t, err, nil)
+		st.Expect(t, u, u2)
+		st.Expect(t, u.String(), u2.String())
+
+	})
+
 	t.Run("MarshalJSON", func(t *testing.T) {
 		u := uuid.NewV4()
 		j, err := json.Marshal(u)

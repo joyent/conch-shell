@@ -16,18 +16,6 @@ type UUID struct {
 	uuid gofrs.UUID
 }
 
-func (u UUID) String() string {
-	return u.uuid.String()
-}
-
-func (u UUID) Equal(u2 UUID) bool {
-	return u.String() == u2.String()
-}
-
-func (u UUID) IsZero() bool {
-	return u.uuid == gofrs.UUID{}
-}
-
 func NewV4() UUID {
 	u, _ := gofrs.NewV4()
 	return UUID{
@@ -37,6 +25,33 @@ func NewV4() UUID {
 
 func New() UUID {
 	return UUID{}
+}
+
+func (u UUID) String() string {
+	return u.uuid.String()
+}
+
+func FromString(str string) (UUID, error) {
+	u, err := gofrs.FromString(str)
+	if err != nil {
+		return New(), err
+	}
+	return UUID{
+		uuid: u,
+	}, nil
+}
+
+func (u UUID) Equal(u2 UUID) bool {
+	return u.String() == u2.String()
+}
+
+// For satori backcompat BUG(sungo)
+func Equal(u UUID, u2 UUID) bool {
+	return u.Equal(u2)
+}
+
+func (u UUID) IsZero() bool {
+	return u.uuid == gofrs.UUID{}
 }
 
 func (u UUID) MarshalJSON() ([]byte, error) {
