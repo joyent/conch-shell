@@ -17,12 +17,12 @@ import (
 	"time"
 
 	"github.com/dghubble/sling"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	_ "github.com/lib/pq"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 var FailedCount = 0

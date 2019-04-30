@@ -18,8 +18,8 @@ import (
 	"time"
 
 	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/config/obfuscate"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 const (

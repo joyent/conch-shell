@@ -2,7 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
   digest = "1:739c9ec359b9f06cf0fd0cd40dfb609340225956935595625419ed5e414f345a"
   name = "github.com/Bowery/prompt"
   packages = ["."]
@@ -285,13 +284,6 @@
   revision = "a6029d17e101ac1594adafea9e63fd8c988a8701"
   version = "v1.0.12"
 
-[[projects]]
-  digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
-  name = "gopkg.in/satori/go.uuid.v1"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -321,7 +313,6 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "gopkg.in/h2non/gock.v1",
-    "gopkg.in/satori/go.uuid.v1",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

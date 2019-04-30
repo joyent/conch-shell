@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"regexp"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 // MagicWorkspaceID takes a string and tries to find a valid UUID. If the

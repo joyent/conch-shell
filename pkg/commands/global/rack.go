@@ -13,14 +13,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/jawher/mow.cli"
-	"github.com/joyent/conch-shell/pkg/conch"
-	"github.com/joyent/conch-shell/pkg/util"
-	uuid "gopkg.in/satori/go.uuid.v1"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
+
+	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
+	"github.com/joyent/conch-shell/pkg/util"
 )
 
 func displayOneGlobalRack(r conch.GlobalRack) {

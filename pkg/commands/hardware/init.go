@@ -12,8 +12,8 @@ import (
 	"errors"
 
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/util"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 // ProductUUID is the UUID of the hardware product we're looking at, as

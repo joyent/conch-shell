@@ -15,8 +15,8 @@ import (
 	gotree "github.com/DiSiqueira/GoTree"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/util"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 func listAllUsers(app *cli.Cmd) {
