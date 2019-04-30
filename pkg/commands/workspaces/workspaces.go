@@ -414,10 +414,10 @@ func getRelays(app *cli.Cmd) {
 			results = append(results, resultRow{
 				r.ID,
 				r.Alias,
-				r.Created.Time,
+				r.Created,
 				r.IPAddr,
 				r.SSHPort,
-				r.Updated.Time,
+				r.Updated,
 				r.Version,
 				r.NumDevices,
 			})

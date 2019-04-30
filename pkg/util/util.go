@@ -22,7 +22,6 @@ import (
 	cli "github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/config"
-	"github.com/joyent/conch-shell/pkg/pgtime"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -285,13 +284,13 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 		output := make([]interface{}, 0)
 		for _, d := range devices {
 			output = append(output, struct {
-				ID        string        `json:"id"`
-				AssetTag  string        `json:"asset_tag"`
-				Created   pgtime.PgTime `json:"created"`
-				LastSeen  pgtime.PgTime `json:"last_seen"`
-				Health    string        `json:"health"`
-				Graduated pgtime.PgTime `json:"graduated"`
-				Validated pgtime.PgTime `json:"validated"`
+				ID        string    `json:"id"`
+				AssetTag  string    `json:"asset_tag"`
+				Created   time.Time `json:"created"`
+				LastSeen  time.Time `json:"last_seen"`
+				Health    string    `json:"health"`
+				Graduated time.Time `json:"graduated"`
+				Validated time.Time `json:"validated"`
 			}{
 				d.ID,
 				d.AssetTag,
@@ -336,16 +335,16 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 	for _, d := range devices {
 		validated := ""
 		if !d.Validated.IsZero() {
-			validated = TimeStr(d.Validated.AsUTC())
+			validated = TimeStr(d.Validated.UTC())
 		}
 		graduated := ""
 		if !d.Graduated.IsZero() {
-			graduated = TimeStr(d.Graduated.AsUTC())
+			graduated = TimeStr(d.Graduated.UTC())
 		}
 
 		lastSeen := ""
 		if !d.LastSeen.IsZero() {
-			lastSeen = TimeStr(d.LastSeen.AsUTC())
+			lastSeen = TimeStr(d.LastSeen.UTC())
 		}
 
 		if fullOutput {
@@ -354,7 +353,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 				d.Location.Rack.Name,
 				d.ID,
 				d.AssetTag,
-				TimeStr(d.Created.AsUTC()),
+				TimeStr(d.Created.UTC()),
 				lastSeen,
 				d.Health,
 				validated,
@@ -364,7 +363,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 			table.Append([]string{
 				d.ID,
 				d.AssetTag,
-				TimeStr(d.Created.AsUTC()),
+				TimeStr(d.Created.UTC()),
 				lastSeen,
 				d.Health,
 				validated,

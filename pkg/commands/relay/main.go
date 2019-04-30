@@ -72,8 +72,8 @@ func getAllRelays(app *cli.Cmd) {
 				r.IPAddr,
 				strconv.Itoa(r.SSHPort),
 				r.Version,
-				util.TimeStr(r.Created.Time),
-				util.TimeStr(r.Updated.Time),
+				util.TimeStr(r.Created),
+				util.TimeStr(r.Updated),
 			})
 		}
 
@@ -93,7 +93,7 @@ func (s sortRelaysByUpdated) Swap(i, j int) {
 }
 
 func (s sortRelaysByUpdated) Less(i, j int) bool {
-	return s[i].Updated.Before(s[j].Updated.Time)
+	return s[i].Updated.Before(s[j].Updated)
 }
 
 func findRelaysByName(app *cli.Cmd) {
@@ -187,8 +187,8 @@ For instance:
 				r.IPAddr,
 				strconv.Itoa(r.SSHPort),
 				r.Version,
-				util.TimeStr(r.Created.Time),
-				util.TimeStr(r.Updated.Time),
+				util.TimeStr(r.Created),
+				util.TimeStr(r.Updated),
 			})
 		}
 

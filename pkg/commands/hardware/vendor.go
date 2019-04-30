@@ -21,8 +21,8 @@ Updated: %s
 `,
 		v.ID.String(),
 		v.Name,
-		util.TimeStr(v.Created.Time),
-		util.TimeStr(v.Updated.Time),
+		util.TimeStr(v.Created),
+		util.TimeStr(v.Updated),
 	)
 }
 
@@ -67,8 +67,8 @@ func getAllVendors(app *cli.Cmd) {
 			table.Append([]string{
 				v.ID.String(),
 				v.Name,
-				util.TimeStr(v.Created.Time),
-				util.TimeStr(v.Updated.Time),
+				util.TimeStr(v.Created),
+				util.TimeStr(v.Updated),
 			})
 		}
 		table.Render()
