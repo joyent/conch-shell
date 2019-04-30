@@ -9,6 +9,7 @@ package conch
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 )
 
 // GetValidations returns the contents of /validation, getting the list of all
@@ -18,7 +19,7 @@ func (c *Conch) GetValidations() ([]Validation, error) {
 	return validations, c.get("/validation", &validations)
 }
 func (c *Conch) GetValidation(id fmt.Stringer) (v Validation, err error) {
-	return v, c.get("/validation/"+id.String(), &v)
+	return v, c.get("/validation/"+url.PathEscape(id.String()), &v)
 }
 
 // GetValidationPlans returns the contents of /validation_plan, getting the
@@ -35,7 +36,7 @@ func (c *Conch) GetValidationPlan(
 ) (vp ValidationPlan, err error) {
 
 	return vp, c.get(
-		"/validation_plan/"+validationPlanUUID.String(),
+		"/validation_plan/"+url.PathEscape(validationPlanUUID.String()),
 		&vp,
 	)
 }
@@ -47,7 +48,7 @@ func (c *Conch) GetValidationPlanValidations(
 
 	validations := make([]Validation, 0)
 	return validations, c.get(
-		"/validation_plan/"+validationPlanUUID.String()+"/validation",
+		"/validation_plan/"+url.PathEscape(validationPlanUUID.String())+"/validation",
 		&validations,
 	)
 }
@@ -62,7 +63,7 @@ func (c *Conch) RunDeviceValidation(
 	results := make([]ValidationResult, 0)
 
 	return results, c.post(
-		"/device/"+deviceSerial+"/validation/"+validationUUID.String(),
+		"/device/"+deviceSerial+"/validation/"+url.PathEscape(validationUUID.String()),
 		body,
 		&results,
 	)
@@ -84,7 +85,7 @@ func (c *Conch) RunDeviceValidationPlan(
 	}
 
 	return results, c.post(
-		"/device/"+deviceSerial+"/validation_plan/"+validationPlanUUID.String(),
+		"/device/"+deviceSerial+"/validation_plan/"+url.PathEscape(validationPlanUUID.String()),
 		j,
 		&results,
 	)
@@ -96,7 +97,7 @@ func (c *Conch) DeviceValidationStates(
 ) ([]ValidationState, error) {
 
 	states := make([]ValidationState, 0)
-	return states, c.get("/device/"+deviceSerial+"/validation_state", &states)
+	return states, c.get("/device/"+url.PathEscape(deviceSerial)+"/validation_state", &states)
 }
 
 // WorkspaceValidationStates returns the stored validation states for all devices in a workspace
@@ -106,7 +107,7 @@ func (c *Conch) WorkspaceValidationStates(
 
 	states := make([]ValidationState, 0)
 	return states, c.get(
-		"/workspace/"+workspaceUUID.String()+"/validation_state",
+		"/workspace/"+url.PathEscape(workspaceUUID.String())+"/validation_state",
 		&states,
 	)
 }

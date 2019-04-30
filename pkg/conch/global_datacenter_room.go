@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -20,7 +22,7 @@ func (c *Conch) GetGlobalRooms() ([]GlobalRoom, error) {
 // GetGlobalRoom fetches a single room in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalRoom(id fmt.Stringer) (r GlobalRoom, err error) {
-	return r, c.get("/room/"+id.String(), &r)
+	return r, c.get("/room/"+url.PathEscape(id.String()), &r)
 }
 
 // SaveGlobalRoom creates or updates a room in the global domain,
@@ -47,18 +49,18 @@ func (c *Conch) SaveGlobalRoom(r *GlobalRoom) error {
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 		return c.post("/room", j, &r)
 	} else {
-		return c.post("/room/"+r.ID.String(), j, &r)
+		return c.post("/room/"+url.PathEscape(r.ID.String()), j, &r)
 	}
 }
 
 // DeleteGlobalRoom deletes a room
 func (c *Conch) DeleteGlobalRoom(id fmt.Stringer) error {
-	return c.httpDelete("/room/" + id.String())
+	return c.httpDelete("/room/" + url.PathEscape(id.String()))
 }
 
 // GetGlobalRoomRacks retrieves the racks assigned to a room in the global
 // domain
 func (c *Conch) GetGlobalRoomRacks(r GlobalRoom) ([]GlobalRack, error) {
 	rs := make([]GlobalRack, 0)
-	return rs, c.get("/room/"+r.ID.String()+"/racks", &rs)
+	return rs, c.get("/room/"+url.PathEscape(r.ID.String())+"/racks", &rs)
 }

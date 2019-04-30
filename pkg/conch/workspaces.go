@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -20,7 +22,7 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 	racks := make([]Rack, 0)
 	j := make(map[string][]Rack)
 
-	if err := c.get("/workspace/"+workspaceUUID.String()+"/rack", &j); err != nil {
+	if err := c.get("/workspace/"+url.PathEscape(workspaceUUID.String())+"/rack", &j); err != nil {
 		return racks, err
 	}
 
@@ -42,9 +44,9 @@ func (c *Conch) GetWorkspaceRack(
 ) (rack Rack, err error) {
 	return rack, c.get(
 		"/workspace/"+
-			workspaceUUID.String()+
+			url.PathEscape(workspaceUUID.String())+
 			"/rack/"+
-			rackUUID.String(),
+			url.PathEscape(rackUUID.String()),
 		&rack,
 	)
 }
@@ -76,7 +78,7 @@ func (c *Conch) GetWorkspaceDevices(
 		validated,
 	}
 
-	url := "/workspace/" + workspaceUUID.String() + "/device"
+	url := "/workspace/" + url.PathEscape(workspaceUUID.String()) + "/device"
 	if idsOnly {
 		ids := make([]string, 0)
 
@@ -103,14 +105,14 @@ func (c *Conch) GetWorkspaces() (Workspaces, error) {
 // GetWorkspace returns the contents of /workspace/:uuid, getting information
 // about a single workspace
 func (c *Conch) GetWorkspace(workspaceUUID fmt.Stringer) (w Workspace, e error) {
-	return w, c.get("/workspace/"+workspaceUUID.String(), &w)
+	return w, c.get("/workspace/"+url.PathEscape(workspaceUUID.String()), &w)
 }
 
 // GetWorkspaceByName returns the contents of /workspace/:name, getting
 // information about a single workspace
 func (c *Conch) GetWorkspaceByName(name string) (w Workspace, e error) {
 
-	return w, c.get("/workspace/"+name, &w)
+	return w, c.get("/workspace/"+url.PathEscape(name), &w)
 }
 
 // GetSubWorkspaces returns the contents of /workspace/:uuid/child, getting
@@ -118,7 +120,7 @@ func (c *Conch) GetWorkspaceByName(name string) (w Workspace, e error) {
 func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) (Workspaces, error) {
 	workspaces := make(Workspaces, 0)
 	return workspaces, c.get(
-		"/workspace/"+workspaceUUID.String()+"/child",
+		"/workspace/"+url.PathEscape(workspaceUUID.String())+"/child",
 		&workspaces,
 	)
 }
@@ -128,7 +130,7 @@ func (c *Conch) GetSubWorkspaces(workspaceUUID fmt.Stringer) (Workspaces, error)
 func (c *Conch) GetWorkspaceUsers(workspaceUUID fmt.Stringer) ([]WorkspaceUser, error) {
 	users := make([]WorkspaceUser, 0)
 	return users, c.get(
-		"/workspace/"+workspaceUUID.String()+"/user",
+		"/workspace/"+url.PathEscape(workspaceUUID.String())+"/user",
 		&users,
 	)
 }
@@ -152,7 +154,7 @@ func (c *Conch) CreateSubWorkspace(parent Workspace, sub Workspace) (Workspace, 
 	}
 
 	return sub, c.post(
-		"/workspace/"+parent.ID.String()+"/child",
+		"/workspace/"+url.PathEscape(parent.ID.String())+"/child",
 		j,
 		&sub,
 	)
@@ -167,14 +169,17 @@ func (c *Conch) AddRackToWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt.Stri
 		rackUUID.String(),
 	}
 
-	return c.post("/workspace/"+workspaceUUID.String()+"/rack", j, nil)
+	return c.post("/workspace/"+url.PathEscape(workspaceUUID.String())+"/rack", j, nil)
 }
 
 // DeleteRackFromWorkspace removes an existing rack from an existing workplace,
 // via /workspace/:uuid/rack/:uuid
 func (c *Conch) DeleteRackFromWorkspace(workspaceUUID fmt.Stringer, rackUUID fmt.Stringer) error {
 	return c.httpDelete(
-		"/workspace/" + workspaceUUID.String() + "/rack/" + rackUUID.String(),
+		"/workspace/" +
+			url.PathEscape(workspaceUUID.String()) +
+			"/rack/" +
+			url.PathEscape(rackUUID.String()),
 	)
 }
 
@@ -188,12 +193,16 @@ func (c *Conch) AddUserToWorkspace(workspaceUUID fmt.Stringer, user string, role
 		role,
 	}
 
-	return c.post("/workspace/"+workspaceUUID.String()+"/user", body, nil)
+	return c.post("/workspace/"+url.PathEscape(workspaceUUID.String())+"/user", body, nil)
 }
 
 // RemoveUserFromWorkspace ...
 func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string) error {
-	return c.httpDelete("/workspace/" + workspaceUUID.String() + "/user/email=" + email)
+	return c.httpDelete("/workspace/" +
+		url.PathEscape(workspaceUUID.String()) +
+		"/user/email=" +
+		url.PathEscape(email),
+	)
 }
 
 func (c *Conch) AssignDevicesToRackSlots(
@@ -202,7 +211,11 @@ func (c *Conch) AssignDevicesToRackSlots(
 	assignments WorkspaceRackLayoutAssignments,
 ) error {
 	return c.post(
-		"/workspace/"+workspaceID.String()+"/rack/"+rackID.String()+"/layout",
+		"/workspace/"+
+			url.PathEscape(workspaceID.String())+
+			"/rack/"+
+			url.PathEscape(rackID.String())+
+			"/layout",
 		assignments,
 		nil,
 	)

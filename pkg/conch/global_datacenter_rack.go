@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -20,7 +22,8 @@ func (c *Conch) GetGlobalRacks() ([]GlobalRack, error) {
 // GetGlobalRack fetches a single rack in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalRack(id fmt.Stringer) (r GlobalRack, err error) {
-	return r, c.get("/rack/"+id.String(), &r)
+	escaped := url.PathEscape(id.String())
+	return r, c.get("/rack/"+escaped, &r)
 }
 
 // SaveGlobalRack creates or updates a rack in the global domain,
@@ -53,18 +56,21 @@ func (c *Conch) SaveGlobalRack(r *GlobalRack) error {
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 		return c.post("/rack", j, &r)
 	} else {
-		return c.post("/rack/"+r.ID.String(), j, &r)
+		escaped := url.PathEscape(r.ID.String())
+		return c.post("/rack/"+escaped, j, &r)
 	}
 
 }
 
 // DeleteGlobalRack deletes a rack
 func (c *Conch) DeleteGlobalRack(id fmt.Stringer) error {
-	return c.httpDelete("/rack/" + id.String())
+	escaped := url.PathEscape(id.String())
+	return c.httpDelete("/rack/" + escaped)
 }
 
 // GetGlobalRackLayout fetches the layout entries for a rack in the global domain
 func (c *Conch) GetGlobalRackLayout(r GlobalRack) (GlobalRackLayoutSlots, error) {
 	rs := make([]GlobalRackLayoutSlot, 0)
-	return rs, c.get("/rack/"+r.ID.String()+"/layouts", &rs)
+	escaped := url.PathEscape(r.ID.String())
+	return rs, c.get("/rack/"+escaped+"/layouts", &rs)
 }

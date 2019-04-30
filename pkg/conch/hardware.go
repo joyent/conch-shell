@@ -9,6 +9,7 @@ package conch
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
@@ -18,7 +19,10 @@ import (
 func (c *Conch) GetHardwareProduct(
 	hardwareProductUUID fmt.Stringer,
 ) (hp HardwareProduct, err error) {
-	return hp, c.get("/hardware_product/"+hardwareProductUUID.String(), &hp)
+	return hp, c.get(
+		"/hardware_product/"+url.PathEscape(hardwareProductUUID.String()),
+		&hp,
+	)
 }
 
 // GetHardwareProducts fetches a single hardware product via
@@ -82,7 +86,7 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 		return c.post("/hardware_product", out, &h)
 	} else {
 		return c.post(
-			"/hardware_product/"+h.ID.String(),
+			"/hardware_product/"+url.PathEscape(h.ID.String()),
 			out,
 			&h,
 		)
@@ -92,16 +96,16 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 // DeleteHardwareProduct deletes a hardware product by marking it as
 // deactivated
 func (c *Conch) DeleteHardwareProduct(hwUUID fmt.Stringer) error {
-	return c.httpDelete("/hardware_product/" + hwUUID.String())
+	return c.httpDelete("/hardware_product/" + url.PathEscape(hwUUID.String()))
 }
 
 // GetHardwareVendor ...
 func (c *Conch) GetHardwareVendor(name string) (v HardwareVendor, err error) {
-	return v, c.get("/hardware_vendor/"+name, &v)
+	return v, c.get("/hardware_vendor/"+url.PathEscape(name), &v)
 }
 
 func (c *Conch) GetHardwareVendorByID(id fmt.Stringer) (v HardwareVendor, err error) {
-	return v, c.get("/hardware_vendor/"+id.String(), &v)
+	return v, c.get("/hardware_vendor/"+url.PathEscape(id.String()), &v)
 }
 
 // GetHardwareVendors ...
@@ -112,7 +116,7 @@ func (c *Conch) GetHardwareVendors() ([]HardwareVendor, error) {
 
 // DeleteHardwareVendor ...
 func (c *Conch) DeleteHardwareVendor(name string) error {
-	return c.httpDelete("/hardware_vendor/" + name)
+	return c.httpDelete("/hardware_vendor/" + url.PathEscape(name))
 }
 
 // SaveHardwareVendor ...
@@ -130,7 +134,7 @@ func (c *Conch) SaveHardwareVendor(v *HardwareVendor) error {
 	}{v.Name}
 
 	return c.post(
-		"/hardware_vendor/"+v.Name,
+		"/hardware_vendor/"+url.PathEscape(v.Name),
 		out,
 		&v,
 	)

@@ -7,6 +7,7 @@
 package conch
 
 import (
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -24,7 +25,9 @@ func (c *Conch) GetDeviceSettings(serial string) (map[string]string, error) {
 	settings := make(map[string]string)
 	filtered := make(map[string]string)
 
-	if err := c.get("/device/"+serial+"/settings", &settings); err != nil {
+	escaped := url.PathEscape(serial)
+
+	if err := c.get("/device/"+escaped+"/settings", &settings); err != nil {
 		return filtered, err
 	}
 
@@ -48,8 +51,9 @@ func (c *Conch) GetDeviceSetting(serial string, key string) (string, error) {
 
 	var setting string
 	j := make(map[string]string)
+	escaped := url.PathEscape(serial)
 
-	if err := c.get("/device/"+serial+"/settings/"+key, &j); err != nil {
+	if err := c.get("/device/"+escaped+"/settings/"+key, &j); err != nil {
 		return setting, err
 	}
 
@@ -71,8 +75,11 @@ func (c *Conch) SetDeviceSetting(deviceID string, key string, value string) erro
 	j := make(map[string]string)
 	j[key] = value
 
+	escapedDevice := url.PathEscape(deviceID)
+	escapedKey := url.PathEscape(key)
+
 	return c.post(
-		"/device/"+deviceID+"/settings/"+key,
+		"/device/"+escapedDevice+"/settings/"+escapedKey,
 		j,
 		nil,
 	)
@@ -86,7 +93,11 @@ func (c *Conch) DeleteDeviceSetting(deviceID string, key string) error {
 	if isTag(key) {
 		return ErrDataNotFound
 	}
-	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
+
+	escapedDevice := url.PathEscape(deviceID)
+	escapedKey := url.PathEscape(key)
+
+	return c.httpDelete("/device/" + escapedDevice + "/settings/" + escapedKey)
 }
 
 // GetDeviceTags fetches tags for a device, via /device/:serial/settings
@@ -95,7 +106,9 @@ func (c *Conch) GetDeviceTags(serial string) (map[string]string, error) {
 	settings := make(map[string]string)
 	filtered := make(map[string]string)
 
-	if err := c.get("/device/"+serial+"/settings", &settings); err != nil {
+	escaped := url.PathEscape(serial)
+
+	if err := c.get("/device/"+escaped+"/settings", &settings); err != nil {
 		return filtered, err
 	}
 
@@ -122,7 +135,9 @@ func (c *Conch) GetDeviceTag(serial string, key string) (string, error) {
 	var setting string
 	j := make(map[string]string)
 
-	if err := c.get("/device/"+serial+"/settings/"+key, &j); err != nil {
+	escaped := url.PathEscape(serial)
+
+	if err := c.get("/device/"+escaped+"/settings/"+key, &j); err != nil {
 		return setting, err
 	}
 
@@ -143,7 +158,10 @@ func (c *Conch) SetDeviceTag(deviceID string, key string, value string) error {
 	j := make(map[string]string)
 	j[key] = value
 
-	return c.post("/device/"+deviceID+"/settings/"+key, j, nil)
+	escapedDevice := url.PathEscape(deviceID)
+	escapedKey := url.PathEscape(key)
+
+	return c.post("/device/"+escapedDevice+"/settings/"+escapedKey, j, nil)
 }
 
 // DeleteDeviceTag deletes a single tag for a device via
@@ -155,7 +173,10 @@ func (c *Conch) DeleteDeviceTag(deviceID string, key string) error {
 		key = "tag." + key
 	}
 
-	return c.httpDelete("/device/" + deviceID + "/settings/" + key)
+	escapedDevice := url.PathEscape(deviceID)
+	escapedKey := url.PathEscape(key)
+
+	return c.httpDelete("/device/" + escapedDevice + "/settings/" + escapedKey)
 }
 
 func (c *Conch) GetDevicesBySetting(key string, value string) (d Devices, err error) {
