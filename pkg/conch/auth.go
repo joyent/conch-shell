@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 func (c *Conch) RevokeUserTokensAndLogins(user string) error {

@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"net/url"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 // GetHardwareProduct fetches a single hardware product via

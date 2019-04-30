@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"sort"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 // GetDevice returns a Device given a specific serial/id
@@ -46,7 +46,7 @@ func (c *Conch) GetExtendedDevice(serial string) (ed ExtendedDevice, err error) 
 	/***********/
 
 	var role GlobalRackRole
-	if !uuid.Equal(d.Location.Rack.RoleID, uuid.UUID{}) {
+	if !d.Location.Rack.RoleID.IsZero() {
 		role, err = c.GetGlobalRackRole(d.Location.Rack.RoleID)
 		if err != nil {
 			return ed, err

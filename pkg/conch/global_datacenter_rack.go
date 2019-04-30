@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/url"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 // GetGlobalRacks fetches a list of all racks in the global domain
