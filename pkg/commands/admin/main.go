@@ -43,10 +43,10 @@ func listAllUsers(app *cli.Cmd) {
 		})
 		for _, u := range users {
 			var last string
-			if u.LastLogin.Time.IsZero() {
+			if u.LastLogin.IsZero() {
 				last = ""
 			} else {
-				last = util.TimeStr(u.LastLogin.Time)
+				last = util.TimeStr(u.LastLogin)
 			}
 
 			isAdmin := ""
@@ -58,7 +58,7 @@ func listAllUsers(app *cli.Cmd) {
 				u.ID.String(),
 				u.Name,
 				u.Email,
-				util.TimeStr(u.Created.Time),
+				util.TimeStr(u.Created),
 				last,
 				isAdmin,
 			})

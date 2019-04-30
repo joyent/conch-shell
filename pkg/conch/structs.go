@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
-	"github.com/joyent/conch-shell/pkg/pgtime"
 )
 
 // ValidationReport vars provide an abstraction to make sense of the 'status'
@@ -62,13 +61,13 @@ type Datacenter struct {
 }
 
 type DatacenterDetailedRoom struct {
-	ID           uuid.UUID     `json:"id"`
-	AZ           string        `json:"az"`
-	Alias        string        `json:"alias"`
-	VendorName   string        `json:"vendor_name,omitempty"`
-	DatacenterID uuid.UUID     `json:"datacenter'`
-	Created      pgtime.PgTime `json:"created"`
-	Updated      pgtime.PgTime `json:"updated"`
+	ID           uuid.UUID `json:"id"`
+	AZ           string    `json:"az"`
+	Alias        string    `json:"alias"`
+	VendorName   string    `json:"vendor_name,omitempty"`
+	DatacenterID uuid.UUID `json:"datacenter'`
+	Created      time.Time `json:"created"`
+	Updated      time.Time `json:"updated"`
 }
 
 // Device represents what the API docs call a "DetailedDevice"
@@ -79,23 +78,23 @@ type DatacenterDetailedRoom struct {
 // or zero values.
 type Device struct {
 	AssetTag              string             `json:"asset_tag"`
-	Created               pgtime.PgTime      `json:"created"`
-	Deactivated           pgtime.PgTime      `json:"deactivated"`
-	Graduated             pgtime.PgTime      `json:"graduated"`
+	Created               time.Time          `json:"created"`
+	Deactivated           time.Time          `json:"deactivated"`
+	Graduated             time.Time          `json:"graduated"`
 	HardwareProduct       uuid.UUID          `json:"hardware_product"`
 	Health                string             `json:"health"`
 	Hostname              string             `json:"hostname"`
 	ID                    string             `json:"id"`
-	LastSeen              pgtime.PgTime      `json:"last_seen"`
+	LastSeen              time.Time          `json:"last_seen"`
 	Location              DeviceLocation     `json:"location"`
 	Nics                  []Nic              `json:"nics"`
 	State                 string             `json:"state"`
 	SystemUUID            uuid.UUID          `json:"system_uuid"`
 	TritonUUID            uuid.UUID          `json:"triton_uuid"`
-	TritonSetup           pgtime.PgTime      `json:"triton_setup"`
-	Updated               pgtime.PgTime      `json:"updated"`
-	UptimeSince           pgtime.PgTime      `json:"uptime_since"`
-	Validated             pgtime.PgTime      `json:"validated"`
+	TritonSetup           time.Time          `json:"triton_setup"`
+	Updated               time.Time          `json:"updated"`
+	UptimeSince           time.Time          `json:"uptime_since"`
+	Validated             time.Time          `json:"validated"`
 	Validations           []ValidationReport `json:"validations"`
 	LatestReport          interface{}        `json:"latest_report"`
 	LatestReportIsInvalid bool               `json:"latest_report_is_invalid"`
@@ -121,21 +120,21 @@ func (d Devices) Less(i, j int) bool {
 
 // DeviceDisk ...
 type Disk struct {
-	ID           uuid.UUID     `json:"id"`
-	Created      pgtime.PgTime `json:"created"`
-	Updated      pgtime.PgTime `json:"updated"`
-	DriveType    string        `json:"drive_type"`
-	Enclosure    string        `json:"enclosure"`
-	Firmware     string        `json:"firmware"`
-	HBA          string        `json:"hba"`
-	Health       string        `json:"health"`
-	Model        string        `json:"model"`
-	SerialNumber string        `json:"serial_number"`
-	Size         int           `json:"size"`
-	Slot         int           `json:"slot"`
-	Temp         int           `json:"temp"`
-	Transport    string        `json:"transport"`
-	Vendor       string        `json:"vendor"`
+	ID           uuid.UUID `json:"id"`
+	Created      time.Time `json:"created"`
+	Updated      time.Time `json:"updated"`
+	DriveType    string    `json:"drive_type"`
+	Enclosure    string    `json:"enclosure"`
+	Firmware     string    `json:"firmware"`
+	HBA          string    `json:"hba"`
+	Health       string    `json:"health"`
+	Model        string    `json:"model"`
+	SerialNumber string    `json:"serial_number"`
+	Size         int       `json:"size"`
+	Slot         int       `json:"slot"`
+	Temp         int       `json:"temp"`
+	Transport    string    `json:"transport"`
+	Vendor       string    `json:"vendor"`
 }
 
 // DeviceLocation represents the location of a device, including its
@@ -228,8 +227,8 @@ type HardwareProduct struct {
 	SKU               string          `json:"sku,omitempty"`
 	Specification     interface{}     `json:"specification"`
 	Profile           HardwareProfile `json:"hardware_product_profile"`
-	Created           pgtime.PgTime   `json:"created"`
-	Updated           pgtime.PgTime   `json:"updated"`
+	Created           time.Time       `json:"created"`
+	Updated           time.Time       `json:"updated"`
 }
 
 func (h *HardwareProduct) UnmarshalJSON(data []byte) error {
@@ -244,8 +243,8 @@ func (h *HardwareProduct) UnmarshalJSON(data []byte) error {
 		SKU               string          `json:"sku"`
 		Specification     string          `json:"specification"`
 		Profile           HardwareProfile `json:"hardware_product_profile"`
-		Created           pgtime.PgTime   `json:"created"`
-		Updated           pgtime.PgTime   `json:"updated"`
+		Created           time.Time       `json:"created"`
+		Updated           time.Time       `json:"updated"`
 	}{}
 
 	if err := json.Unmarshal(data, &r); err != nil {
@@ -322,10 +321,10 @@ type HardwareProfile struct {
 
 // HardwareVendor ...
 type HardwareVendor struct {
-	ID      uuid.UUID     `json:"id"`
-	Name    string        `json:"name"`
-	Created pgtime.PgTime `json:"created"`
-	Updated pgtime.PgTime `json:"updated"`
+	ID      uuid.UUID `json:"id"`
+	Name    string    `json:"name"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
 }
 
 // Nic is a network interface card, including its peer switch info
@@ -411,8 +410,8 @@ type UserDetailed struct {
 	ID                  uuid.UUID          `json:"id"`
 	Name                string             `json:"name"`
 	Email               string             `json:"email"`
-	Created             pgtime.PgTime      `json:"created"`
-	LastLogin           pgtime.PgTime      `json:"last_login"`
+	Created             time.Time          `json:"created"`
+	LastLogin           time.Time          `json:"last_login"`
 	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
 	ForcePasswordChange bool               `json:"force_password_change"`
 	Workspaces          WorkspacesAndRoles `json:"workspaces,omitempty"`
@@ -433,11 +432,11 @@ func (u UsersDetailed) Less(i, j int) bool {
 }
 
 type UserProfile struct {
-	Created             pgtime.PgTime      `json:"created"`
+	Created             time.Time          `json:"created"`
 	Email               string             `json:"email"`
 	ForcePasswordChange bool               `json:"force_password_change"`
 	ID                  uuid.UUID          `json:"id"`
-	LastLogin           pgtime.PgTime      `json:last_login"`
+	LastLogin           time.Time          `json:last_login"`
 	Name                string             `json:"name"`
 	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
 	Workspaces          WorkspacesAndRoles `json:"workspaces"`
@@ -536,20 +535,20 @@ func (w WorkspaceRelays) Swap(i, j int) {
 }
 
 func (w WorkspaceRelays) Less(i, j int) bool {
-	return w[i].Updated.Before(w[j].Updated.Time)
+	return w[i].Updated.Before(w[j].Updated)
 }
 
 // WorkspaceRelay represents a Conch Relay unit, a physical piece of hardware that
 // mediates Livesys interactions in the field
 type WorkspaceRelay struct {
 	ID         string                 `json:"id"` // *not* a UUID
-	Created    pgtime.PgTime          `json:"created"`
-	Updated    pgtime.PgTime          `json:"updated"`
+	Created    time.Time              `json:"created"`
+	Updated    time.Time              `json:"updated"`
 	Alias      string                 `json:"alias"`
 	IPAddr     string                 `json:"ipaddr"`
 	SSHPort    int                    `json:"ssh_port"`
 	Version    string                 `json:"version"`
-	LastSeen   pgtime.PgTime          `json:"last_seen"`
+	LastSeen   time.Time              `json:"last_seen"`
 	NumDevices int                    `json:"num_devices"`
 	Location   WorkspaceRelayLocation `json:"location"`
 }
