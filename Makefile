@@ -31,7 +31,7 @@ deps: ## Update dependencies to latest version
 .PHONY: test
 test: ## Ensure that code matchs best practices and run tests
 	staticcheck ./...
-	go test -v ./pkg/conch ./pkg/util ./pkg/config
+	go test -v ./pkg/conch ./pkg/util ./pkg/config ./pkg/conch/uuid
 
 .PHONY: tools
 tools: ## Download and install all dev/code tools

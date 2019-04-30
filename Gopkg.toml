@@ -26,8 +26,8 @@
 
 
 [[constraint]]
-  branch = "master"
   name = "github.com/Bowery/prompt"
+  revision = "8a1d5376df1cbec3468f2138fecc44dd8b48e342"
 
 [[constraint]]
   name = "github.com/DiSiqueira/GoTree"
@@ -54,8 +54,8 @@
   version = "1.0.4"
 
 [[constraint]]
-  name = "gopkg.in/satori/go.uuid.v1"
-  version = "1.1.0"
+  name = "github.com/gofrs/uuid"
+  version = "3.2.0"
 
 [[constraint]]
   name = "github.com/nbio/st"

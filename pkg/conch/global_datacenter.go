@@ -9,7 +9,7 @@ package conch
 import (
 	"net/url"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 func (c *Conch) GetDatacenters() ([]Datacenter, error) {

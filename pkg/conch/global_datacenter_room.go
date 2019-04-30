@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/url"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 // GetGlobalRooms fetches a list of all rooms in the global domain

@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/pgtime"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 // ValidationReport vars provide an abstraction to make sense of the 'status'

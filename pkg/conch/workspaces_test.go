@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/nbio/st"
 	"gopkg.in/h2non/gock.v1"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 func TestWorkspaceErrors(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"net/url"
 
-	uuid "gopkg.in/satori/go.uuid.v1"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
 // GetGlobalRackRoles fetches a list of all rack roles in the global domain

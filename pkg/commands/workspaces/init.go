@@ -13,8 +13,8 @@ import (
 	"fmt"
 
 	"github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/util"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 // WorkspaceUUID is the UUID of the workspace we're looking at, as gathered by

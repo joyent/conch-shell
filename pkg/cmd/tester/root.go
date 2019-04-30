@@ -10,12 +10,12 @@ import (
 	"fmt"
 
 	"github.com/joyent/conch-shell/pkg/conch"
+	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/util"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
 const (
