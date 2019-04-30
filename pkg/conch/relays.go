@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 )
 
 // GetActiveWorkspaceRelays ...
@@ -21,9 +23,9 @@ func (c *Conch) GetActiveWorkspaceRelays(
 
 	relays := make([]WorkspaceRelay, 0)
 
-	url := fmt.Sprintf("/workspace/%s/relay?active_within=%d",
-		workspaceUUID.String(),
-		minutes,
+	url := fmt.Sprintf("/workspace/%s/relay?active_within=%s",
+		url.PathEscape(workspaceUUID.String()),
+		url.PathEscape(strconv.Itoa(minutes)),
 	)
 
 	return relays, c.get(url, &relays)
@@ -33,7 +35,7 @@ func (c *Conch) GetActiveWorkspaceRelays(
 func (c *Conch) GetWorkspaceRelays(workspaceUUID fmt.Stringer) (WorkspaceRelays, error) {
 	relays := make([]WorkspaceRelay, 0)
 
-	url := "/workspace/" + workspaceUUID.String() + "/relay"
+	url := "/workspace/" + url.PathEscape(workspaceUUID.String()) + "/relay"
 	return relays, c.get(url, &relays)
 }
 
@@ -44,7 +46,11 @@ func (c *Conch) GetWorkspaceRelayDevices(
 ) ([]Device, error) {
 
 	devices := make([]Device, 0)
-	url := "/workspace/" + workspaceUUID.String() + "/relay/" + relayName + "/device"
+	url := fmt.Sprintf("/workspace/%s/relay/%s/device",
+		url.PathEscape(workspaceUUID.String()),
+		url.PathEscape(relayName),
+	)
+
 	return devices, c.get(url, &devices)
 }
 
@@ -69,7 +75,7 @@ func (c *Conch) RegisterRelay(r WorkspaceRelay) error {
 	}
 
 	return c.post(
-		"/relay/"+r.ID+"/register",
+		"/relay/"+url.PathEscape(r.ID)+"/register",
 		d,
 		nil,
 	)

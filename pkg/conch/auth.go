@@ -23,7 +23,7 @@ func (c *Conch) RevokeUserTokensAndLogins(user string) error {
 	if err == nil {
 		uPart = user
 	} else {
-		uPart = "email=" + user
+		uPart = "email=" + url.PathEscape(user)
 	}
 
 	return c.post("/user/"+uPart+"/revoke", nil, nil)
@@ -35,7 +35,7 @@ func (c *Conch) RevokeUserLogins(user string) error {
 	if err == nil {
 		uPart = user
 	} else {
-		uPart = "email=" + user
+		uPart = "email=" + url.PathEscape(user)
 	}
 
 	return c.post("/user/"+uPart+"/revoke?auth_only=1", nil, nil)
@@ -47,7 +47,7 @@ func (c *Conch) RevokeUserTokens(user string) error {
 	if err == nil {
 		uPart = user
 	} else {
-		uPart = "email=" + user
+		uPart = "email=" + url.PathEscape(user)
 	}
 
 	return c.post("/user/"+uPart+"/revoke?api_only=1", nil, nil)
@@ -60,7 +60,8 @@ func (c *Conch) GetUserToken(user string, name string) (u UserToken, err error) 
 
 func (c *Conch) GetUserTokens(user string) (UserTokens, error) {
 	u := make(UserTokens, 0)
-	return u, c.get("/user/email="+user+"/token", &u)
+	escaped := url.PathEscape(user)
+	return u, c.get("/user/email="+escaped+"/token", &u)
 }
 
 func (c *Conch) DeleteUserToken(user string, name string) error {

@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -20,7 +22,7 @@ func (c *Conch) GetGlobalRackRoles() ([]GlobalRackRole, error) {
 // GetGlobalRackRole fetches a single rack role in the global domain, by its
 // UUID
 func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (r GlobalRackRole, err error) {
-	return r, c.get("/rack_role/"+id.String(), &r)
+	return r, c.get("/rack_role/"+url.PathEscape(id.String()), &r)
 }
 
 // SaveGlobalRackRole creates or updates a rack role in the global domain,
@@ -45,12 +47,12 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 		return c.post("/rack_role", j, &r)
 	} else {
-		return c.post("/rack_role/"+r.ID.String(), j, &r)
+		return c.post("/rack_role/"+url.PathEscape(r.ID.String()), j, &r)
 	}
 
 }
 
 // DeleteGlobalRackRole deletes a rack role
 func (c *Conch) DeleteGlobalRackRole(id fmt.Stringer) error {
-	return c.httpDelete("/rack_role/" + id.String())
+	return c.httpDelete("/rack_role/" + url.PathEscape(id.String()))
 }

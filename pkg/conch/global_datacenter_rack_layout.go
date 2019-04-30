@@ -8,6 +8,8 @@ package conch
 
 import (
 	"fmt"
+	"net/url"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -21,7 +23,8 @@ func (c *Conch) GetGlobalRackLayoutSlots() (GlobalRackLayoutSlots, error) {
 // UUID
 func (c *Conch) GetGlobalRackLayoutSlot(id fmt.Stringer) (*GlobalRackLayoutSlot, error) {
 	r := &GlobalRackLayoutSlot{}
-	return r, c.get("/layout/"+id.String(), &r)
+	escaped := url.PathEscape(id.String())
+	return r, c.get("/layout/"+escaped, &r)
 }
 
 // SaveGlobalRackLayoutSlot creates or updates a rack layout in the global domain,
@@ -50,11 +53,13 @@ func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
 	if uuid.Equal(r.ID, uuid.UUID{}) {
 		return c.post("/layout", j, &r)
 	} else {
-		return c.post("/layout/"+r.ID.String(), j, &r)
+		escaped := url.PathEscape(r.ID.String())
+		return c.post("/layout/"+escaped, j, &r)
 	}
 }
 
 // DeleteGlobalRackLayoutSlot deletes a rack layout
 func (c *Conch) DeleteGlobalRackLayoutSlot(id fmt.Stringer) error {
-	return c.httpDelete("/layout/" + id.String())
+	escaped := url.PathEscape(id.String())
+	return c.httpDelete("/layout/" + escaped)
 }

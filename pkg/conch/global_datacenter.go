@@ -7,6 +7,8 @@
 package conch
 
 import (
+	"net/url"
+
 	uuid "gopkg.in/satori/go.uuid.v1"
 )
 
@@ -16,6 +18,7 @@ func (c *Conch) GetDatacenters() ([]Datacenter, error) {
 }
 
 func (c *Conch) GetDatacenter(id uuid.UUID) (d Datacenter, err error) {
+
 	return d, c.get("/dc/"+id.String(), &d)
 }
 
@@ -41,17 +44,20 @@ func (c *Conch) SaveDatacenter(d *Datacenter) error {
 	if uuid.Equal(d.ID, uuid.UUID{}) {
 		return c.post("/dc", j, &d)
 	} else {
-		return c.post("/dc/"+d.ID.String(), j, &d)
+		escaped := url.PathEscape(d.ID.String())
+		return c.post("/dc/"+escaped, j, &d)
 	}
 }
 
 // DeleteDatacenter deletes a datacenter
 func (c *Conch) DeleteDatacenter(id uuid.UUID) error {
-	return c.httpDelete("/dc/" + id.String())
+	escaped := url.PathEscape(id.String())
+	return c.httpDelete("/dc/" + escaped)
 }
 
 // GetDatacenterRooms gets the global rooms assigned to a global datacenter
 func (c *Conch) GetDatacenterRooms(d Datacenter) ([]GlobalRoom, error) {
 	r := make([]GlobalRoom, 0)
-	return r, c.get("/dc/"+d.ID.String()+"/rooms", &r)
+	escaped := url.PathEscape(d.ID.String())
+	return r, c.get("/dc/"+escaped+"/rooms", &r)
 }

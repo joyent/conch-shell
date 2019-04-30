@@ -9,6 +9,7 @@ package conch
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"sort"
 
 	uuid "gopkg.in/satori/go.uuid.v1"
@@ -151,13 +152,15 @@ func (c *Conch) GetExtendedDevice(serial string) (ed ExtendedDevice, err error) 
 // likely, though, that any client utility will eventually want all the data
 // about a device and not just bits
 func (c *Conch) FillInDevice(d Device) (Device, error) {
-	return d, c.get("/device/"+d.ID, &d)
+	escaped := url.PathEscape(d.ID)
+	return d, c.get("/device/"+escaped, &d)
 }
 
 // GetDeviceLocation fetches the location for a device, via
 // /device/:serial/location
 func (c *Conch) GetDeviceLocation(serial string) (loc DeviceLocation, err error) {
-	return loc, c.get("/device/"+serial+"/location", &loc)
+	escaped := url.PathEscape(serial)
+	return loc, c.get("/device/"+escaped+"/location", &loc)
 }
 
 // GraduateDevice sets the 'graduated' field for the given device, via
@@ -165,7 +168,8 @@ func (c *Conch) GetDeviceLocation(serial string) (loc DeviceLocation, err error)
 // WARNING: This is a one way operation and cannot currently be undone via the
 // API
 func (c *Conch) GraduateDevice(serial string) error {
-	return c.post("/device/"+serial+"/graduate", nil, nil)
+	escaped := url.PathEscape(serial)
+	return c.post("/device/"+escaped+"/graduate", nil, nil)
 }
 
 // DeviceTritonReboot sets the 'triton_reboot' field for the given device, via
@@ -173,7 +177,8 @@ func (c *Conch) GraduateDevice(serial string) error {
 // WARNING: This is a one way operation and cannot currently be undone via the
 // API
 func (c *Conch) DeviceTritonReboot(serial string) error {
-	return c.post("/device/"+serial+"/triton_reboot", nil, nil)
+	escaped := url.PathEscape(serial)
+	return c.post("/device/"+escaped+"/triton_reboot", nil, nil)
 }
 
 // SetDeviceTritonUUID sets the triton UUID via /device/:serial/triton_uuid
@@ -184,7 +189,8 @@ func (c *Conch) SetDeviceTritonUUID(serial string, id uuid.UUID) error {
 		id.String(),
 	}
 
-	return c.post("/device/"+serial+"/triton_uuid", j, nil)
+	escaped := url.PathEscape(serial)
+	return c.post("/device/"+escaped+"/triton_uuid", j, nil)
 }
 
 // MarkDeviceTritonSetup marks the device as setup for Triton
@@ -192,7 +198,8 @@ func (c *Conch) SetDeviceTritonUUID(serial string, id uuid.UUID) error {
 // marked as rebooted into Triton. If these conditions are not met, this
 // function will return ErrBadInput
 func (c *Conch) MarkDeviceTritonSetup(serial string) error {
-	return c.post("/device/"+serial+"/triton_setup", nil, nil)
+	escaped := url.PathEscape(serial)
+	return c.post("/device/"+escaped+"/triton_setup", nil, nil)
 }
 
 // SetDeviceAssetTag sets the asset tag for the provided serial
@@ -203,14 +210,16 @@ func (c *Conch) SetDeviceAssetTag(serial string, tag string) error {
 		tag,
 	}
 
-	return c.post("/device/"+serial+"/asset_tag", j, nil)
+	escaped := url.PathEscape(serial)
+	return c.post("/device/"+escaped+"/asset_tag", j, nil)
 }
 
 // GetDeviceIPMI retrieves "/device/:serial/interface/impi1/ipaddr"
 func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
 	j := make(map[string]string)
 
-	if err := c.get("/device/"+serial+"/interface/ipmi1/ipaddr", &j); err != nil {
+	escaped := url.PathEscape(serial)
+	if err := c.get("/device/"+escaped+"/interface/ipmi1/ipaddr", &j); err != nil {
 		return "", err
 	}
 
@@ -218,14 +227,17 @@ func (c *Conch) GetDeviceIPMI(serial string) (string, error) {
 }
 
 func (c *Conch) GetDevicesByField(key string, value string) (d Devices, err error) {
-	url := fmt.Sprintf("/device?%s=%s", key, value)
+	escapedKey := url.PathEscape(key)
+	escapedValue := url.PathEscape(value)
+	url := fmt.Sprintf("/device?%s=%s", escapedKey, escapedValue)
 	return d, c.get(url, &d)
 }
 
 func (c *Conch) SubmitDeviceReport(serial string, report string) (state ValidationState, err error) {
 	reportReader := bytes.NewReader([]byte(report))
 
-	req, err := c.sling().New().Post("/device/"+serial).
+	escaped := url.PathEscape(serial)
+	req, err := c.sling().New().Post("/device/"+escaped).
 		Set("Content-Type", "application/json").Body(reportReader).Request()
 
 	if err != nil {

@@ -89,7 +89,7 @@ func (c *Conch) GetUserSettings() (map[string]interface{}, error) {
 // and a jsonb data field.  There is no way for this library to know in
 // advanace what's in that data so here there be dragons.
 func (c *Conch) GetUserSetting(key string) (setting interface{}, err error) {
-	return setting, c.get("/user/me/settings/"+key, &setting)
+	return setting, c.get("/user/me/settings/"+url.PathEscape(key), &setting)
 }
 
 // SetUserSettings sets the value of *all* user settings via /user/me/settings
@@ -99,17 +99,17 @@ func (c *Conch) SetUserSettings(settings map[string]interface{}) error {
 
 // SetUserSetting sets the value of a user setting via /user/me/settings/:name
 func (c *Conch) SetUserSetting(name string, value interface{}) error {
-	return c.post("/user/me/settings/"+name, value, nil)
+	return c.post("/user/me/settings/"+url.PathEscape(name), value, nil)
 }
 
 // DeleteUserSetting deletes a user setting via /user/me/settings/:name
 func (c *Conch) DeleteUserSetting(name string) error {
-	return c.httpDelete("/user/me/settings/" + name)
+	return c.httpDelete("/user/me/settings/" + url.PathEscape(name))
 }
 
 // DeleteUser deletes a user and, optionally, clears their JWT credentials
 func (c *Conch) DeleteUser(emailAddress string, clearTokens bool) error {
-	url := "/user/email=" + emailAddress
+	url := "/user/email=" + url.PathEscape(emailAddress)
 
 	if clearTokens {
 		url = url + "?clear_tokens=1"
@@ -141,7 +141,7 @@ func (c *Conch) CreateUser(email string, password string, name string, isAdmin b
 // ResetUserPassword resets the password for the provided user, causing an
 // email to be sent
 func (c *Conch) ResetUserPassword(email string, revokeTokens bool) error {
-	url := "/user/email=" + email + "/password?"
+	url := "/user/email=" + url.PathEscape(email) + "/password?"
 	if revokeTokens {
 		url = url + "clear_tokens=all"
 	} else {
@@ -170,11 +170,11 @@ func (c *Conch) GetUserProfile() (profile UserProfile, err error) {
 }
 
 func (c *Conch) GetUser(id uuid.UUID) (user UserDetailed, err error) {
-	return user, c.get("/user/"+id.String(), &user)
+	return user, c.get("/user/"+url.PathEscape(id.String()), &user)
 }
 
 func (c *Conch) GetUserByEmail(email string) (user UserDetailed, err error) {
-	return user, c.get("/user/email="+email, &user)
+	return user, c.get("/user/email="+url.PathEscape(email), &user)
 }
 
 // UpdateUser updates properties of a user. No workspace permissions are
@@ -200,7 +200,7 @@ func (c *Conch) UpdateUser(
 	}{email, name, isAdmin}
 
 	return c.post(
-		fmt.Sprintf("/user/%s", userID.String()),
+		fmt.Sprintf("/user/%s", url.PathEscape(userID.String())),
 		u,
 		nil,
 	)
