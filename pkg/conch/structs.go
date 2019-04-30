@@ -436,7 +436,7 @@ type UserProfile struct {
 	Email               string             `json:"email"`
 	ForcePasswordChange bool               `json:"force_password_change"`
 	ID                  uuid.UUID          `json:"id"`
-	LastLogin           time.Time          `json:last_login"`
+	LastLogin           time.Time          `json:"last_login"`
 	Name                string             `json:"name"`
 	RefuseSessionAuth   bool               `json:"refuse_session_auth"`
 	Workspaces          WorkspacesAndRoles `json:"workspaces"`
