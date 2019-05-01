@@ -247,3 +247,20 @@ func (c *Conch) SubmitDeviceReport(serial string, report string) (state Validati
 	_, err = c.httpDo(req, &state)
 	return state, err
 }
+
+func (c *Conch) GetDevicePhase(serial string) (string, error) {
+	ret := struct {
+		DeviceID string `json:"id"`
+		Phase    string `json:"phase"`
+	}{}
+
+	return ret.Phase, c.get("/device/"+url.PathEscape(serial)+"/phase", &ret)
+}
+
+func (c *Conch) SetDevicePhase(serial string, phase string) error {
+	data := struct {
+		Phase string `json:"phase"`
+	}{phase}
+
+	return c.post("/device/"+url.PathEscape(serial)+"/phase", data, nil)
+}
