@@ -291,6 +291,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 				Health    string    `json:"health"`
 				Graduated time.Time `json:"graduated"`
 				Validated time.Time `json:"validated"`
+				Phase     string    `json:"phase"`
 			}{
 				d.ID,
 				d.AssetTag,
@@ -299,6 +300,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 				d.Health,
 				d.Graduated,
 				d.Validated,
+				d.Phase,
 			})
 		}
 
@@ -319,6 +321,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 			"Health",
 			"Validated",
 			"Graduated",
+			"Phase",
 		})
 	} else {
 		table.SetHeader([]string{
@@ -329,6 +332,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 			"Health",
 			"Validated",
 			"Graduated",
+			"Phase",
 		})
 	}
 
@@ -358,6 +362,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 				d.Health,
 				validated,
 				graduated,
+				d.Phase,
 			})
 		} else {
 			table.Append([]string{
@@ -368,6 +373,7 @@ func DisplayDevices(devices []conch.Device, fullOutput bool) (err error) {
 				d.Health,
 				validated,
 				graduated,
+				d.Phase,
 			})
 		}
 	}
