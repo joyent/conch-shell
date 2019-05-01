@@ -301,12 +301,14 @@ Datacenter: %s
 Name: %s
 Role: %s
 Rack ID: %s
+Phase: %s
 `,
 			workspace.Name,
 			rack.Datacenter,
 			rack.Name,
 			rack.Role,
 			rack.ID,
+			rack.Phase,
 		)
 
 		fmt.Println()
@@ -323,6 +325,7 @@ Rack ID: %s
 			"Vendor",
 			"Occupied By",
 			"Health",
+			"Phase",
 		})
 
 		for _, slot := range rack.Slots {
@@ -361,6 +364,7 @@ Rack ID: %s
 				slot.Vendor,
 				occupantID,
 				occupantHealth,
+				slot.Occupant.Phase,
 			})
 
 		}
