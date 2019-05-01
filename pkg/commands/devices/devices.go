@@ -24,6 +24,8 @@ Serial: {{ .ID }}
 Hostname: {{.Hostname }}
 Asset Tag: {{ .AssetTag }}
 Health: {{ .Health }}
+Phase: {{ .Phase }}
+
 System UUID: {{ .SystemUUID }}{{ if .IsTritonSetup }}
 Set up for Triton: {{ .TritonSetup.Local }}
   - UUID: {{ .TritonUUID }}{{- end }}{{ if .IsGraduated }}
@@ -624,4 +626,32 @@ func getValidationStates(app *cli.Cmd) {
 		}
 
 	}
+}
+
+func getPhase(app *cli.Cmd) {
+	app.Action = func() {
+		phase, err := util.API.GetDevicePhase(DeviceSerial)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		fmt.Println(phase)
+	}
+}
+
+func setPhase(app *cli.Cmd) {
+	var valueArg = app.StringArg("VALUE", "", "Name of phase")
+
+	app.Spec = "VALUE"
+
+	app.Action = func() {
+		err := util.API.SetDevicePhase(
+			DeviceSerial,
+			*valueArg,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
+	}
+
 }
