@@ -19,7 +19,7 @@ import (
 
 func roomGetAll(app *cli.Cmd) {
 	app.Action = func() {
-		rs, err := util.API.GetGlobalRooms()
+		rs, err := util.API.GetRooms()
 		if err != nil {
 			util.Bail(err)
 		}
@@ -54,7 +54,7 @@ func roomGetAll(app *cli.Cmd) {
 
 func roomGet(app *cli.Cmd) {
 	app.Action = func() {
-		r, err := util.API.GetGlobalRoom(GRoomUUID)
+		r, err := util.API.GetRoom(GRoomUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -101,14 +101,14 @@ func roomCreate(app *cli.Cmd) {
 		if err != nil {
 			util.Bail(err)
 		}
-		r := conch.GlobalRoom{
+		r := conch.Room{
 			DatacenterID: dcID,
 			AZ:           *azOpt,
 			Alias:        *aliasOpt,
 			VendorName:   *vendorNameOpt,
 		}
 
-		if err := util.API.SaveGlobalRoom(&r); err != nil {
+		if err := util.API.SaveRoom(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -148,7 +148,7 @@ func roomUpdate(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
-		r, err := util.API.GetGlobalRoom(GRoomUUID)
+		r, err := util.API.GetRoom(GRoomUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -173,7 +173,7 @@ func roomUpdate(app *cli.Cmd) {
 			r.VendorName = *vendorNameOpt
 		}
 
-		if err := util.API.SaveGlobalRoom(&r); err != nil {
+		if err := util.API.SaveRoom(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -206,7 +206,7 @@ Updated: %s
 
 func roomDelete(app *cli.Cmd) {
 	app.Action = func() {
-		if err := util.API.DeleteGlobalRoom(GRoomUUID); err != nil {
+		if err := util.API.DeleteRoom(GRoomUUID); err != nil {
 			util.Bail(err)
 		}
 	}
@@ -214,12 +214,12 @@ func roomDelete(app *cli.Cmd) {
 
 func roomGetAllRacks(app *cli.Cmd) {
 	app.Action = func() {
-		r, err := util.API.GetGlobalRoom(GRoomUUID)
+		r, err := util.API.GetRoom(GRoomUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		rs, err := util.API.GetGlobalRoomRacks(r)
+		rs, err := util.API.GetRoomRacks(r)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -236,7 +236,7 @@ func roomGetAllRacks(app *cli.Cmd) {
 		})
 
 		for _, r := range rs {
-			role, err := util.API.GetGlobalRackRole(r.RoleID)
+			role, err := util.API.GetRackRole(r.RoleID)
 			if err != nil {
 				util.Bail(err)
 			}

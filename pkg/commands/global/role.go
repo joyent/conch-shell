@@ -19,7 +19,7 @@ import (
 
 func roleGetAll(app *cli.Cmd) {
 	app.Action = func() {
-		rs, err := util.API.GetGlobalRackRoles()
+		rs, err := util.API.GetRackRoles()
 		if err != nil {
 			util.Bail(err)
 		}
@@ -50,7 +50,7 @@ func roleGetAll(app *cli.Cmd) {
 
 func roleGet(app *cli.Cmd) {
 	app.Action = func() {
-		r, err := util.API.GetGlobalRackRole(GRoleUUID)
+		r, err := util.API.GetRackRole(GRoleUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -87,12 +87,12 @@ func roleCreate(app *cli.Cmd) {
 	app.Spec = "--name --rack-size [OPTIONS]"
 
 	app.Action = func() {
-		r := conch.GlobalRackRole{
+		r := conch.RackRole{
 			Name:     *nameOpt,
 			RackSize: *rackSizeOpt,
 		}
 
-		if err := util.API.SaveGlobalRackRole(&r); err != nil {
+		if err := util.API.SaveRackRole(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -126,7 +126,7 @@ func roleUpdate(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
-		r, err := util.API.GetGlobalRackRole(GRoleUUID)
+		r, err := util.API.GetRackRole(GRoleUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -139,7 +139,7 @@ func roleUpdate(app *cli.Cmd) {
 			r.RackSize = *rackSizeOpt
 		}
 
-		if err := util.API.SaveGlobalRackRole(&r); err != nil {
+		if err := util.API.SaveRackRole(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -168,7 +168,7 @@ Updated: %s
 
 func roleDelete(app *cli.Cmd) {
 	app.Action = func() {
-		if err := util.API.DeleteGlobalRackRole(GRoleUUID); err != nil {
+		if err := util.API.DeleteRackRole(GRoleUUID); err != nil {
 			util.Bail(err)
 		}
 	}

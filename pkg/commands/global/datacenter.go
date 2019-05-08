@@ -260,7 +260,7 @@ func dcAllTheThingsTree(app *cli.Cmd) {
 			roomTree := gotree.GTStructure{}
 			roomTree.Name = fmt.Sprintf("Room: %s (%s)", room.AZ, room.ID)
 
-			racks, err := util.API.GetGlobalRoomRacks(room)
+			racks, err := util.API.GetRoomRacks(room)
 			if err != nil {
 				util.Bail(err)
 			}
@@ -269,7 +269,7 @@ func dcAllTheThingsTree(app *cli.Cmd) {
 				rackTree := gotree.GTStructure{}
 				rackTree.Name = fmt.Sprintf("Rack: %s (%s)", rack.Name, rack.ID)
 
-				ls, err := util.API.GetGlobalRackLayout(rack)
+				ls, err := util.API.GetRackLayout(rack)
 				if err != nil {
 					util.Bail(err)
 				}

@@ -569,7 +569,7 @@ func assignRack(app *cli.Cmd) {
 			assignments[keeper.DeviceID] = keeper.RackUnitStart
 		}
 
-		if err := util.API.AssignDevicesToRackSlots(
+		if err := util.API.AssignDevicesToWorkspaceRackSlots(
 			WorkspaceUUID,
 			RackUUID,
 			assignments,

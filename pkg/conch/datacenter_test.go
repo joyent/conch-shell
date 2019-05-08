@@ -88,7 +88,7 @@ func TestDatacenterErrors(t *testing.T) {
 
 		ret, err := API.GetDatacenterRooms(d)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalRoom{})
+		st.Expect(t, ret, []conch.Room{})
 	})
 
 }

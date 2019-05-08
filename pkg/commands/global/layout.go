@@ -18,7 +18,7 @@ import (
 
 func layoutGet(app *cli.Cmd) {
 	app.Action = func() {
-		r, err := util.API.GetGlobalRackLayoutSlot(GLayoutUUID)
+		r, err := util.API.GetRackLayoutSlot(GLayoutUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -58,7 +58,7 @@ func layoutCreate(app *cli.Cmd) {
 	app.Spec = "--rack-id --product --ru-start [OPTIONS]"
 
 	app.Action = func() {
-		rackID, err := util.MagicGlobalRackID(*rackIDOpt)
+		rackID, err := util.MagicRackID(*rackIDOpt)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -67,13 +67,13 @@ func layoutCreate(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		r := conch.GlobalRackLayoutSlot{
+		r := conch.RackLayoutSlot{
 			RackID:    rackID,
 			ProductID: productID,
 			RUStart:   *ruStartOpt,
 		}
 
-		if err := util.API.SaveGlobalRackLayoutSlot(&r); err != nil {
+		if err := util.API.SaveRackLayoutSlot(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -110,13 +110,13 @@ func layoutUpdate(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
-		r, err := util.API.GetGlobalRackLayoutSlot(GLayoutUUID)
+		r, err := util.API.GetRackLayoutSlot(GLayoutUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
 		if *rackIDOpt != "" {
-			rackID, err := util.MagicGlobalRackID(*rackIDOpt)
+			rackID, err := util.MagicRackID(*rackIDOpt)
 			if err != nil {
 				util.Bail(err)
 			}
@@ -135,7 +135,7 @@ func layoutUpdate(app *cli.Cmd) {
 			r.RUStart = *ruStartOpt
 		}
 
-		if err := util.API.SaveGlobalRackLayoutSlot(r); err != nil {
+		if err := util.API.SaveRackLayoutSlot(r); err != nil {
 			util.Bail(err)
 		}
 
@@ -166,7 +166,7 @@ Updated: %s
 
 func layoutDelete(app *cli.Cmd) {
 	app.Action = func() {
-		if err := util.API.DeleteGlobalRackLayoutSlot(GLayoutUUID); err != nil {
+		if err := util.API.DeleteRackLayoutSlot(GLayoutUUID); err != nil {
 			util.Bail(err)
 		}
 	}

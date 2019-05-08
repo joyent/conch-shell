@@ -151,7 +151,7 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspaceRacks(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Rack{})
+		st.Expect(t, ret, []conch.WorkspaceRack{})
 	})
 
 	t.Run("GetWorkspaceRack", func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestWorkspaceErrors(t *testing.T) {
 
 		ret, err := API.GetWorkspaceRack(id, rID)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, conch.Rack{})
+		st.Expect(t, ret, conch.WorkspaceRack{})
 	})
 
 }

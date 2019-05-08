@@ -15,30 +15,30 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func TestGlobalRackLayoutSlotErrors(t *testing.T) {
+func TestRackLayoutSlotErrors(t *testing.T) {
 	gock.Flush()
 	defer gock.Flush()
 
-	t.Run("GetGlobalRackLayoutSlots", func(t *testing.T) {
+	t.Run("GetRackLayoutSlots", func(t *testing.T) {
 		gock.New(API.BaseURL).Get("/layout").Persist().Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalRackLayoutSlots()
+		ret, err := API.GetRackLayoutSlots()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, conch.GlobalRackLayoutSlots{})
+		st.Expect(t, ret, conch.RackLayoutSlots{})
 	})
 
-	t.Run("GetGlobalRackLayoutSlot", func(t *testing.T) {
+	t.Run("GetRackLayoutSlot", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Get("/layout/" + id.String()).Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalRackLayoutSlot(id)
+		ret, err := API.GetRackLayoutSlot(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, &conch.GlobalRackLayoutSlot{})
+		st.Expect(t, ret, &conch.RackLayoutSlot{})
 	})
 
-	t.Run("CreateGlobalRackLayoutSlot", func(t *testing.T) {
-		r := conch.GlobalRackLayoutSlot{
+	t.Run("CreateRackLayoutSlot", func(t *testing.T) {
+		r := conch.RackLayoutSlot{
 			RackID:    uuid.NewV4(),
 			ProductID: uuid.NewV4(),
 			RUStart:   2,
@@ -46,13 +46,13 @@ func TestGlobalRackLayoutSlotErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/layout").Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalRackLayoutSlot(&r)
+		err := API.SaveRackLayoutSlot(&r)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("UpdateGlobalRackLayoutSlot", func(t *testing.T) {
+	t.Run("UpdateRackLayoutSlot", func(t *testing.T) {
 		id := uuid.NewV4()
-		r := conch.GlobalRackLayoutSlot{
+		r := conch.RackLayoutSlot{
 			ID:        id,
 			RackID:    uuid.NewV4(),
 			ProductID: uuid.NewV4(),
@@ -61,16 +61,16 @@ func TestGlobalRackLayoutSlotErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/layout/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalRackLayoutSlot(&r)
+		err := API.SaveRackLayoutSlot(&r)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("DeleteGlobalRackLayoutSlot", func(t *testing.T) {
+	t.Run("DeleteRackLayoutSlot", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Delete("/layout/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.DeleteGlobalRackLayoutSlot(id)
+		err := API.DeleteRackLayoutSlot(id)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 

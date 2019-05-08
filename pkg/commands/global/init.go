@@ -60,7 +60,7 @@ func Init(app *cli.Cli) {
 			r.Spec = "ID"
 			r.Before = func() {
 				util.BuildAPIAndVerifyLogin()
-				id, err := util.MagicGlobalRackID(*rackIDStr)
+				id, err := util.MagicRackID(*rackIDStr)
 				if err != nil {
 					util.Bail(err)
 				}
@@ -226,7 +226,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRoomID(*roomIDStr)
+						id, err := util.MagicRoomID(*roomIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -287,7 +287,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRackID(*rackIDStr)
+						id, err := util.MagicRackID(*rackIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -365,7 +365,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRackRoleID(*roleIDStr)
+						id, err := util.MagicRackRoleID(*roleIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -414,7 +414,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRackLayoutSlotID(*layoutIDStr)
+						id, err := util.MagicRackLayoutSlotID(*layoutIDStr)
 						if err != nil {
 							util.Bail(err)
 						}

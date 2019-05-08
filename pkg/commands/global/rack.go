@@ -24,7 +24,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 )
 
-func displayOneGlobalRack(r conch.GlobalRack) {
+func displayOneRack(r conch.Rack) {
 
 	fmt.Printf(`
 ID: %s
@@ -53,7 +53,7 @@ Updated: %s
 
 func rackGetAll(app *cli.Cmd) {
 	app.Action = func() {
-		rs, err := util.API.GetGlobalRacks()
+		rs, err := util.API.GetRacks()
 		if err != nil {
 			util.Bail(err)
 		}
@@ -90,7 +90,7 @@ func rackGetAll(app *cli.Cmd) {
 
 func rackGet(app *cli.Cmd) {
 	app.Action = func() {
-		r, err := util.API.GetGlobalRack(GRackUUID)
+		r, err := util.API.GetRack(GRackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -100,7 +100,7 @@ func rackGet(app *cli.Cmd) {
 			return
 		}
 
-		displayOneGlobalRack(r)
+		displayOneRack(r)
 	}
 }
 
@@ -124,7 +124,7 @@ func rackCreate(app *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		r := conch.GlobalRack{
+		r := conch.Rack{
 			DatacenterRoomID: dcID,
 			RoleID:           roleID,
 			Name:             *nameOpt,
@@ -132,7 +132,7 @@ func rackCreate(app *cli.Cmd) {
 			AssetTag:         *assetTagOpt,
 		}
 
-		if err := util.API.SaveGlobalRack(&r); err != nil {
+		if err := util.API.SaveRack(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -141,7 +141,7 @@ func rackCreate(app *cli.Cmd) {
 			return
 		}
 
-		displayOneGlobalRack(r)
+		displayOneRack(r)
 	}
 }
 
@@ -155,7 +155,7 @@ func rackUpdate(app *cli.Cmd) {
 	)
 
 	app.Action = func() {
-		r, err := util.API.GetGlobalRack(GRackUUID)
+		r, err := util.API.GetRack(GRackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -187,7 +187,7 @@ func rackUpdate(app *cli.Cmd) {
 			r.AssetTag = *assetTagOpt
 		}
 
-		if err := util.API.SaveGlobalRack(&r); err != nil {
+		if err := util.API.SaveRack(&r); err != nil {
 			util.Bail(err)
 		}
 
@@ -195,12 +195,12 @@ func rackUpdate(app *cli.Cmd) {
 			util.JSONOut(r)
 			return
 		}
-		displayOneGlobalRack(r)
+		displayOneRack(r)
 	}
 }
 func rackDelete(app *cli.Cmd) {
 	app.Action = func() {
-		if err := util.API.DeleteGlobalRack(GRackUUID); err != nil {
+		if err := util.API.DeleteRack(GRackUUID); err != nil {
 			util.Bail(err)
 		}
 	}
@@ -208,12 +208,12 @@ func rackDelete(app *cli.Cmd) {
 
 func rackLayout(app *cli.Cmd) {
 	app.Action = func() {
-		r, err := util.API.GetGlobalRack(GRackUUID)
+		r, err := util.API.GetRack(GRackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
-		rs, err := util.API.GetGlobalRackLayout(r)
+		rs, err := util.API.GetRackLayout(r)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -259,13 +259,13 @@ type importLayout []importLayoutSlot
 
 func rackExportLayout(cmd *cli.Cmd) {
 	cmd.Action = func() {
-		rack, err := util.API.GetGlobalRack(GRackUUID)
+		rack, err := util.API.GetRack(GRackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
 		// Get the current state of the world
-		existingLayout, err := util.API.GetGlobalRackLayout(rack)
+		existingLayout, err := util.API.GetRackLayout(rack)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -324,13 +324,13 @@ func rackImportLayout(cmd *cli.Cmd) {
 			util.Bail(err)
 		}
 
-		rack, err := util.API.GetGlobalRack(GRackUUID)
+		rack, err := util.API.GetRack(GRackUUID)
 		if err != nil {
 			util.Bail(err)
 		}
 
 		// Get the current state of the world
-		existingLayout, err := util.API.GetGlobalRackLayout(rack)
+		existingLayout, err := util.API.GetRackLayout(rack)
 		if err != nil {
 			util.Bail(err)
 		}
@@ -360,7 +360,7 @@ func rackImportLayout(cmd *cli.Cmd) {
 			productsID[p.ID.String()] = p
 		}
 
-		var finalLayout []conch.GlobalRackLayoutSlot
+		var finalLayout []conch.RackLayoutSlot
 
 		for _, l := range importedLayout {
 			if uuid.Equal(l.ProductID, uuid.UUID{}) {
@@ -393,7 +393,7 @@ func rackImportLayout(cmd *cli.Cmd) {
 					util.Bail(errors.New("Product ID " + l.ProductID.String() + " is unknown"))
 				}
 			}
-			s := conch.GlobalRackLayoutSlot{
+			s := conch.RackLayoutSlot{
 				RackID:    GRackUUID,
 				ProductID: l.ProductID,
 				RUStart:   l.RUStart,
@@ -406,7 +406,7 @@ func rackImportLayout(cmd *cli.Cmd) {
 		// existing layout
 		if *overwriteOpt {
 			for _, s := range existingLayout {
-				err := util.API.DeleteGlobalRackLayoutSlot(s.ID)
+				err := util.API.DeleteRackLayoutSlot(s.ID)
 				if err != nil {
 					util.Bail(err)
 				}
@@ -418,7 +418,7 @@ func rackImportLayout(cmd *cli.Cmd) {
 		// loop acts on it. That way, if the first loop runs into problems, we
 		// haven't changed any data yet.
 		for _, s := range finalLayout {
-			err := util.API.SaveGlobalRackLayoutSlot(&s)
+			err := util.API.SaveRackLayoutSlot(&s)
 			if err != nil {
 				util.Bail(err)
 			}

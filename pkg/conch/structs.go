@@ -143,7 +143,7 @@ type Disk struct {
 type DeviceLocation struct {
 	Datacenter            Datacenter             `json:"datacenter"`
 	Room                  DatacenterDetailedRoom `json:"datacenter_room"`
-	Rack                  GlobalRack             `json:"rack"`
+	Rack                  Rack                   `json:"rack"`
 	TargetHardwareProduct HardwareProductTarget  `json:"target_hardware_product"`
 	RackUnitStart         int                    `json:"rack_unit_start"`
 }
@@ -152,7 +152,7 @@ type ExtendedDevice struct {
 	Device
 	IPMI          string                    `json:"ipmi"`
 	HardwareName  string                    `json:"hardware_name"`
-	RackRole      GlobalRackRole            `json:"rack_role"`
+	RackRole      RackRole                  `json:"rack_role"`
 	SKU           string                    `json:"sku"`
 	Enclosures    map[string]map[int]Disk   `json:"enclosures"`
 	IsGraduated   bool                      `json:"is_graduated"`
@@ -161,8 +161,7 @@ type ExtendedDevice struct {
 	Validations   []ValidationPlanExecution `json:"validations"`
 }
 
-// GlobalRack represents a datacenter rack in the global domain
-type GlobalRack struct {
+type Rack struct {
 	ID               uuid.UUID `json:"id"`
 	Created          time.Time `json:"created"`
 	Updated          time.Time `json:"updated"`
@@ -174,8 +173,7 @@ type GlobalRack struct {
 	Phase            string    `json:"phase"`
 }
 
-// GlobalRackLayoutSlot represents an individual rack layout entry
-type GlobalRackLayoutSlot struct {
+type RackLayoutSlot struct {
 	ID        uuid.UUID `json:"id"`
 	Created   time.Time `json:"created"`
 	Updated   time.Time `json:"updated"`
@@ -184,21 +182,20 @@ type GlobalRackLayoutSlot struct {
 	RUStart   int       `json:"ru_start"`
 }
 
-type GlobalRackLayoutSlots []GlobalRackLayoutSlot
+type RackLayoutSlots []RackLayoutSlot
 
-func (g GlobalRackLayoutSlots) Len() int {
+func (g RackLayoutSlots) Len() int {
 	return len(g)
 }
-func (g GlobalRackLayoutSlots) Swap(i, j int) {
+func (g RackLayoutSlots) Swap(i, j int) {
 	g[i], g[j] = g[j], g[i]
 }
 
-func (g GlobalRackLayoutSlots) Less(i, j int) bool {
+func (g RackLayoutSlots) Less(i, j int) bool {
 	return g[i].RUStart > g[j].RUStart
 }
 
-// GlobalRackRole represents a rack role in the global domain
-type GlobalRackRole struct {
+type RackRole struct {
 	ID       uuid.UUID `json:"id"`
 	Created  time.Time `json:"created"`
 	Updated  time.Time `json:"updated"`
@@ -206,8 +203,7 @@ type GlobalRackRole struct {
 	RackSize int       `json:"rack_size"`
 }
 
-// GlobalRoom represents a datacenter room in the global domain
-type GlobalRoom struct {
+type Room struct {
 	ID           uuid.UUID `json:"id"`
 	Created      time.Time `json:"created"`
 	Updated      time.Time `json:"updated"`
@@ -340,22 +336,20 @@ type Nic struct {
 	PeerSwitch  string `json:"peer_switch"`
 }
 
-// Rack represents a physical rack
-type Rack struct {
-	ID           uuid.UUID `json:"id"`
-	Name         string    `json:"name"`
-	Role         string    `json:"role"`
-	Unit         int       `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
-	Size         int       `json:"size"`
-	Datacenter   string    `json:"datacenter"`
-	Slots        RackSlots `json:"slots,omitempty"`
-	SerialNumber string    `json:"serial_number"`
-	AssetTag     string    `json:"asset_tag"`
-	Phase        string    `json:"phase"`
+type WorkspaceRack struct {
+	ID           uuid.UUID          `json:"id"`
+	Name         string             `json:"name"`
+	Role         string             `json:"role"`
+	Unit         int                `json:"unit"` // BUG(sungo): This exists because device locations provide rack info, but also slot info. This is a sloppy combination of data streams
+	Size         int                `json:"size"`
+	Datacenter   string             `json:"datacenter"`
+	Slots        WorkspaceRackSlots `json:"slots,omitempty"`
+	SerialNumber string             `json:"serial_number"`
+	AssetTag     string             `json:"asset_tag"`
+	Phase        string             `json:"phase"`
 }
 
-// RackSlot represents a physical slot in a physical Rack
-type RackSlot struct {
+type WorkspaceRackSlot struct {
 	ID            uuid.UUID `json:"id"`
 	Size          int       `json:"size"`
 	Name          string    `json:"name"`
@@ -365,25 +359,17 @@ type RackSlot struct {
 	RackUnitStart int       `json:"rack_unit_start"`
 }
 
-type RackSlots []RackSlot
+type WorkspaceRackSlots []WorkspaceRackSlot
 
-func (r RackSlots) Len() int {
+func (r WorkspaceRackSlots) Len() int {
 	return len(r)
 }
-func (r RackSlots) Swap(i, j int) {
+func (r WorkspaceRackSlots) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
 }
 
-func (r RackSlots) Less(i, j int) bool {
+func (r WorkspaceRackSlots) Less(i, j int) bool {
 	return r[i].RackUnitStart > r[j].RackUnitStart
-}
-
-// Room represents a physical area in a datacenter/AZ
-type Room struct {
-	ID         string `json:"id"`
-	AZ         string `json:"az"`
-	Alias      string `json:"alias"`
-	VendorName string `json:"vendor_name"`
 }
 
 // User represents a person able to access the Conch API or UI

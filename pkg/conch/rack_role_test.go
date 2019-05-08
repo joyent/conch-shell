@@ -15,45 +15,45 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func TestGlobalRackRoleErrors(t *testing.T) {
+func TestRackRoleErrors(t *testing.T) {
 	gock.Flush()
 	defer gock.Flush()
 
-	t.Run("GetGlobalRackRoles", func(t *testing.T) {
+	t.Run("GetRackRoles", func(t *testing.T) {
 		gock.New(API.BaseURL).Get("/rack_role").Persist().Reply(400).JSON(ErrApi)
 
 		defer gock.Flush()
 
-		ret, err := API.GetGlobalRackRoles()
+		ret, err := API.GetRackRoles()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalRackRole{})
+		st.Expect(t, ret, []conch.RackRole{})
 	})
 
-	t.Run("GetGlobalRackRole", func(t *testing.T) {
+	t.Run("GetRackRole", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Get("/rack_role/" + id.String()).Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalRackRole(id)
+		ret, err := API.GetRackRole(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, conch.GlobalRackRole{})
+		st.Expect(t, ret, conch.RackRole{})
 	})
 
-	t.Run("CreateGlobalRackRole", func(t *testing.T) {
-		r := conch.GlobalRackRole{
+	t.Run("CreateRackRole", func(t *testing.T) {
+		r := conch.RackRole{
 			Name:     "n",
 			RackSize: 2,
 		}
 
 		gock.New(API.BaseURL).Post("/rack_role").Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalRackRole(&r)
+		err := API.SaveRackRole(&r)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("UpdateGlobalRackRole", func(t *testing.T) {
+	t.Run("UpdateRackRole", func(t *testing.T) {
 		id := uuid.NewV4()
-		r := conch.GlobalRackRole{
+		r := conch.RackRole{
 			ID:       id,
 			Name:     "n",
 			RackSize: 2,
@@ -61,16 +61,16 @@ func TestGlobalRackRoleErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/rack_role/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalRackRole(&r)
+		err := API.SaveRackRole(&r)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("DeleteGlobalRackRole", func(t *testing.T) {
+	t.Run("DeleteRackRole", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Delete("/rack_role/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.DeleteGlobalRackRole(id)
+		err := API.DeleteRackRole(id)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 

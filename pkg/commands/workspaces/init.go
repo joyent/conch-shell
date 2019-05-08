@@ -94,7 +94,7 @@ func Init(app *cli.Cli) {
 
 					cmd.Before = func() {
 						var err error
-						RackUUID, err = util.MagicRackID(WorkspaceUUID, *rackIDStr)
+						RackUUID, err = util.MagicWorkspaceRackID(WorkspaceUUID, *rackIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
