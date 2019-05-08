@@ -12,6 +12,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/cmd/conch1"
 	"github.com/joyent/conch-shell/pkg/commands/admin"
 	"github.com/joyent/conch-shell/pkg/commands/api"
+	"github.com/joyent/conch-shell/pkg/commands/datacenter"
 	"github.com/joyent/conch-shell/pkg/commands/devices"
 	"github.com/joyent/conch-shell/pkg/commands/global"
 	"github.com/joyent/conch-shell/pkg/commands/hardware"
@@ -29,6 +30,7 @@ func main() {
 
 	api.Init(app)
 	admin.Init(app)
+	datacenter.Init(app)
 	devices.Init(app)
 	global.Init(app)
 	hardware.Init(app)
