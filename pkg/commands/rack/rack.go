@@ -4,10 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package global contains commands that operate on structures in the global
-// domain, rather than a workspace. API "global admin" access level is required
-// for these commands.
-package global
+package rack
 
 import (
 	"encoding/json"
@@ -424,5 +421,34 @@ func rackImportLayout(cmd *cli.Cmd) {
 			}
 		}
 
+	}
+}
+
+func rackPhaseGet(cmd *cli.Cmd) {
+	cmd.Action = func() {
+		phase, err := util.API.GetRackPhase(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(phase)
+	}
+}
+
+func rackPhaseSet(cmd *cli.Cmd) {
+	var (
+		valueArg   = cmd.StringArg("PHASE", "", "The desired phase")
+		devicesOpt = cmd.BoolOpt("devices-also", false, "Also set every device in the rack to the same phase")
+	)
+
+	cmd.Spec = "PHASE [OPTIONS]"
+	cmd.Action = func() {
+		err := util.API.SetRackPhase(
+			GRackUUID,
+			*valueArg,
+			*devicesOpt,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
 	}
 }

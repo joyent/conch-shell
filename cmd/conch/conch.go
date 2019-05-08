@@ -16,6 +16,7 @@ import (
 	"github.com/joyent/conch-shell/pkg/commands/global"
 	"github.com/joyent/conch-shell/pkg/commands/hardware"
 	"github.com/joyent/conch-shell/pkg/commands/profile"
+	"github.com/joyent/conch-shell/pkg/commands/rack"
 	"github.com/joyent/conch-shell/pkg/commands/relay"
 	"github.com/joyent/conch-shell/pkg/commands/update"
 	"github.com/joyent/conch-shell/pkg/commands/user"
@@ -32,6 +33,7 @@ func main() {
 	global.Init(app)
 	hardware.Init(app)
 	profile.Init(app)
+	rack.Init(app)
 	relay.Init(app)
 	user.Init(app)
 	workspaces.Init(app)
