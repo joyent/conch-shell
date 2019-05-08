@@ -233,6 +233,25 @@ func Init(app *cli.Cli) {
 					)
 				},
 			)
+
+			cmd.Command(
+				"phase",
+				"Get/set the phase for a single device",
+				func(cmd *cli.Cmd) {
+					cmd.Command(
+						"get",
+						"Get the device's phase",
+						getPhase,
+					)
+
+					cmd.Command(
+						"set",
+						"Set the device's phase",
+						setPhase,
+					)
+				},
+			)
+
 		},
 	)
 }

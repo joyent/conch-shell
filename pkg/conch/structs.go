@@ -102,6 +102,7 @@ type Device struct {
 	Disks                 []Disk             `json:"disks"`
 	RackUnitStart         int                `json:"rack_unit_start`
 	RackID                uuid.UUID          `json:"rack_id"`
+	Phase                 string             `json:"phase"`
 }
 
 type Devices []Device
@@ -170,6 +171,7 @@ type GlobalRack struct {
 	RoleID           uuid.UUID `json:"role"`
 	SerialNumber     string    `json:"serial_number"`
 	AssetTag         string    `json:"asset_tag"`
+	Phase            string    `json:"phase"`
 }
 
 // GlobalRackLayoutSlot represents an individual rack layout entry
@@ -349,6 +351,7 @@ type Rack struct {
 	Slots        RackSlots `json:"slots,omitempty"`
 	SerialNumber string    `json:"serial_number"`
 	AssetTag     string    `json:"asset_tag"`
+	Phase        string    `json:"phase"`
 }
 
 // RackSlot represents a physical slot in a physical Rack

@@ -33,6 +33,7 @@ Name: %s
 Role ID: %s
 Serial Number: %s
 Asset Tag: %s
+Phase: %s
 
 Created: %s
 Updated: %s
@@ -44,6 +45,7 @@ Updated: %s
 		r.RoleID.String(),
 		r.SerialNumber,
 		r.AssetTag,
+		r.Phase,
 		util.TimeStr(r.Created),
 		util.TimeStr(r.Updated),
 	)
@@ -422,5 +424,34 @@ func rackImportLayout(cmd *cli.Cmd) {
 			}
 		}
 
+	}
+}
+
+func rackPhaseGet(cmd *cli.Cmd) {
+	cmd.Action = func() {
+		phase, err := util.API.GetRackPhase(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(phase)
+	}
+}
+
+func rackPhaseSet(cmd *cli.Cmd) {
+	var (
+		valueArg   = cmd.StringArg("PHASE", "", "The desired phase")
+		devicesOpt = cmd.BoolOpt("devices-also", false, "Also set every device in the rack to the same phase")
+	)
+
+	cmd.Spec = "PHASE [OPTIONS]"
+	cmd.Action = func() {
+		err := util.API.SetRackPhase(
+			GRackUUID,
+			*valueArg,
+			*devicesOpt,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
 	}
 }

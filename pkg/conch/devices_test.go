@@ -121,4 +121,21 @@ func TestDevices(t *testing.T) {
 		st.Expect(t, ret, conch.ValidationState{})
 	})
 
+	t.Run("GetDevicePhase", func(t *testing.T) {
+		serial := "test"
+		gock.New(API.BaseURL).Get("/device/" + serial + "/phase").Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetDevicePhase(serial)
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, "")
+	})
+
+	t.Run("SetDevicePhase", func(t *testing.T) {
+		serial := "test"
+		gock.New(API.BaseURL).Post("/device/" + serial + "/phase").Reply(400).JSON(ErrApi)
+
+		err := API.SetDevicePhase(serial, "production")
+		st.Expect(t, err, ErrApiUnpacked)
+	})
+
 }
