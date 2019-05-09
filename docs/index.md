@@ -30,9 +30,6 @@ $ conch wss
 
 # User Documentation
 
-* [How To Login](auth)
-  * [Deeper Dive on API Tokens, including commands](tokens)
-
 *The main focus for the Conch Shell is Joyent's production environments. While
 the shell should operate against any instance of the Conch API, some bits of the
 documentation are Joyent specific.*
@@ -40,6 +37,10 @@ documentation are Joyent specific.*
 *Further, this site and all its documentation is targetted towards the `master`
 branch. If you need documentation for a specific release, see the `docs`
 directory in the git tag of your choice.*
+
+* [How To Login](auth)
+  * [Deeper Dive on API Tokens, including commands](tokens)
+* [Working With Validations](validations)
 
 # Obtaining The App
 
