@@ -215,6 +215,15 @@ func (c *Conch) httpDelete(url string) error {
 	return err
 }
 
+func (c *Conch) httpDeleteWithPayload(url string, payload interface{}) error {
+	req, err := c.sling().New().Delete(url).BodyJSON(payload).Request()
+	if err != nil {
+		return err
+	}
+	_, err = c.httpDo(req, nil)
+	return err
+}
+
 func (c *Conch) post(url string, payload interface{}, response interface{}) error {
 	req, err := c.sling().New().
 		Post(url).
