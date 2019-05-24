@@ -85,3 +85,39 @@ func (c *Conch) GetRackPhase(id uuid.UUID) (string, error) {
 	r, err := c.GetRack(id)
 	return r.Phase, err
 }
+
+func (c *Conch) GetRackAssignments(rackID uuid.UUID) (ResponseRackAssignments, error) {
+	assignments := make(ResponseRackAssignments, 0)
+
+	return assignments, c.get(
+		"/rack/"+
+			url.PathEscape(rackID.String())+
+			"/assignment",
+		&assignments,
+	)
+}
+
+func (c *Conch) AssignDevicesToRackSlots(
+	rackID uuid.UUID,
+	assignments RequestRackAssignmentUpdates,
+) error {
+	return c.post(
+		"/rack/"+
+			url.PathEscape(rackID.String())+
+			"/assignment",
+		assignments,
+		nil,
+	)
+}
+
+func (c *Conch) DeleteDevicesFromRackSlots(
+	rackID uuid.UUID,
+	deletions RequestRackAssignmentDeletes,
+) error {
+	return c.httpDeleteWithPayload(
+		"/rack/"+
+			url.PathEscape(rackID.String())+
+			"/assignment",
+		deletions,
+	)
+}

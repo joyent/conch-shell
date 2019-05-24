@@ -655,3 +655,68 @@ type NewUserToken struct {
 	UserToken
 	Token string `json:"token"`
 }
+
+/**/
+
+type RequestRackAssignmentUpdate struct {
+	DeviceID       string `json:"device_id"`
+	RackUnitStart  int    `json:"rack_unit_start"`
+	DeviceAssetTag string `json:"device_asset_tag,omitempty"`
+}
+
+type RequestRackAssignmentUpdates []RequestRackAssignmentUpdate
+
+func (r RequestRackAssignmentUpdates) Len() int {
+	return len(r)
+}
+
+func (r RequestRackAssignmentUpdates) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r RequestRackAssignmentUpdates) Less(i, j int) bool {
+	return r[i].RackUnitStart < r[j].RackUnitStart
+}
+
+/**/
+type RequestRackAssignmentDelete struct {
+	DeviceID      string `json:"device_id"`
+	RackUnitStart int    `json:"rack_unit_start"`
+}
+
+type RequestRackAssignmentDeletes []RequestRackAssignmentDelete
+
+func (r RequestRackAssignmentDeletes) Len() int {
+	return len(r)
+}
+
+func (r RequestRackAssignmentDeletes) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r RequestRackAssignmentDeletes) Less(i, j int) bool {
+	return r[i].RackUnitStart < r[j].RackUnitStart
+}
+
+/**/
+
+type ResponseRackAssignment struct {
+	DeviceID        string `json:"device_id,omitempty"`
+	DeviceAssetTag  string `json:"device_asset_tag,omitempty"`
+	HardwareProduct string `json:"hardware_product"`
+	RackUnitStart   int    `json:"rack_unit_start"`
+	RackUnitSize    int    `json:"rack_unit_size"`
+}
+type ResponseRackAssignments []ResponseRackAssignment
+
+func (r ResponseRackAssignments) Len() int {
+	return len(r)
+}
+
+func (r ResponseRackAssignments) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r ResponseRackAssignments) Less(i, j int) bool {
+	return r[i].RackUnitStart < r[j].RackUnitStart
+}

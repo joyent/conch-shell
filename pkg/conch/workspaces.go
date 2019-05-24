@@ -205,7 +205,7 @@ func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string
 	)
 }
 
-func (c *Conch) AssignDevicesToWorkspaceRackSlots(
+func (c *Conch) AssignWorkspaceDevicesToRackSlots(
 	workspaceID fmt.Stringer,
 	rackID fmt.Stringer,
 	assignments WorkspaceRackLayoutAssignments,

@@ -116,4 +116,44 @@ func TestRackErrors(t *testing.T) {
 		st.Expect(t, err, ErrApiUnpacked)
 		st.Expect(t, ret, "")
 	})
+
+	t.Run("GetRackAssignments", func(t *testing.T) {
+		id := uuid.NewV4()
+
+		gock.New(API.BaseURL).Get("/rack/" + id.String() + "/assignment").
+			Reply(400).JSON(ErrApi)
+
+		ret, err := API.GetRackAssignments(id)
+		st.Expect(t, err, ErrApiUnpacked)
+		st.Expect(t, ret, conch.ResponseRackAssignments{})
+
+	})
+
+	t.Run("AssignDevicesToRackSlots", func(t *testing.T) {
+		rackID := uuid.NewV4()
+
+		gock.New(API.BaseURL).Post("/rack/" + rackID.String() + "/assignment").
+			Reply(400).JSON(ErrApi)
+
+		err := API.AssignDevicesToRackSlots(
+			rackID,
+			make(conch.RequestRackAssignmentUpdates, 0),
+		)
+		st.Expect(t, err, ErrApiUnpacked)
+
+	})
+
+	t.Run("DeleteDevicesFromRackSlots", func(t *testing.T) {
+		rackID := uuid.NewV4()
+
+		gock.New(API.BaseURL).Delete("/rack/" + rackID.String() + "/assignment").
+			Reply(400).JSON(ErrApi)
+
+		err := API.DeleteDevicesFromRackSlots(
+			rackID,
+			make(conch.RequestRackAssignmentDeletes, 0),
+		)
+		st.Expect(t, err, ErrApiUnpacked)
+
+	})
 }
