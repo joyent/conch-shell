@@ -65,19 +65,30 @@ func getValidationPlan(app *cli.Cmd) {
 }
 
 func showValidationPlanValidations(app *cli.Cmd) {
+	var showDeactivated = app.BoolOpt("deactivated", false, "Show deactivated (old) versions of validations")
 
 	app.Action = func() {
-		var validations validations
 		validations, err := util.API.GetValidationPlanValidations(validationPlanUUID)
 		if err != nil {
 			util.Bail(err)
+		}
+
+		if !*showDeactivated {
+			v := make(conch.Validations, 0)
+			for _, validation := range validations {
+				if validation.Deactivated.IsZero() {
+					v = append(v, validation)
+				}
+			}
+			validations = v
 		}
 
 		if util.JSON {
 			util.JSONOut(validations)
 			return
 		}
-		validations.renderTable()
+
+		renderTableValidations(validations, *showDeactivated)
 	}
 }
 

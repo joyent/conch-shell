@@ -14,8 +14,8 @@ import (
 
 // GetValidations returns the contents of /validation, getting the list of all
 // validations loaded in the system
-func (c *Conch) GetValidations() ([]Validation, error) {
-	validations := make([]Validation, 0)
+func (c *Conch) GetValidations() (Validations, error) {
+	validations := make(Validations, 0)
 	return validations, c.get("/validation", &validations)
 }
 func (c *Conch) GetValidation(id fmt.Stringer) (v Validation, err error) {
@@ -44,9 +44,9 @@ func (c *Conch) GetValidationPlan(
 // GetValidationPlanValidations gets the list of validations associated with a validation plan
 func (c *Conch) GetValidationPlanValidations(
 	validationPlanUUID fmt.Stringer,
-) ([]Validation, error) {
+) (Validations, error) {
 
-	validations := make([]Validation, 0)
+	validations := make(Validations, 0)
 	return validations, c.get(
 		"/validation_plan/"+url.PathEscape(validationPlanUUID.String())+"/validation",
 		&validations,

@@ -24,7 +24,7 @@ func TestValidationErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get(url).Reply(400).JSON(ErrApi)
 		ret, err := API.GetValidations()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.Validation{})
+		st.Expect(t, ret, conch.Validations{})
 	})
 
 	t.Run("GetValidationPlans", func(t *testing.T) {
