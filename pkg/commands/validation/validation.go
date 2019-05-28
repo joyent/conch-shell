@@ -11,6 +11,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/jawher/mow.cli"
@@ -18,15 +19,37 @@ import (
 	"github.com/joyent/conch-shell/pkg/util"
 )
 
-type validations []conch.Validation
-
-func (vs validations) renderTable() {
+func renderTableValidations(vs conch.Validations, showDeactivated bool) {
+	sort.Sort(vs)
 	table := util.GetMarkdownTable()
 
-	table.SetHeader([]string{"Id", "Name", "Version", "Description"})
+	if showDeactivated {
+		table.SetHeader([]string{"Id", "Name", "Version", "Active", "Description"})
+	} else {
+		table.SetHeader([]string{"Id", "Name", "Version", "Description"})
+	}
 
 	for _, v := range vs {
-		table.Append([]string{v.ID.String(), v.Name, strconv.Itoa(v.Version), v.Description})
+		if showDeactivated {
+			active := ""
+			if v.Deactivated.IsZero() {
+				active = "X"
+			}
+			table.Append([]string{
+				v.ID.String(),
+				v.Name,
+				strconv.Itoa(v.Version),
+				active,
+				v.Description,
+			})
+		} else {
+			table.Append([]string{
+				v.ID.String(),
+				v.Name,
+				strconv.Itoa(v.Version),
+				v.Description,
+			})
+		}
 	}
 
 	table.Render()
@@ -48,19 +71,30 @@ func (rs validationResults) renderTable() {
 
 func getValidations(app *cli.Cmd) {
 	app.Before = util.BuildAPIAndVerifyLogin
+	var showDeactivated = app.BoolOpt("deactivated", false, "Show deactivated (old) versions of validations")
 
 	app.Action = func() {
-		var validations validations
 		validations, err := util.API.GetValidations()
 		if err != nil {
 			util.Bail(err)
+		}
+
+		if !*showDeactivated {
+			v := make(conch.Validations, 0)
+			for _, validation := range validations {
+				if validation.Deactivated.IsZero() {
+					v = append(v, validation)
+				}
+			}
+			validations = v
 		}
 
 		if util.JSON {
 			util.JSONOut(validations)
 			return
 		}
-		validations.renderTable()
+
+		renderTableValidations(validations, *showDeactivated)
 	}
 }
 
