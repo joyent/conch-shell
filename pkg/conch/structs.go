@@ -453,6 +453,20 @@ type Validation struct {
 	Description string    `json:"description"`
 	Created     time.Time `json:"created"`
 	Updated     time.Time `json:"updated"`
+	Deactivated time.Time `json:"deactivated"`
+}
+
+type Validations []Validation
+
+func (v Validations) Len() int {
+	return len(v)
+}
+func (v Validations) Swap(i, j int) {
+	v[i], v[j] = v[j], v[i]
+}
+
+func (v Validations) Less(i, j int) bool {
+	return strings.ToLower(v[i].Name) < strings.ToLower(v[j].Name)
 }
 
 // ValidationPlan represents an organized association of Validations
