@@ -18,9 +18,9 @@ import (
 // NOTE: The API currently returns a hash of arrays where the key is the
 // datacenter/az. This routine copies that key into the Datacenter field in the
 // Rack struct.
-func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
-	racks := make([]Rack, 0)
-	j := make(map[string][]Rack)
+func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]WorkspaceRack, error) {
+	racks := make([]WorkspaceRack, 0)
+	j := make(map[string][]WorkspaceRack)
 
 	if err := c.get("/workspace/"+url.PathEscape(workspaceUUID.String())+"/rack", &j); err != nil {
 		return racks, err
@@ -41,7 +41,7 @@ func (c *Conch) GetWorkspaceRacks(workspaceUUID fmt.Stringer) ([]Rack, error) {
 func (c *Conch) GetWorkspaceRack(
 	workspaceUUID fmt.Stringer,
 	rackUUID fmt.Stringer,
-) (rack Rack, err error) {
+) (rack WorkspaceRack, err error) {
 	return rack, c.get(
 		"/workspace/"+
 			url.PathEscape(workspaceUUID.String())+
@@ -205,7 +205,7 @@ func (c *Conch) RemoveUserFromWorkspace(workspaceUUID fmt.Stringer, email string
 	)
 }
 
-func (c *Conch) AssignDevicesToRackSlots(
+func (c *Conch) AssignWorkspaceDevicesToRackSlots(
 	workspaceID fmt.Stringer,
 	rackID fmt.Stringer,
 	assignments WorkspaceRackLayoutAssignments,

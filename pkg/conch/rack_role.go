@@ -7,27 +7,21 @@
 package conch
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
-// GetGlobalRackRoles fetches a list of all rack roles in the global domain
-func (c *Conch) GetGlobalRackRoles() ([]GlobalRackRole, error) {
-	r := make([]GlobalRackRole, 0)
+func (c *Conch) GetRackRoles() ([]RackRole, error) {
+	r := make([]RackRole, 0)
 	return r, c.get("/rack_role", &r)
 }
 
-// GetGlobalRackRole fetches a single rack role in the global domain, by its
-// UUID
-func (c *Conch) GetGlobalRackRole(id fmt.Stringer) (r GlobalRackRole, err error) {
+func (c *Conch) GetRackRole(id uuid.UUID) (r RackRole, err error) {
 	return r, c.get("/rack_role/"+url.PathEscape(id.String()), &r)
 }
 
-// SaveGlobalRackRole creates or updates a rack role in the global domain,
-// based on the presence of an ID
-func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
+func (c *Conch) SaveRackRole(r *RackRole) error {
 	if r.Name == "" {
 		return ErrBadInput
 	}
@@ -52,7 +46,6 @@ func (c *Conch) SaveGlobalRackRole(r *GlobalRackRole) error {
 
 }
 
-// DeleteGlobalRackRole deletes a rack role
-func (c *Conch) DeleteGlobalRackRole(id fmt.Stringer) error {
+func (c *Conch) DeleteRackRole(id uuid.UUID) error {
 	return c.httpDelete("/rack_role/" + url.PathEscape(id.String()))
 }

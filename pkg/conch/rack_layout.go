@@ -7,29 +7,23 @@
 package conch
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
-// GetGlobalRackLayoutSlots fetches a list of all rack layouts in the global domain
-func (c *Conch) GetGlobalRackLayoutSlots() (GlobalRackLayoutSlots, error) {
-	r := make([]GlobalRackLayoutSlot, 0)
+func (c *Conch) GetRackLayoutSlots() (RackLayoutSlots, error) {
+	r := make([]RackLayoutSlot, 0)
 	return r, c.get("/layout", &r)
 }
 
-// GetGlobalRackLayoutSlot fetches a single rack layout in the global domain, by its
-// UUID
-func (c *Conch) GetGlobalRackLayoutSlot(id fmt.Stringer) (*GlobalRackLayoutSlot, error) {
-	r := &GlobalRackLayoutSlot{}
+func (c *Conch) GetRackLayoutSlot(id uuid.UUID) (*RackLayoutSlot, error) {
+	r := &RackLayoutSlot{}
 	escaped := url.PathEscape(id.String())
 	return r, c.get("/layout/"+escaped, &r)
 }
 
-// SaveGlobalRackLayoutSlot creates or updates a rack layout in the global domain,
-// based on the presence of an ID
-func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
+func (c *Conch) SaveRackLayoutSlot(r *RackLayoutSlot) error {
 	if uuid.Equal(r.RackID, uuid.UUID{}) {
 		return ErrBadInput
 	}
@@ -58,8 +52,7 @@ func (c *Conch) SaveGlobalRackLayoutSlot(r *GlobalRackLayoutSlot) error {
 	}
 }
 
-// DeleteGlobalRackLayoutSlot deletes a rack layout
-func (c *Conch) DeleteGlobalRackLayoutSlot(id fmt.Stringer) error {
+func (c *Conch) DeleteRackLayoutSlot(id uuid.UUID) error {
 	escaped := url.PathEscape(id.String())
 	return c.httpDelete("/layout/" + escaped)
 }

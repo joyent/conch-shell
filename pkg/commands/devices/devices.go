@@ -144,9 +144,9 @@ func getLocation(app *cli.Cmd) {
 			return
 		}
 
-		var role conch.GlobalRackRole
+		var role conch.RackRole
 		if !uuid.Equal(location.Rack.RoleID, uuid.UUID{}) {
-			role, err = util.API.GetGlobalRackRole(location.Rack.RoleID)
+			role, err = util.API.GetRackRole(location.Rack.RoleID)
 			if err != nil {
 				util.Bail(err)
 			}

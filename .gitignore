@@ -6,3 +6,4 @@ release
 *.test
 vendor
 *.yml
+*.out

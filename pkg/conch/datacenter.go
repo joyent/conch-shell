@@ -56,8 +56,8 @@ func (c *Conch) DeleteDatacenter(id uuid.UUID) error {
 }
 
 // GetDatacenterRooms gets the global rooms assigned to a global datacenter
-func (c *Conch) GetDatacenterRooms(d Datacenter) ([]GlobalRoom, error) {
-	r := make([]GlobalRoom, 0)
+func (c *Conch) GetDatacenterRooms(d Datacenter) ([]Room, error) {
+	r := make([]Room, 0)
 	escaped := url.PathEscape(d.ID.String())
 	return r, c.get("/dc/"+escaped+"/rooms", &r)
 }

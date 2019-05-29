@@ -7,27 +7,21 @@
 package conch
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
 
-// GetGlobalRooms fetches a list of all rooms in the global domain
-func (c *Conch) GetGlobalRooms() ([]GlobalRoom, error) {
-	r := make([]GlobalRoom, 0)
+func (c *Conch) GetRooms() ([]Room, error) {
+	r := make([]Room, 0)
 	return r, c.get("/room", &r)
 }
 
-// GetGlobalRoom fetches a single room in the global domain, by its
-// UUID
-func (c *Conch) GetGlobalRoom(id fmt.Stringer) (r GlobalRoom, err error) {
+func (c *Conch) GetRoom(id uuid.UUID) (r Room, err error) {
 	return r, c.get("/room/"+url.PathEscape(id.String()), &r)
 }
 
-// SaveGlobalRoom creates or updates a room in the global domain,
-// based on the presence of an ID
-func (c *Conch) SaveGlobalRoom(r *GlobalRoom) error {
+func (c *Conch) SaveRoom(r *Room) error {
 	if uuid.Equal(r.DatacenterID, uuid.UUID{}) {
 		return ErrBadInput
 	}
@@ -53,14 +47,11 @@ func (c *Conch) SaveGlobalRoom(r *GlobalRoom) error {
 	}
 }
 
-// DeleteGlobalRoom deletes a room
-func (c *Conch) DeleteGlobalRoom(id fmt.Stringer) error {
+func (c *Conch) DeleteRoom(id uuid.UUID) error {
 	return c.httpDelete("/room/" + url.PathEscape(id.String()))
 }
 
-// GetGlobalRoomRacks retrieves the racks assigned to a room in the global
-// domain
-func (c *Conch) GetGlobalRoomRacks(r GlobalRoom) ([]GlobalRack, error) {
-	rs := make([]GlobalRack, 0)
+func (c *Conch) GetRoomRacks(r Room) ([]Rack, error) {
+	rs := make([]Rack, 0)
 	return rs, c.get("/room/"+url.PathEscape(r.ID.String())+"/racks", &rs)
 }

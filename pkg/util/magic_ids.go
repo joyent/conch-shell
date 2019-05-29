@@ -40,11 +40,11 @@ func MagicWorkspaceID(wat string) (id uuid.UUID, err error) {
 	return id, errors.New("Could not find workspace " + wat)
 }
 
-// MagicRackID takes a workspace UUID and a string and tries to find a valid
-// rack UUID. If the string is a UUID, it doesn't get checked further. If it's
-// not a UUID, we dig through GetWorkspaceRacks() looking for UUIDs that match
-// up to the first hyphen or where the name matches the string.
-func MagicRackID(workspace fmt.Stringer, wat string) (uuid.UUID, error) {
+// MagicWorkspaceRackID takes a workspace UUID and a string and tries to find a
+// valid rack UUID. If the string is a UUID, it doesn't get checked further. If
+// it's not a UUID, we dig through GetWorkspaceRacks() looking for UUIDs that
+// match up to the first hyphen or where the name matches the string.
+func MagicWorkspaceRackID(workspace fmt.Stringer, wat string) (uuid.UUID, error) {
 	id, err := uuid.FromString(wat)
 	if err == nil {
 		return id, err
@@ -66,19 +66,18 @@ func MagicRackID(workspace fmt.Stringer, wat string) (uuid.UUID, error) {
 	return id, errors.New("Could not find rack " + wat)
 }
 
-// MagicGlobalRackID takes a string and tries to find a valid global rack UUID.
+// MagicRackID takes a string and tries to find a valid global rack UUID.
 // If the string is a UUID, it doesn't get checked further. If it's not a UUID,
-// we dig through GetGlobalRacks() looking for UUIDs that match up to the first
+// we dig through GetRacks() looking for UUIDs that match up to the first
 // hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRackID(wat string) (uuid.UUID, error) {
+func MagicRackID(wat string) (uuid.UUID, error) {
 	id, err := uuid.FromString(wat)
 	if err == nil {
 		return id, err
 	}
 
 	// So, it's not a UUID. Let's try for a string name or partial UUID
-	racks, err := API.GetGlobalRacks()
+	racks, err := API.GetRacks()
 	if err != nil {
 		return id, err
 	}
@@ -206,19 +205,18 @@ func MagicDatacenterID(wat string) (uuid.UUID, error) {
 	return id, errors.New("Could not find datacenter " + wat)
 }
 
-// MagicGlobalRoomID takes a string and tries to find a valid global UUID.  If
+// MagicRoomID takes a string and tries to find a valid global UUID.  If
 // the string is a UUID, it doesn't get checked further.  If it's not a UUID,
-// we dig through GetGlobalRooms() looking for UUIDs that match up to the first
+// we dig through GetRooms() looking for UUIDs that match up to the first
 // hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRoomID(wat string) (uuid.UUID, error) {
+func MagicRoomID(wat string) (uuid.UUID, error) {
 	id, err := uuid.FromString(wat)
 	if err == nil {
 		return id, err
 	}
 
 	// So, it's not a UUID. Let's try for a partial UUID
-	ds, err := API.GetGlobalRooms()
+	ds, err := API.GetRooms()
 	if err != nil {
 		return id, err
 	}
@@ -233,18 +231,17 @@ func MagicGlobalRoomID(wat string) (uuid.UUID, error) {
 	return id, errors.New("Could not find room " + wat)
 }
 
-// MagicGlobalRackRoleID takes a string and tries to find a valid UUID. If the
+// MagicRackRoleID takes a string and tries to find a valid UUID. If the
 // string is a UUID, it doesn't get checked further. If not, we dig through
-// GetGlobalRackRoles() looking for UUIDs that match up to the first hyphen or
+// GetRackRoles() looking for UUIDs that match up to the first hyphen or
 // where the role name matches the string
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRackRoleID(wat string) (id uuid.UUID, err error) {
+func MagicRackRoleID(wat string) (id uuid.UUID, err error) {
 	id, err = uuid.FromString(wat)
 	if err == nil {
 		return id, err
 	}
 	// So, it's not a UUID. Let's try for a string name or partial UUID
-	ret, err := API.GetGlobalRackRoles()
+	ret, err := API.GetRackRoles()
 	if err != nil {
 		return id, err
 	}
@@ -259,19 +256,18 @@ func MagicGlobalRackRoleID(wat string) (id uuid.UUID, err error) {
 	return id, errors.New("Could not find rack role " + wat)
 }
 
-// MagicGlobalRackLayoutSlotID takes a string and tries to find a valid UUID.
+// MagicRackLayoutSlotID takes a string and tries to find a valid UUID.
 // If the string is a UUID, it doesn't get checked further.  If it's not a
-// UUID, we dig through GetGlobalRackLayoutSlots() looking for UUIDs that
+// UUID, we dig through GetRackLayoutSlots() looking for UUIDs that
 // match up to the first hyphen.
-// *NOTE*: This will fail if the user is not a global admin
-func MagicGlobalRackLayoutSlotID(wat string) (uuid.UUID, error) {
+func MagicRackLayoutSlotID(wat string) (uuid.UUID, error) {
 	id, err := uuid.FromString(wat)
 	if err == nil {
 		return id, err
 	}
 
 	// So, it's not a UUID. Let's try for a partial UUID
-	ds, err := API.GetGlobalRackLayoutSlots()
+	ds, err := API.GetRackLayoutSlots()
 	if err != nil {
 		return id, err
 	}

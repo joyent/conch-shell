@@ -32,102 +32,6 @@ var GLayoutUUID uuid.UUID
 
 // Init loads up the commands
 func Init(app *cli.Cli) {
-	app.Command(
-		"racks rks",
-		"Operate on all racks",
-		func(cmd *cli.Cmd) {
-			cmd.Before = util.BuildAPIAndVerifyLogin
-			cmd.Command(
-				"get",
-				"Get all racks",
-				rackGetAll,
-			)
-
-			cmd.Command(
-				"create",
-				"Create a rack",
-				rackCreate,
-			)
-		},
-	)
-
-	app.Command(
-		"rack rk",
-		"Operate on individual racks",
-		func(r *cli.Cmd) {
-			var rackIDStr = r.StringArg("ID", "", "The UUID of the rack")
-
-			r.Spec = "ID"
-			r.Before = func() {
-				util.BuildAPIAndVerifyLogin()
-				id, err := util.MagicGlobalRackID(*rackIDStr)
-				if err != nil {
-					util.Bail(err)
-				}
-				GRackUUID = id
-			}
-
-			r.Command(
-				"get",
-				"Get a rack",
-				rackGet,
-			)
-
-			r.Command(
-				"phase",
-				"Get the rack's phase",
-				rackPhaseGet,
-			)
-
-			r.Command(
-				"set",
-				"Change various settings on a rack",
-				func(cmd *cli.Cmd) {
-					cmd.Command(
-						"phase",
-						"Set a rack's phase",
-						rackPhaseSet,
-					)
-				},
-			)
-
-			r.Command(
-				"delete rm",
-				"Delete a rack",
-				rackDelete,
-			)
-
-			r.Command(
-				"update",
-				"Update a rack",
-				rackUpdate,
-			)
-
-			r.Command(
-				"layout",
-				"Commands for dealing with the rack's layout",
-				func(l *cli.Cmd) {
-					l.Command(
-						"get",
-						"Get the rack's layout",
-						rackLayout,
-					)
-
-					l.Command(
-						"import",
-						"Import a layout for this rack",
-						rackImportLayout,
-					)
-
-					l.Command(
-						"export",
-						"Export the layout for this rack",
-						rackExportLayout,
-					)
-				},
-			)
-		},
-	)
 
 	app.Command(
 		"global system",
@@ -226,7 +130,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRoomID(*roomIDStr)
+						id, err := util.MagicRoomID(*roomIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -287,7 +191,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRackID(*rackIDStr)
+						id, err := util.MagicRackID(*rackIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -365,7 +269,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRackRoleID(*roleIDStr)
+						id, err := util.MagicRackRoleID(*roleIDStr)
 						if err != nil {
 							util.Bail(err)
 						}
@@ -414,7 +318,7 @@ func Init(app *cli.Cli) {
 
 					r.Spec = "ID"
 					r.Before = func() {
-						id, err := util.MagicGlobalRackLayoutSlotID(*layoutIDStr)
+						id, err := util.MagicRackLayoutSlotID(*layoutIDStr)
 						if err != nil {
 							util.Bail(err)
 						}

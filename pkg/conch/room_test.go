@@ -15,30 +15,30 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func TestGlobalRoomErrors(t *testing.T) {
+func TestRoomErrors(t *testing.T) {
 	gock.Flush()
 	defer gock.Flush()
 
-	t.Run("GetGlobalRooms", func(t *testing.T) {
+	t.Run("GetRooms", func(t *testing.T) {
 		gock.New(API.BaseURL).Get("/room").Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalRooms()
+		ret, err := API.GetRooms()
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalRoom{})
+		st.Expect(t, ret, []conch.Room{})
 	})
 
-	t.Run("GetGlobalRoom", func(t *testing.T) {
+	t.Run("GetRoom", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Get("/room/" + id.String()).Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalRoom(id)
+		ret, err := API.GetRoom(id)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, conch.GlobalRoom{})
+		st.Expect(t, ret, conch.Room{})
 	})
 
-	t.Run("CreateGlobalRoom", func(t *testing.T) {
-		r := conch.GlobalRoom{
+	t.Run("CreateRoom", func(t *testing.T) {
+		r := conch.Room{
 			DatacenterID: uuid.NewV4(),
 			AZ:           "a",
 			Alias:        "l",
@@ -47,14 +47,14 @@ func TestGlobalRoomErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/room").Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalRoom(&r)
+		err := API.SaveRoom(&r)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("UpdateGlobalRoom", func(t *testing.T) {
+	t.Run("UpdateRoom", func(t *testing.T) {
 		id := uuid.NewV4()
 
-		r := conch.GlobalRoom{
+		r := conch.Room{
 			ID:           id,
 			DatacenterID: uuid.NewV4(),
 			AZ:           "a",
@@ -64,23 +64,23 @@ func TestGlobalRoomErrors(t *testing.T) {
 
 		gock.New(API.BaseURL).Post("/room/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.SaveGlobalRoom(&r)
+		err := API.SaveRoom(&r)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("DeleteGlobalRoom", func(t *testing.T) {
+	t.Run("DeleteRoom", func(t *testing.T) {
 		id := uuid.NewV4()
 
 		gock.New(API.BaseURL).Delete("/room/" + id.String()).Reply(400).JSON(ErrApi)
 
-		err := API.DeleteGlobalRoom(id)
+		err := API.DeleteRoom(id)
 		st.Expect(t, err, ErrApiUnpacked)
 	})
 
-	t.Run("GetGlobalRoomRacks", func(t *testing.T) {
+	t.Run("GetRoomRacks", func(t *testing.T) {
 		id := uuid.NewV4()
 
-		r := conch.GlobalRoom{
+		r := conch.Room{
 			ID:           id,
 			DatacenterID: uuid.NewV4(),
 			AZ:           "a",
@@ -91,9 +91,9 @@ func TestGlobalRoomErrors(t *testing.T) {
 		gock.New(API.BaseURL).Get("/room/" + id.String() + "/racks").
 			Reply(400).JSON(ErrApi)
 
-		ret, err := API.GetGlobalRoomRacks(r)
+		ret, err := API.GetRoomRacks(r)
 		st.Expect(t, err, ErrApiUnpacked)
-		st.Expect(t, ret, []conch.GlobalRack{})
+		st.Expect(t, ret, []conch.Rack{})
 	})
 
 }

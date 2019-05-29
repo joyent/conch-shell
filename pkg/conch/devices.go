@@ -45,9 +45,9 @@ func (c *Conch) GetExtendedDevice(serial string) (ed ExtendedDevice, err error) 
 
 	/***********/
 
-	var role GlobalRackRole
+	var role RackRole
 	if !d.Location.Rack.RoleID.IsZero() {
-		role, err = c.GetGlobalRackRole(d.Location.Rack.RoleID)
+		role, err = c.GetRackRole(d.Location.Rack.RoleID)
 		if err != nil {
 			return ed, err
 		}

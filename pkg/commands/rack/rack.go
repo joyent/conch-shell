@@ -4,10 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package global contains commands that operate on structures in the global
-// domain, rather than a workspace. API "global admin" access level is required
-// for these commands.
-package global
+package rack
 
 import (
 	"encoding/json"
@@ -424,5 +421,87 @@ func rackImportLayout(cmd *cli.Cmd) {
 			}
 		}
 
+	}
+}
+
+func rackPhaseGet(cmd *cli.Cmd) {
+	cmd.Action = func() {
+		phase, err := util.API.GetRackPhase(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+		fmt.Println(phase)
+	}
+}
+
+func rackPhaseSet(cmd *cli.Cmd) {
+	var (
+		valueArg   = cmd.StringArg("PHASE", "", "The desired phase")
+		devicesOpt = cmd.BoolOpt("devices-also", false, "Also set every device in the rack to the same phase")
+	)
+
+	cmd.Spec = "PHASE [OPTIONS]"
+	cmd.Action = func() {
+		err := util.API.SetRackPhase(
+			GRackUUID,
+			*valueArg,
+			*devicesOpt,
+		)
+		if err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func rackAssign(app *cli.Cmd) {
+	var (
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the data source. '-' indicates STDIN")
+	)
+	app.Spec = "FILE"
+	app.Action = func() {
+		var b []byte
+		var err error
+
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+		if len(string(b)) <= 1 {
+			util.Bail(errors.New("no data provided"))
+		}
+
+		from_user := make(conch.ResponseRackAssignments, 0)
+		if err := json.Unmarshal(b, &from_user); err != nil {
+			util.Bail(err)
+		}
+
+		up := make(conch.RequestRackAssignmentUpdates, 0)
+		for _, v := range from_user {
+			up = append(up, conch.RequestRackAssignmentUpdate{
+				DeviceID:       v.DeviceID,
+				DeviceAssetTag: v.DeviceAssetTag,
+				RackUnitStart:  v.RackUnitStart,
+			})
+		}
+
+		if err := util.API.AssignDevicesToRackSlots(GRackUUID, up); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func rackAssignments(app *cli.Cmd) {
+	app.Action = func() {
+		a, err := util.API.GetRackAssignments(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		sort.Sort(a)
+		util.JSONOutIndent(a)
 	}
 }

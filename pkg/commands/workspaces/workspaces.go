@@ -550,7 +550,6 @@ func assignRack(app *cli.Cmd) {
 		if err := json.Unmarshal(b, &a); err != nil {
 			util.Bail(err)
 		}
-		fmt.Println(a)
 
 		keepers := make(rackAssignments, 0)
 		for _, slot := range a {
@@ -569,7 +568,7 @@ func assignRack(app *cli.Cmd) {
 			assignments[keeper.DeviceID] = keeper.RackUnitStart
 		}
 
-		if err := util.API.AssignDevicesToRackSlots(
+		if err := util.API.AssignWorkspaceDevicesToRackSlots(
 			WorkspaceUUID,
 			RackUUID,
 			assignments,
