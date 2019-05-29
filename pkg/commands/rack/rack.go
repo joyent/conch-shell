@@ -452,3 +452,56 @@ func rackPhaseSet(cmd *cli.Cmd) {
 		}
 	}
 }
+
+func rackAssign(app *cli.Cmd) {
+	var (
+		filePathArg = app.StringArg("FILE", "-", "Path to a JSON file to use as the data source. '-' indicates STDIN")
+	)
+	app.Spec = "FILE"
+	app.Action = func() {
+		var b []byte
+		var err error
+
+		if *filePathArg == "-" {
+			b, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			b, err = ioutil.ReadFile(*filePathArg)
+		}
+		if err != nil {
+			util.Bail(err)
+		}
+		if len(string(b)) <= 1 {
+			util.Bail(errors.New("no data provided"))
+		}
+
+		from_user := make(conch.ResponseRackAssignments, 0)
+		if err := json.Unmarshal(b, &from_user); err != nil {
+			util.Bail(err)
+		}
+
+		up := make(conch.RequestRackAssignmentUpdates, 0)
+		for _, v := range from_user {
+			up = append(up, conch.RequestRackAssignmentUpdate{
+				DeviceID:       v.DeviceID,
+				DeviceAssetTag: v.DeviceAssetTag,
+				RackUnitStart:  v.RackUnitStart,
+			})
+		}
+
+		if err := util.API.AssignDevicesToRackSlots(GRackUUID, up); err != nil {
+			util.Bail(err)
+		}
+	}
+}
+
+func rackAssignments(app *cli.Cmd) {
+	app.Action = func() {
+		a, err := util.API.GetRackAssignments(GRackUUID)
+		if err != nil {
+			util.Bail(err)
+		}
+
+		sort.Sort(a)
+		util.JSONOutIndent(a)
+	}
+}

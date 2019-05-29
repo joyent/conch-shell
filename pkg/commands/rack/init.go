@@ -111,6 +111,19 @@ func Init(app *cli.Cli) {
 					)
 				},
 			)
+
+			r.Command(
+				"assign",
+				"Assign devices to slots in this rack using JSON artifacts",
+				rackAssign,
+			)
+
+			r.Command(
+				"assignments",
+				"Dump a JSON extract of the devices assigned to this rack's slots. Intended for use with 'assign'",
+				rackAssignments,
+			)
+
 		},
 	)
 
