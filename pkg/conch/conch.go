@@ -32,7 +32,7 @@ type omit bool
 
 const (
 	// MinimumAPIVersion sets the earliest API version that we support.
-	MinimumAPIVersion  = "2.27.0"
+	MinimumAPIVersion  = "2.30.0"
 	BreakingAPIVersion = "3.0.0"
 )
 
