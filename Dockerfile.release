@@ -16,6 +16,8 @@ RUN chown -R $UID /home/app
 
 USER $UID
 
+ENV HOME "/home/app"
+
 WORKDIR "${GOPATH}/src/github.com/joyent/"
 RUN git clone --branch $BRANCH https://github.com/joyent/conch-shell conch-shell
 
@@ -26,6 +28,8 @@ RUN rm -rf vendor
 
 RUN go get honnef.co/go/tools/cmd/staticcheck
 
+RUN id
+RUN env
 
 ENTRYPOINT ["make" ]
 CMD [ "release" ]
