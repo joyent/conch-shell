@@ -33,6 +33,6 @@ docker run --rm \
 	--name ${BUILDER}_${BUILDNUMBER} \
 	-u $(id -u):$(id -g) \
 	--mount type=bind,source="${PWD}/release",target="/home/app/go/src/github.com/joyent/conch-shell/release" \
-	${IMAGE_NAME};
-
+	${IMAGE_NAME} \
+&& \
 docker rmi ${IMAGE_NAME}
