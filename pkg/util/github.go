@@ -22,13 +22,14 @@ const GhRepo = "conch-shell"
 
 // GithubRelease represents a 'release' for a Github project
 type GithubRelease struct {
-	URL     string         `json:"html_url"`
-	TagName string         `json:"tag_name"`
-	SemVer  semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
-	Body    string         `json:"body"`
-	Name    string         `json:"name"`
-	Assets  []GithubAsset  `json:"assets"`
-	Upgrade bool           `json:"-"`
+	URL        string         `json:"html_url"`
+	TagName    string         `json:"tag_name"`
+	SemVer     semver.Version `json:"-"` // Will be set to 0.0.0 if no releases are found
+	Body       string         `json:"body"`
+	Name       string         `json:"name"`
+	Assets     []GithubAsset  `json:"assets"`
+	PreRelease bool           `json:"prerelease"`
+	Upgrade    bool           `json:"-"`
 }
 
 type GithubReleases []GithubRelease
@@ -95,6 +96,9 @@ func LatestGithubRelease() (gh GithubRelease, err error) {
 	sort.Sort(releases)
 
 	for _, r := range releases {
+		if r.PreRelease {
+			continue
+		}
 		if r.TagName == "" {
 			continue
 		}
@@ -135,6 +139,9 @@ func GithubReleasesSince(start semver.Version) GithubReleases {
 	sort.Sort(releases)
 
 	for _, r := range releases {
+		if r.PreRelease {
+			continue
+		}
 		if r.TagName == "" {
 			continue
 		}
