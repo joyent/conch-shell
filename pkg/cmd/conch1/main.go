@@ -20,8 +20,6 @@ import (
 )
 
 func Init() *cli.Cli {
-	util.UserAgent = fmt.Sprintf("conch shell v%s-%s", util.Version, util.GitRev)
-
 	app := cli.App("conch", "Command line interface for Conch")
 
 	app.Version("version", util.Version)
@@ -70,6 +68,13 @@ func Init() *cli.Cli {
 			EnvVar: "CONCH_URL",
 		})
 
+		privacyOpt = app.Bool(cli.BoolOpt{
+			Name:   "private",
+			Value:  false,
+			Desc:   "Redact information (like your user name and uid) from data sent to the API server",
+			EnvVar: "CONCH_PRIVATE",
+		})
+
 		useJSON         = app.BoolOpt("json j", false, "Output JSON")
 		configFile      = app.StringOpt("config c", "~/.conch.json", "Path to config file")
 		noVersion       = app.BoolOpt("no-version-check", false, "Does nothing. Included for backwards compatibility.") // TODO(sungo): remove back compat
@@ -86,6 +91,10 @@ func Init() *cli.Cli {
 			util.JSON = true
 		} else {
 			util.JSON = false
+		}
+
+		if *privacyOpt {
+			util.FlagsPrivacy = "1"
 		}
 
 		if *noVersion {

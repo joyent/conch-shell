@@ -24,11 +24,11 @@ const (
 
 // Conch contains auth and configuration data
 type Conch struct {
-	BaseURL string
-	UA      string
-	Debug   bool
-	Trace   bool
-	Token   string
+	BaseURL   string
+	UserAgent map[string]string
+	Debug     bool
+	Trace     bool
+	Token     string
 
 	HTTPClient *http.Client
 }

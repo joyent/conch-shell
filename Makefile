@@ -59,7 +59,8 @@ RELEASES   := $(foreach bin,$(RELEASE_BINARIES),release/$(bin))
 
 GIT_REV    := $(shell git describe --always --abbrev --dirty --long)
 FLAGS_PATH := github.com/joyent/conch-shell/pkg/util
-LD_FLAGS   := -ldflags="-X github.com/joyent/conch-shell/pkg/config.ObfuscationKey=${TOKEN_OBFUSCATION_KEY} -X $(FLAGS_PATH).Version=$(VERSION) -X $(FLAGS_PATH).GitRev=$(GIT_REV) -X $(FLAGS_PATH).FlagsDisableApiVersionCheck=$(DISABLE_API_VERSION_CHECK) -X $(FLAGS_PATH).FlagsDisableApiTokenCRUD=$(DISABLE_API_TOKEN_CRUD) -X $(FLAGS_PATH).FlagsNoAdmin=$(DISABLE_ADMIN_FUNCTIONS)"
+LIB_FLAGS_PATH = github.com/joyent/conch-shell/pkg/conch
+LD_FLAGS   := -ldflags="-X github.com/joyent/conch-shell/pkg/config.ObfuscationKey=${TOKEN_OBFUSCATION_KEY} -X $(FLAGS_PATH).Version=$(VERSION) -X $(FLAGS_PATH).GitRev=$(GIT_REV) -X $(FLAGS_PATH).FlagsDisableApiVersionCheck=$(DISABLE_API_VERSION_CHECK) -X $(FLAGS_PATH).FlagsDisableApiTokenCRUD=$(DISABLE_API_TOKEN_CRUD) -X $(FLAGS_PATH).FlagsNoAdmin=$(DISABLE_ADMIN_FUNCTIONS) -X $(LIB_FLAGS_PATH).VersionStr=$(VERSION)"
 BUILD      := CGO_ENABLED=0 go build $(LD_FLAGS) 
 
 ####

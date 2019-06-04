@@ -12,6 +12,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
+	"runtime"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -25,9 +27,6 @@ import (
 )
 
 var (
-	// UserAgent will be used as the http user agent when making API calls
-	UserAgent string
-
 	// JSON tells us if we should output JSON
 	JSON bool
 
@@ -61,6 +60,7 @@ var (
 	GitRev     string
 	SemVersion semver.Version
 
+	FlagsPrivacy                string
 	FlagsDisableApiVersionCheck string // Used in shell development
 	FlagsDisableApiTokenCRUD    string // Useful for preventing automations from creating and deleting tokens
 	FlagsNoAdmin                string // Useful for preventing automations from accessing admin commands
@@ -77,6 +77,10 @@ func DisableApiTokenCRUD() bool {
 
 func NoAdmin() bool {
 	return FlagsNoAdmin != "0"
+}
+
+func Privacy() bool {
+	return FlagsPrivacy != "0"
 }
 
 func init() {
@@ -128,14 +132,43 @@ func WriteConfigForce() {
 	}
 }
 
+func buildUserAgent() map[string]string {
+	uid := "unknown"
+	userName := "unknown"
+
+	if Privacy() {
+		uid = "REDACTED"
+		userName = "REDACTED"
+	} else if current, err := user.Current(); err == nil {
+		userName = current.Username
+		uid = current.Uid
+	}
+
+	agentBits := make(map[string]string)
+	agent := fmt.Sprintf(
+		"%s (%s; %s; %s; %s (%s);)",
+		Version,
+		GitRev,
+		runtime.GOOS,
+		runtime.GOARCH,
+		userName,
+		uid,
+	)
+
+	agentBits["ConchShell"] = agent
+	return agentBits
+}
+
 // BuildAPI builds a Conch object
 func BuildAPI() {
+
 	if IgnoreConfig {
 		API = &conch.Conch{
-			BaseURL: BaseURL,
-			Debug:   Debug,
-			Trace:   Trace,
-			Token:   Token,
+			BaseURL:   BaseURL,
+			Debug:     Debug,
+			Trace:     Trace,
+			Token:     Token,
+			UserAgent: buildUserAgent(),
 		}
 
 	} else {
@@ -144,15 +177,12 @@ func BuildAPI() {
 		}
 
 		API = &conch.Conch{
-			BaseURL: ActiveProfile.BaseURL,
-			Token:   string(ActiveProfile.Token),
-			Debug:   Debug,
-			Trace:   Trace,
+			BaseURL:   ActiveProfile.BaseURL,
+			Token:     string(ActiveProfile.Token),
+			Debug:     Debug,
+			Trace:     Trace,
+			UserAgent: buildUserAgent(),
 		}
-	}
-
-	if UserAgent != "" {
-		API.UA = UserAgent
 	}
 
 	version, err := API.GetVersion()

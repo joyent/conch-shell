@@ -7,6 +7,12 @@
 // Package conch provides access to the Conch API
 package conch
 
+import (
+	"strings"
+
+	"github.com/blang/semver"
+)
+
 /*
 This is a bit of trickery used elsewhere to help make it clear that we are
 omitting fields from json output.
@@ -35,6 +41,24 @@ const (
 	MinimumAPIVersion  = "2.30.0"
 	BreakingAPIVersion = "3.0.0"
 )
+
+var (
+	VersionStr = "0.0.0" // Filled in by the build process
+	Version    semver.Version
+)
+
+func init() {
+	// This removes a "v" prefix, and anything after a dash
+	// For example, pass in v2.99.10-abcde-dirty and get back a semver containing
+	// 2.29.10
+	// Why? Git and Semver differ in their notions of what those extra bits mean.
+	// In Git, they mean "v2.99.10, plus some other stuff that happend". In semver,
+	// they indicate that this is a prerelease of v2.99.10. Obviously this screws
+	// up comparisions. This function lets us clean that stuff out so we can get a
+	// clean comparison
+	bits := strings.Split(strings.TrimLeft(VersionStr, "v"), "-")
+	Version = semver.MustParse(bits[0])
+}
 
 // GetVersion returns the API's version string, via /version
 func (c *Conch) GetVersion() (string, error) {

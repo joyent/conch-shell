@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	defaultUA      = "go-conch"
 	defaultBaseURL = "https://conch.joyent.us"
 )
 
@@ -35,8 +34,11 @@ var defaultTransport = &http.Transport{
 }
 
 func (c *Conch) sling() *sling.Sling {
-	if c.UA == "" {
-		c.UA = defaultUA
+	userAgent := fmt.Sprintf("Conch/%s", VersionStr)
+	if len(c.UserAgent) > 0 {
+		for k, v := range c.UserAgent {
+			userAgent = fmt.Sprintf("%s %s/%s", userAgent, k, v)
+		}
 	}
 
 	if c.BaseURL == "" {
@@ -52,7 +54,7 @@ func (c *Conch) sling() *sling.Sling {
 	s := sling.New().
 		Client(c.HTTPClient).
 		Base(c.BaseURL).
-		Set("User-Agent", c.UA)
+		Set("User-Agent", userAgent)
 
 	if c.Token != "" {
 		s = s.Set("Authorization", "Bearer "+c.Token)

@@ -86,7 +86,7 @@ func LatestGithubRelease() (gh GithubRelease, err error) {
 	)
 
 	_, err = sling.New().
-		Set("User-Agent", UserAgent).
+		Set("User-Agent", fmt.Sprintf("Conch/%s", Version)).
 		Get(url).Receive(&releases, nil)
 
 	if err != nil {
@@ -129,7 +129,7 @@ func GithubReleasesSince(start semver.Version) GithubReleases {
 	)
 
 	_, err := sling.New().
-		Set("User-Agent", UserAgent).
+		Set("User-Agent", fmt.Sprintf("Conch/%s", Version)).
 		Get(url).Receive(&releases, nil)
 
 	if err != nil {
