@@ -9,7 +9,6 @@ package conch
 import (
 	"encoding/json"
 	"net/http"
-	"net/http/cookiejar"
 	"strings"
 	"time"
 
@@ -29,25 +28,9 @@ type Conch struct {
 	UA      string
 	Debug   bool
 	Trace   bool
-	JWT     ConchJWT
-	Token   string // replacement for JWT
+	Token   string
 
 	HTTPClient *http.Client
-	CookieJar  *cookiejar.Jar
-}
-
-type ConchJWT struct {
-	Expires time.Time
-
-	Header map[string]interface{}
-	Claims map[string]interface{}
-
-	Token     string
-	Signature string
-}
-
-func (j *ConchJWT) FullToken() string {
-	return j.Token + "." + j.Signature
 }
 
 type Datacenter struct {

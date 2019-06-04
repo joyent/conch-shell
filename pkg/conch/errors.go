@@ -11,9 +11,6 @@ import (
 )
 
 var (
-	// ErrLoginFailed indicates that the login process failed for unspecified
-	// reasons
-	ErrLoginFailed = errors.New("login failed")
 
 	// ErrHTTPNotOk indicates that the API returned a non-200 status code that
 	// we don't know how to handle
@@ -39,11 +36,4 @@ var (
 
 	// ErrForbidden indicates that the API server returned a 403
 	ErrForbidden = errors.New("access to this data is forbidden")
-
-	// ErrMustChangePassword is used to signal that the user must change their
-	// password before proceeding. Typically, the existing auth credentials
-	// will continue to work for a few minutes.
-	ErrMustChangePassword = errors.New("user must change their password")
-
-	ErrMalformedJWT = errors.New("server sent a malformed auth token")
 )

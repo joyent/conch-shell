@@ -9,10 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"time"
 
-	"github.com/Bowery/prompt"
 	"github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
@@ -26,15 +23,13 @@ func newProfile(app *cli.Cmd) {
 		overwriteOpt = app.BoolOpt("overwrite force", false, "Overwrite any profile with a matching name")
 		workspaceOpt = app.StringOpt("workspace ws", "", "Default workspace")
 
-		tokenOpt    = app.StringOpt("token", "", "Use an API token instead of a password")
-		userOpt     = app.StringOpt("user", "", "API User name")
-		passwordOpt = app.StringOpt("password pass", "", "API Password")
+		tokenOpt = app.StringOpt("token", "", "The API token, generally provided by the web UI")
 
 		envOpt = app.StringOpt("environment env", "production", "Specify the environment: production, staging, development (provide URL in the --url parameter)")
 		urlOpt = app.StringOpt("url", "", "If the environment is 'development', this defines the API URL. Ignored otherwise")
 	)
 
-	app.Spec = "--name [OPTIONS]"
+	app.Spec = "--name --token [OPTIONS]"
 
 	app.Action = func() {
 		var err error
@@ -75,46 +70,13 @@ func newProfile(app *cli.Cmd) {
 			BaseURL: p.BaseURL,
 		}
 
-		if util.UserAgent != "" {
-			util.API.UA = util.UserAgent
-		}
-
 		/***/
 
-		if *tokenOpt != "" {
-			p.Token = config.Token(*tokenOpt)
-			util.API.Token = *tokenOpt
+		p.Token = config.Token(*tokenOpt)
+		util.API.Token = *tokenOpt
 
-			if ok, err := util.API.VerifyToken(); !ok {
-				util.Bail(err)
-			}
-
-		} else {
-			if *userOpt == "" {
-				util.Bail(errors.New("please provide a user name"))
-			}
-			p.User = *userOpt
-
-			password := *passwordOpt
-			if password == "" {
-				s, err := prompt.Password("Password:")
-				if err != nil {
-					util.Bail(err)
-				}
-
-				password = s
-			}
-
-			if err := util.API.Login(p.User, password); err != nil {
-				if util.JSON || err != conch.ErrMustChangePassword {
-					util.Bail(err)
-				}
-				util.ActiveProfile = p
-				util.InteractiveForcePasswordChange()
-			}
-
-			p.JWT = util.API.JWT
-			p.Expires = p.JWT.Expires
+		if ok, err := util.API.VerifyToken(); !ok {
+			util.Bail(err)
 		}
 
 		if *workspaceOpt == "" {
@@ -195,7 +157,6 @@ func listProfiles(app *cli.Cmd) {
 			"User",
 			"Workspace Name",
 			"API URL",
-			"Expires",
 		})
 
 		for _, prof := range util.Config.Profiles {
@@ -214,18 +175,12 @@ func listProfiles(app *cli.Cmd) {
 				}
 			}
 
-			expires := ""
-			if !prof.JWT.Expires.IsZero() {
-				expires = util.TimeStr(prof.JWT.Expires)
-			}
-
 			table.Append([]string{
 				active,
 				prof.Name,
 				prof.User,
 				workspaceName,
 				prof.BaseURL,
-				expires,
 			})
 		}
 		table.Render()
@@ -349,87 +304,6 @@ func revokeJWT(app *cli.Cmd) {
 	}
 }
 
-func relogin(app *cli.Cmd) {
-	var (
-		passwordOpt = app.StringOpt("password pass", "", "API Password")
-		forceOpt    = app.BoolOpt("force", false, "If your profile uses a token, this option will be required since the command will eliminate the token from the config")
-	)
-
-	app.Action = func() {
-		if util.ActiveProfile == nil {
-			util.Bail(errors.New("there is no active profile. Please use 'profile set active' to mark a profile as active"))
-		}
-
-		if util.ActiveProfile.Token != "" {
-			if !*forceOpt {
-				util.Bail(errors.New("the current profile uses an API token. Running 'relogin' will irrevocably remove the token from the shell's configuration. Use --force to perform this destructive action"))
-			}
-
-		}
-		if util.ActiveProfile.User == "" {
-			util.Bail(errors.New("the profile lacks a user name, likely because it is token based. cannot continue"))
-		}
-
-		util.BuildAPI()
-
-		password := *passwordOpt
-
-		if password == "" {
-			s, err := prompt.Password("Password:")
-			if err != nil {
-				util.Bail(err)
-			}
-
-			password = s
-		}
-
-		err := util.API.Login(util.ActiveProfile.User, password)
-		if err != nil {
-			if util.JSON || err != conch.ErrMustChangePassword {
-				util.Bail(err)
-			}
-			util.InteractiveForcePasswordChange()
-		}
-
-		util.ActiveProfile.JWT = util.API.JWT
-		util.ActiveProfile.Expires = util.API.JWT.Expires
-		util.ActiveProfile.Token = ""
-		util.Token = ""
-		util.WriteConfigForce()
-
-		if !util.JSON {
-			fmt.Printf("Done. Config written to %s\n", util.Config.Path)
-		}
-	}
-}
-
-func changePassword(app *cli.Cmd) {
-	var (
-		passwordOpt  = app.StringOpt("password pass", "", "Account password")
-		revokeTokens = app.BoolOpt("purge-tokens", false, "Also purge API tokens")
-	)
-
-	app.Action = func() {
-		util.BuildAPI()
-
-		password := *passwordOpt
-
-		if password == "" {
-			util.InteractiveForcePasswordChange()
-		} else {
-			err := util.IsPasswordSane(password, nil)
-			if err != nil {
-				util.Bail(err)
-			}
-
-			if err := util.API.ChangeMyPassword(password, *revokeTokens); err != nil {
-				util.Bail(err)
-			}
-		}
-		util.WriteConfigForce()
-	}
-}
-
 func setToken(cmd *cli.Cmd) {
 	var tokenArg = cmd.StringArg("TOKEN", "", "An API token")
 	cmd.Spec = "TOKEN"
@@ -442,49 +316,7 @@ func setToken(cmd *cli.Cmd) {
 		util.ActiveProfile.Token = config.Token(*tokenArg)
 		util.Token = *tokenArg
 
-		util.ActiveProfile.JWT = conch.ConchJWT{}
-
 		util.WriteConfigForce()
 	}
 
-}
-
-func upgradeToToken(cmd *cli.Cmd) {
-	var forceOpt = cmd.BoolOpt("force", false, "Generate a new token, even if the current profile already uses one")
-	cmd.Action = func() {
-		if util.Token != "" && !*forceOpt {
-			util.Bail(errors.New("this profile already uses a token"))
-			return
-		}
-
-		hostname, err := os.Hostname()
-
-		if err != nil {
-			hostname = "unknown"
-		}
-
-		uid := os.Getuid()
-
-		epoch := time.Now().Unix()
-		id := fmt.Sprintf("%d@%s || %d", uid, hostname, epoch)
-
-		util.BuildAPI()
-
-		token, err := util.API.CreateMyToken(id)
-		if err != nil {
-			util.Bail(err)
-		}
-
-		util.ActiveProfile.Token = config.Token(token.Token)
-		util.Token = token.Token
-
-		util.ActiveProfile.JWT = conch.ConchJWT{}
-
-		util.WriteConfigForce()
-
-		if !util.JSON {
-			fmt.Printf("Created a token named '%s' and will now use it for this profile\n", id)
-
-		}
-	}
 }

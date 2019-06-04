@@ -39,12 +39,6 @@ func Init(app *cli.Cli) {
 			)
 
 			cmd.Command(
-				"change-password",
-				"Change the password associated with this profile",
-				changePassword,
-			)
-
-			cmd.Command(
 				"set",
 				"Change profile settings",
 				func(cmd *cli.Cmd) {
@@ -66,18 +60,6 @@ func Init(app *cli.Cli) {
 						setToken,
 					)
 				},
-			)
-
-			cmd.Command(
-				"upgrade",
-				"Upgrade this profile to use API tokens. This will generate a specific API token for this instance which will *not* be displayed or otherwise accessible",
-				upgradeToToken,
-			)
-
-			cmd.Command(
-				"relogin",
-				"Log in again, preserving all other profile data",
-				relogin,
 			)
 
 			if !util.DisableApiTokenCRUD() {

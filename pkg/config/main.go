@@ -9,15 +9,12 @@
 package config
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"time"
 
-	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/config/obfuscate"
 )
@@ -76,15 +73,13 @@ func (t *Token) UnmarshalJSON(b []byte) error {
 // ConchProfile is an individual environment, consisting of login data, API
 // settings, and an optional default workspace
 type ConchProfile struct {
-	Name          string         `json:"name"`
-	User          string         `json:"user"`
-	WorkspaceUUID uuid.UUID      `json:"workspace_id"`
-	WorkspaceName string         `json:"workspace_name"`
-	BaseURL       string         `json:"api_url"`
-	Active        bool           `json:"active"`
-	JWT           conch.ConchJWT `json:"jwt"`               // TODO(sungo): DEPRECATED
-	Expires       time.Time      `json:"expires,omitempty"` // TODO(sungo): DEPRECATED
-	Token         Token          `json:"token"`
+	Name          string    `json:"name"`
+	User          string    `json:"user"`
+	WorkspaceUUID uuid.UUID `json:"workspace_id"`
+	WorkspaceName string    `json:"workspace_name"`
+	BaseURL       string    `json:"api_url"`
+	Active        bool      `json:"active"`
+	Token         Token     `json:"token"`
 }
 
 // New provides an initialized struct with default values geared towards a
@@ -102,87 +97,15 @@ func New() (c *ConchConfig) {
 // NewFromJSON unmarshals a JSON blob into a ConchConfig struct
 func NewFromJSON(j string) (c *ConchConfig, err error) {
 
-	// Keeping all these structures local because they're old, crufty, and
-	// there's no need to pollute the global space with this noise
-	type conchProfileTransition struct {
-		Name          string    `json:"name"`
-		User          string    `json:"user"`
-		Session       string    `json:"session,omitempty"`
-		WorkspaceUUID uuid.UUID `json:"workspace_id"`
-		WorkspaceName string    `json:"workspace_name"`
-		BaseURL       string    `json:"api_url"`
-		Active        bool      `json:"active"`
-		JWT           string    `json:"jwt"`
-		Expires       int64     `json:"expires,omitempty"`
-	}
-
-	type conchConfigTransition struct {
-		Path     string                             `json:"path"`
-		Profiles map[string]*conchProfileTransition `json:"profiles"`
-	}
-
-	ct := &conchConfigTransition{
-		Path:     "~/.conch.json",
-		Profiles: make(map[string]*conchProfileTransition),
-	}
-
 	c = New()
 
-	// First we see if the JSON parses as the old profile structure
-	err = json.Unmarshal([]byte(j), ct)
-
+	err = json.Unmarshal([]byte(j), c)
 	if err != nil {
-		// Well, that didn't work. Let's try again with the current structure
-		err = json.Unmarshal([]byte(j), c)
-		if err != nil {
-			// That didn't work either. Not much we can do except bail
-			return c, err
-		}
-
-		// Great. We have a current profile
-		if c.Profiles == nil {
-			// Except we don't have any profiles
-			c.Profiles = make(map[string]*ConchProfile)
-		}
-
-		// If we have a token, zero out the old JWT structure because who cares
-		// about that if we have a token
-		for _, profile := range c.Profiles {
-			if string(profile.Token) != "" {
-				profile.JWT = conch.ConchJWT{}
-			}
-		}
-
-		return c, nil
+		return c, err
 	}
 
-	// Oh joy. We have old data.
-	//
-	// This mostly just pulls apart the old JWT string into a fancy structure.
-	// This will also be totally replaced by the Token string which is... well,
-	// it's a JWT string. Circle of life, I guess. Or something.
-	for _, p := range ct.Profiles {
-
-		jwt := conch.ConchJWT{}
-
-		bits := strings.Split(p.JWT, ".")
-		if len(bits) == 3 {
-			token := bits[0] + "." + bits[1]
-			sig := bits[2]
-			jwt, _ = parseJWT(token, sig)
-		}
-
-		pNew := &ConchProfile{
-			Name:          p.Name,
-			User:          p.User,
-			WorkspaceUUID: p.WorkspaceUUID,
-			WorkspaceName: p.WorkspaceName,
-			BaseURL:       p.BaseURL,
-			Active:        p.Active,
-			JWT:           jwt,
-			Expires:       time.Unix(p.Expires, 0),
-		}
-		c.Profiles[pNew.Name] = pNew
+	if c.Profiles == nil {
+		c.Profiles = make(map[string]*ConchProfile)
 	}
 
 	return c, nil
@@ -227,48 +150,4 @@ func (c *ConchConfig) SerializeToFile(path string) (err error) {
 
 	err = ioutil.WriteFile(path, j, 0644)
 	return err
-}
-
-// BUG(sungo): entirely for config backcompat
-func decodeJWTsegment(seg string) (map[string]interface{}, error) {
-	var payload map[string]interface{}
-
-	b, err := base64.RawURLEncoding.DecodeString(seg)
-	if err != nil {
-		return payload, err
-	}
-
-	err = json.Unmarshal(b, &payload)
-
-	return payload, err
-}
-
-// BUG(sungo): entirely for config backcompat
-func parseJWT(token string, signature string) (conch.ConchJWT, error) {
-	var jwt conch.ConchJWT
-	var err error
-
-	jwt.Token = token
-	jwt.Signature = signature
-
-	bits := strings.Split(token, ".")
-	if len(bits) != 2 {
-		return jwt, conch.ErrMalformedJWT
-	}
-
-	jwt.Header, err = decodeJWTsegment(bits[0])
-	if err != nil {
-		return jwt, err
-	}
-
-	jwt.Claims, err = decodeJWTsegment(bits[1])
-	if err != nil {
-		return jwt, err
-	}
-
-	if val, ok := jwt.Claims["exp"]; ok {
-		jwt.Expires = time.Unix(int64(val.(float64)), 0)
-	}
-
-	return jwt, nil
 }

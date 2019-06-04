@@ -49,7 +49,6 @@ func (c *Conch) RevokeMyTokensAndLogins() error {
 		return err
 	}
 
-	c.JWT = ConchJWT{}
 	return nil
 }
 
@@ -107,7 +106,7 @@ func (c *Conch) DeleteUserSetting(name string) error {
 	return c.httpDelete("/user/me/settings/" + url.PathEscape(name))
 }
 
-// DeleteUser deletes a user and, optionally, clears their JWT credentials
+// DeleteUser deletes a user and, optionally, clears their API tokens
 func (c *Conch) DeleteUser(emailAddress string, clearTokens bool) error {
 	url := "/user/email=" + url.PathEscape(emailAddress)
 

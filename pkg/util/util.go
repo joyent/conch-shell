@@ -16,7 +16,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Bowery/prompt"
 	"github.com/blang/semver"
 	"github.com/davecgh/go-spew/spew"
 	cli "github.com/jawher/mow.cli"
@@ -102,20 +101,14 @@ func TimeStr(t time.Time) string {
 func BuildAPIAndVerifyLogin() {
 	BuildAPI()
 
-	if Token != "" {
-		ok, err := API.VerifyToken()
-		if !ok {
+	ok, err := API.VerifyToken()
+	if !ok {
+		if err == conch.ErrBadInput {
+			Bail(errors.New("no API token found"))
+		} else {
 			Bail(err)
 		}
-		return
 	}
-
-	if err := API.VerifyJwtLogin(RefreshTokenTime, false); err != nil {
-		Bail(err)
-	}
-
-	ActiveProfile.JWT = API.JWT
-	WriteConfig()
 }
 
 // WriteConfig serializes the Config struct to disk
@@ -152,7 +145,6 @@ func BuildAPI() {
 
 		API = &conch.Conch{
 			BaseURL: ActiveProfile.BaseURL,
-			JWT:     ActiveProfile.JWT,
 			Token:   string(ActiveProfile.Token),
 			Debug:   Debug,
 			Trace:   Trace,
@@ -221,12 +213,6 @@ func Bail(err error) {
 		} else {
 			msg = err.Error() + " -- Running 'profile relogin' might resolve this"
 		}
-
-	case conch.ErrMalformedJWT:
-		msg = "The server sent a malformed auth token. Please contact the Conch team"
-
-	case conch.ErrLoginFailed:
-		msg = "Something unexpected happened during authentication. Please run with --debug and contact the Conch team"
 
 	default:
 		msg = err.Error()
@@ -417,44 +403,6 @@ func IsPasswordSane(password string, profile *config.ConchProfile) error {
 		}
 	}
 	return nil
-}
-
-// InteractiveForcePasswordChange is an abstraction for the process of
-// prompting a user for a new password, validating it, and issuing the API
-// calls to execute the change
-func InteractiveForcePasswordChange() {
-	fmt.Println("You must change your password to continue.")
-	fmt.Println("The new password must:")
-	fmt.Println("  * Be at least 12 characters long")
-	fmt.Println("  * Cannot match the user name or email address on the account")
-	fmt.Println()
-
-	var password string
-	for {
-		s, err := prompt.Password("New Password:")
-		if err != nil {
-			Bail(err)
-		}
-		err = IsPasswordSane(s, ActiveProfile)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			password = s
-			break
-		}
-
-	}
-	if err := API.ChangeMyPassword(password, false); err != nil {
-		Bail(err)
-	}
-
-	if err := API.Login(ActiveProfile.User, password); err != nil {
-		Bail(err)
-	}
-
-	ActiveProfile.JWT = API.JWT
-
-	WriteConfigForce()
 }
 
 // DDP pretty prints a structure to stderr. "Deep Data Printer"
