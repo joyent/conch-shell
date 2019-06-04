@@ -26,10 +26,6 @@
 
 
 [[constraint]]
-  name = "github.com/Bowery/prompt"
-  revision = "8a1d5376df1cbec3468f2138fecc44dd8b48e342"
-
-[[constraint]]
   name = "github.com/DiSiqueira/GoTree"
   version = "0.2.0"
 
