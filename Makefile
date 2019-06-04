@@ -51,7 +51,7 @@ cover_html:
 ################################
 
 PLATFORMS  := darwin-amd64 linux-amd64 solaris-amd64 freebsd-amd64 openbsd-amd64 linux-arm
-BINARIES   := conch conch-minimal tester corpus
+BINARIES   := conch conch-minimal
 RELEASE_BINARIES := conch
 
 BINS       := $(foreach bin,$(BINARIES),bin/$(bin)) 
