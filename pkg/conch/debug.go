@@ -59,5 +59,9 @@ func init() {
 		Indent:                  "    ",
 		SortKeys:                true,
 		DisablePointerAddresses: true,
+		DisableMethods:          true,
+		DisableCapacities:       true,
+		DisablePointerMethods:   true,
+		SpewKeys:                true,
 	}
 }
