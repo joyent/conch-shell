@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"text/template"
 
 	"github.com/jawher/mow.cli"
@@ -171,15 +172,27 @@ func getOne(app *cli.Cmd) {
 
 func getOneSpecification(app *cli.Cmd) {
 	app.Action = func() {
-		ret, err := util.API.GetHardwareProduct(ProductUUID)
+		h, err := util.API.GetHardwareProduct(ProductUUID)
 		if err != nil {
 			util.Bail(err)
 		}
-		if ret.Specification == "" {
-			fmt.Println("{}")
-			return
+
+		var specification string
+
+		if h.Specification == nil {
+			specification = "{}"
+		} else if reflect.TypeOf(h.Specification).String() == "string" {
+			specification = h.Specification.(string)
+		} else {
+			j, err := json.Marshal(h.Specification)
+			if err != nil {
+				util.Bail(err)
+			}
+
+			specification = string(j)
 		}
-		fmt.Println(ret.Specification)
+
+		fmt.Println(specification)
 	}
 }
 
