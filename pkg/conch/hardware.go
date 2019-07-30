@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
@@ -48,11 +49,13 @@ func (c *Conch) SaveHardwareProduct(h *HardwareProduct) error {
 	}
 
 	var specification string
+
 	if h.Specification == nil {
 		specification = ""
+	} else if reflect.TypeOf(h.Specification).String() == "string" {
+		specification = h.Specification.(string)
 	} else {
 		j, err := json.Marshal(h.Specification)
-
 		if err != nil {
 			return err
 		}
