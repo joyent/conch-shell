@@ -10,10 +10,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/jawher/mow.cli"
-	"github.com/joyent/conch-shell/pkg/util"
 	"io/ioutil"
 	"os"
+
+	cli "github.com/jawher/mow.cli"
+	"github.com/joyent/conch-shell/pkg/util"
 )
 
 func get(cmd *cli.Cmd) {
@@ -25,9 +26,6 @@ func get(cmd *cli.Cmd) {
 			res, err := util.API.RawGet(*cmdArg)
 			if err != nil {
 				util.Bail(err)
-			}
-			if res == nil {
-				util.Bail(errors.New("empty response"))
 			}
 
 			body, err := ioutil.ReadAll(res.Body)
@@ -58,9 +56,6 @@ func deleteAPI(cmd *cli.Cmd) {
 			res, err := util.API.RawDelete(*cmdArg)
 			if err != nil {
 				util.Bail(err)
-			}
-			if res == nil {
-				util.Bail(errors.New("empty response"))
 			}
 
 			body, err := ioutil.ReadAll(res.Body)
@@ -105,9 +100,6 @@ func postAPI(cmd *cli.Cmd) {
 		res, err := util.API.RawPost(*cmdArg, bytes.NewReader(b))
 		if err != nil {
 			util.Bail(err)
-		}
-		if res == nil {
-			util.Bail(errors.New("empty response"))
 		}
 
 		body, err := ioutil.ReadAll(res.Body)

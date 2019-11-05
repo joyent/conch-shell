@@ -15,14 +15,14 @@ import (
 	"reflect"
 	"text/template"
 
-	"github.com/jawher/mow.cli"
+	cli "github.com/jawher/mow.cli"
 	"github.com/joyent/conch-shell/pkg/conch"
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 	"github.com/joyent/conch-shell/pkg/util"
 )
 
 const singleHWPTemplate = `
-ID: {{ .ID }} 
+ID: {{ .ID }}
   Name: {{ .Name }}
   Alias: {{ .Alias }}
   Legacy Product Name: {{ .LegacyProductName }}
@@ -241,6 +241,7 @@ func getAll(app *cli.Cmd) {
 		}
 		type retRow struct {
 			ID      string `json:"id"`
+			SKU     string `json:"sku"`
 			Name    string `json:"name"`
 			Alias   string `json:"alias"`
 			Prefix  string `json:"prefix"`
@@ -261,6 +262,7 @@ func getAll(app *cli.Cmd) {
 
 			rows = append(rows, retRow{
 				r.ID.String(),
+				r.SKU,
 				r.Name,
 				r.Alias,
 				r.Prefix,
@@ -275,10 +277,10 @@ func getAll(app *cli.Cmd) {
 		}
 
 		table := util.GetMarkdownTable()
-		table.SetHeader([]string{"ID", "Name", "Alias", "Prefix", "Vendor", "Purpose"})
+		table.SetHeader([]string{"ID", "SKU", "Name", "Alias", "Prefix", "Vendor", "Purpose"})
 
 		for _, r := range rows {
-			table.Append([]string{r.ID, r.Name, r.Alias, r.Prefix, r.Vendor, r.Purpose})
+			table.Append([]string{r.ID, r.SKU, r.Name, r.Alias, r.Prefix, r.Vendor, r.Purpose})
 		}
 
 		table.Render()
