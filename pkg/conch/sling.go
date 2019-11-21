@@ -238,6 +238,21 @@ func (c *Conch) post(url string, payload interface{}, response interface{}) erro
 	return err
 }
 
+func (c *Conch) postString(url string, body io.Reader, response interface{}) error {
+	req, err := c.sling().New().
+		Post(url).
+		Set("Content-Type", "application/json").
+		Body(body).
+		Request()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = c.httpDo(req, response)
+	return err
+}
+
 func (c *Conch) postNeedsResponse(
 	url string,
 	payload interface{},

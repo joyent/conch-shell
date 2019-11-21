@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 
 	"github.com/joyent/conch-shell/pkg/conch/uuid"
 )
@@ -132,13 +133,9 @@ func (c *Conch) SaveHardwareVendor(v *HardwareVendor) error {
 		return ErrBadInput
 	}
 
-	out := struct {
-		Name string `json:"name"`
-	}{v.Name}
-
-	return c.post(
+	return c.postString(
 		"/hardware_vendor/"+url.PathEscape(v.Name),
-		out,
+		strings.NewReader(""),
 		&v,
 	)
 }
