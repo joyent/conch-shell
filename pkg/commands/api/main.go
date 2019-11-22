@@ -48,12 +48,26 @@ func get(cmd *cli.Cmd) {
 }
 
 func deleteAPI(cmd *cli.Cmd) {
-	var cmdArg = cmd.StringArg("CMD", "", "The API path to DELETE. Must *not* include the hostname or port")
-	cmd.Spec = "CMD"
+	var cmdArg = cmd.StringArg("API", "", "The API path to DELETE. Must *not* include the hostname or port")
+	var filePathArg = cmd.StringArg("FILE", "", "Path to a JSON file to use as the request body. '-' indicates STDIN")
+	cmd.Spec = "API [FILE]"
 	cmd.Action = func() {
 		util.JSON = true
 		if *cmdArg != "" {
-			res, err := util.API.RawDelete(*cmdArg)
+			var b []byte
+			if *filePathArg != "" {
+				var err error
+				if *filePathArg == "-" {
+					b, err = ioutil.ReadAll(os.Stdin)
+				} else {
+					b, err = ioutil.ReadFile(*filePathArg)
+				}
+				if err != nil {
+					util.Bail(err)
+				}
+			}
+
+			res, err := util.API.RawDelete(*cmdArg, bytes.NewReader(b))
 			if err != nil {
 				util.Bail(err)
 			}
