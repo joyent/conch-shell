@@ -287,7 +287,9 @@ func (c *Conch) RawGet(url string) (*http.Response, error) {
 // RawDelete allows the user to perform an HTTP DELETE against the API, with the
 // library handling all auth but *not* processing the response.
 func (c *Conch) RawDelete(url string, body io.Reader) (*http.Response, error) {
-	req, err := c.sling().New().Delete(url).Body(body).Request()
+	req, err := c.sling().New().Delete(url).
+		Set("Content-Type", "application/json").Body(body).Request()
+
 	if err != nil {
 		return nil, err
 	}

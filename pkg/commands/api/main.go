@@ -53,44 +53,44 @@ func deleteAPI(cmd *cli.Cmd) {
 	cmd.Spec = "API [FILE]"
 	cmd.Action = func() {
 		util.JSON = true
-		if *cmdArg != "" {
-			var b []byte
-			if *filePathArg != "" {
-				var err error
-				if *filePathArg == "-" {
-					b, err = ioutil.ReadAll(os.Stdin)
-				} else {
-					b, err = ioutil.ReadFile(*filePathArg)
-				}
-				if err != nil {
-					util.Bail(err)
-				}
+		var b []byte
+		if *filePathArg != "" {
+			var err error
+			if *filePathArg == "-" {
+				b, err = ioutil.ReadAll(os.Stdin)
+			} else {
+				b, err = ioutil.ReadFile(*filePathArg)
 			}
-
-			res, err := util.API.RawDelete(*cmdArg, bytes.NewReader(b))
 			if err != nil {
 				util.Bail(err)
 			}
-
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				util.Bail(err)
-			}
-			bodyStr := string(body)
-
-			if res.StatusCode != 200 {
-				if res.StatusCode != 204 {
-					errStr := fmt.Sprintf(
-						"HTTP Error: Status: %s\nBody: %s\n",
-						res.Status,
-						bodyStr,
-					)
-					util.Bail(errors.New(errStr))
-				}
-			}
-			fmt.Println(bodyStr)
-
 		}
+
+		s := string(b)
+		fmt.Println(s)
+
+		res, err := util.API.RawDelete(*cmdArg, bytes.NewReader(b))
+		if err != nil {
+			util.Bail(err)
+		}
+
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			util.Bail(err)
+		}
+		bodyStr := string(body)
+
+		if res.StatusCode != 200 {
+			if res.StatusCode != 204 {
+				errStr := fmt.Sprintf(
+					"HTTP Error: Status: %s\nBody: %s\n",
+					res.Status,
+					bodyStr,
+				)
+				util.Bail(errors.New(errStr))
+			}
+		}
+		fmt.Println(bodyStr)
 	}
 }
 
